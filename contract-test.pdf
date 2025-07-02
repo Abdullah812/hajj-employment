@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>تسجيل الدخول</title>
+    
+    <!-- Bootstrap RTL CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gold: #b47e13;
+            --primary-orange: #be7b06;
+            --dark-brown: #40260d;
+            --dark-olive: #2a2a00;
+            --almost-black: #111111;
+            --text-dark: #111111;
+            --text-muted: #666666;
+            --light-gray: #f8f9fa;
+        }
+        
+        html, body {
+            height: 100%;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+        }
+        
+        /* Primary Colors */
+        .text-primary {
+            color: var(--primary-gold) !important;
+        }
+        
+        .bg-primary {
+            background-color: var(--primary-gold) !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-gold);
+            border-color: var(--primary-gold);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-orange);
+            border-color: var(--primary-orange);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-gold);
+            border-color: var(--primary-gold);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-gold);
+            border-color: var(--primary-gold);
+            color: white;
+        }
+        
+        /* Success Colors */
+        .text-success {
+            color: var(--primary-orange) !important;
+        }
+        
+        .bg-success {
+            background-color: var(--primary-orange) !important;
+        }
+        
+        .btn-success {
+            background-color: var(--primary-orange);
+            border-color: var(--primary-orange);
+            color: white;
+        }
+        
+        .btn-outline-success {
+            color: var(--primary-orange);
+            border-color: var(--primary-orange);
+        }
+        
+        .btn-outline-success:hover {
+            background-color: var(--primary-orange);
+            border-color: var(--primary-orange);
+            color: white;
+        }
+        
+        /* Warning Colors */
+        .text-warning {
+            color: var(--dark-brown) !important;
+        }
+        
+        .bg-warning {
+            background-color: var(--dark-brown) !important;
+            color: white !important;
+        }
+        
+        .btn-warning {
+            background-color: var(--dark-brown);
+            border-color: var(--dark-brown);
+            color: white;
+        }
+        
+        .btn-outline-warning {
+            color: var(--dark-brown);
+            border-color: var(--dark-brown);
+        }
+        
+        .btn-outline-warning:hover {
+            background-color: var(--dark-brown);
+            border-color: var(--dark-brown);
+            color: white;
+        }
+        
+        /* Info Colors */
+        .text-info {
+            color: var(--dark-olive) !important;
+        }
+        
+        .bg-info {
+            background-color: var(--dark-olive) !important;
+            color: white !important;
+        }
+        
+        .btn-info {
+            background-color: var(--dark-olive);
+            border-color: var(--dark-olive);
+            color: white;
+        }
+        
+        .btn-outline-info {
+            color: var(--dark-olive);
+            border-color: var(--dark-olive);
+        }
+        
+        .btn-outline-info:hover {
+            background-color: var(--dark-olive);
+            border-color: var(--dark-olive);
+            color: white;
+        }
+        
+        /* Custom borders */
+        .border-primary {
+            border-color: var(--primary-gold) !important;
+        }
+        
+        .border-success {
+            border-color: var(--primary-orange) !important;
+        }
+        
+        /* Text colors */
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+        
+        /* Background opacity variations */
+        .bg-primary.bg-opacity-10 {
+            background-color: rgba(180, 126, 19, 0.1) !important;
+        }
+        
+        .bg-success.bg-opacity-10 {
+            background-color: rgba(190, 123, 6, 0.1) !important;
+        }
+        
+        .bg-warning.bg-opacity-10 {
+            background-color: rgba(64, 38, 13, 0.1) !important;
+        }
+        
+        .bg-info.bg-opacity-10 {
+            background-color: rgba(42, 42, 0, 0.1) !important;
+        }
+        
+        /* Card enhancements - تحسين مخفف للتأثيرات */
+        .card {
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            border: 1px solid #e9ecef;
+        }
+        
+        .card:hover:not(.modal .card) {
+            box-shadow: 0 4px 12px rgba(180, 126, 19, 0.15) !important;
+            border-color: rgba(180, 126, 19, 0.3);
+        }
+        
+        /* Modal fixes */
+        .modal {
+            --bs-modal-zindex: 1055;
+        }
+        
+        .modal-backdrop {
+            --bs-backdrop-zindex: 1050;
+            --bs-backdrop-bg: #000;
+            --bs-backdrop-opacity: 0.5;
+        }
+        
+        .modal.fade .modal-dialog {
+            transition: transform 0.3s ease-out;
+            transform: translate(0, -50px);
+        }
+        
+        .modal.show .modal-dialog {
+            transform: none;
+        }
+        
+        .modal-dialog {
+            max-width: 500px;
+            margin: 1.75rem auto;
+        }
+        
+        .modal-lg {
+            max-width: 800px !important;
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 15px 15px 0 0;
+            background-color: #f8f9fa;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid #dee2e6;
+            border-radius: 0 0 15px 15px;
+            background-color: #f8f9fa;
+        }
+        
+        /* Navbar styling */
+        .navbar {
+            border-bottom: 3px solid var(--primary-gold);
+        }
+        
+        /* Main content area */
+        main {
+            flex: 1;
+        }
+        
+        /* Auth pages styling */
+        .min-vh-100 {
+            min-height: calc(100vh - 120px) !important;
+        }
+        
+        .card {
+            border-radius: 15px;
+            border: none;
+        }
+        
+        .card-header {
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem 1rem;
+        }
+        
+        .card-body {
+            padding: 2rem;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 0.2rem rgba(180, 126, 19, 0.25);
+        }
+        
+        .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+        }
+        
+        .form-select:focus {
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 0.2rem rgba(180, 126, 19, 0.25);
+        }
+        
+        .btn {
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+        
+        /* Footer styling */
+        footer.bg-dark {
+            background-color: var(--almost-black) !important;
+            margin-top: auto;
+        }
+        
+        /* Performance optimizations */
+        * {
+            box-sizing: border-box;
+        }
+        
+        /* Prevent modal flickering */
+        .modal-backdrop.show {
+            opacity: 0.5;
+        }
+        
+        .modal.fade .modal-dialog {
+            transition: transform 0.3s ease-out;
+        }
+        
+        .modal.show .modal-dialog {
+            transform: none;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Prevent layout shift */
+        .modal-open {
+            overflow: hidden !important;
+            padding-right: 0 !important;
+        }
+        
+        /* Enhanced modal appearance */
+        .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .modal-body::-webkit-scrollbar-thumb {
+            background: var(--primary-gold);
+            border-radius: 10px;
+        }
+        
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-orange);
+        }
+        
+        /* Additional modal states */
+        body.modal-opening,
+        body.modal-closing {
+            overflow: hidden !important;
+        }
+        
+        body.modal-opening .card,
+        body.modal-closing .card {
+            transition: none !important;
+            transform: none !important;
+        }
+        
+        /* Prevent any interference with modal animation */
+        .modal.fade .modal-dialog {
+            transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+            transform: translateY(-25px);
+            opacity: 0;
+        }
+        
+        .modal.show .modal-dialog {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Ensure smooth backdrop */
+        .modal-backdrop {
+            transition: opacity 0.25s ease-out;
+        }
+        
+        .modal-backdrop.fade {
+            opacity: 0;
+        }
+        
+        .modal-backdrop.show {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand text-primary" href="http://127.0.0.1:8000">
+                <i class="fas fa-kaaba me-2"></i>
+                شركة مناسك المشاعر
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://127.0.0.1:8000">الرئيسية</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://127.0.0.1:8000/jobs">الوظائف</a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                                            <li class="nav-item">
+                            <a class="nav-link" href="http://127.0.0.1:8000/login">تسجيل الدخول</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary btn-sm ms-2" href="http://127.0.0.1:8000/register">إنشاء حساب</a>
+                        </li>
+                                    </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        
+        
+        <div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4>تسجيل الدخول</h4>
+                    <p>مرحباً بك في شركة مناسك المشاعر</p>
+                </div>
+                <div class="card-body">
+                                        
+                    <form method="POST" action="http://127.0.0.1:8000/login">
+                        <input type="hidden" name="_token" value="mtbZEWQSD098zdgvRPNDUGLsnRjWs1cIQq0gVSAE" autocomplete="off">                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">البريد الإلكتروني</label>
+                            <input type="email" class="form-control " 
+                                   id="email" name="email" value="" required>
+                                                    </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">كلمة المرور</label>
+                            <input type="password" class="form-control " 
+                                   id="password" name="password" required>
+                                                    </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">
+                                تذكرني
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                تسجيل الدخول
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <p>ليس لديك حساب؟ <a href="http://127.0.0.1:8000/register" class="text-primary">إنشاء حساب جديد</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>شركة مناسك المشاعر</h5>
+                    <p class="mb-0">شركة سعودية مرخصة من وزارة الحج والعمرة منذ 1984م</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">&copy; 2025 شركة مناسك المشاعر - جميع الحقوق محفوظة</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Modal Enhancement Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // تحسين أداء النوافذ المنبثقة
+            const modals = document.querySelectorAll('.modal');
+            
+            modals.forEach(function(modal) {
+                // إصلاح مشكلة الحركة المتقطعة
+                modal.addEventListener('show.bs.modal', function() {
+                    document.body.style.paddingRight = '0px';
+                    document.body.style.overflow = 'hidden';
+                });
+                
+                modal.addEventListener('hidden.bs.modal', function() {
+                    document.body.style.paddingRight = '';
+                    document.body.style.overflow = '';
+                });
+                
+                // تحسين الأداء
+                modal.addEventListener('shown.bs.modal', function() {
+                    const firstInput = modal.querySelector('input, textarea, select');
+                    if (firstInput) {
+                        firstInput.focus();
+                    }
+                });
+            });
+            
+            // منع تداخل النوافذ
+            document.addEventListener('click', function(e) {
+                if (e.target.matches('[data-bs-dismiss="modal"]')) {
+                    const modal = e.target.closest('.modal');
+                    if (modal) {
+                        const bsModal = bootstrap.Modal.getInstance(modal);
+                        if (bsModal) {
+                            bsModal.hide();
+                        }
+                    }
+                }
+            });
+            
+            // إصلاح مشكلة الـ scrolling
+            let scrollY = 0;
+            document.addEventListener('show.bs.modal', function() {
+                scrollY = window.scrollY;
+                document.body.style.position = 'fixed';
+                document.body.style.top = `-${scrollY}px`;
+                document.body.style.width = '100%';
+            });
+            
+            document.addEventListener('hidden.bs.modal', function() {
+                document.body.style.position = '';
+                document.body.style.top = '';
+                document.body.style.width = '';
+                window.scrollTo(0, scrollY);
+            });
+        });
+    </script>
+    
+    </body>
+</html> 
