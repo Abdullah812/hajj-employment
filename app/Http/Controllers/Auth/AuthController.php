@@ -19,11 +19,19 @@ class AuthController extends Controller
         // إذا كان المستخدم مسجل دخول بالفعل، وجهه إلى لوحة التحكم المناسبة
         if (Auth::check()) {
             $user = Auth::user();
-            if ($user->hasRole('admin')) {
+            
+            // تحسين الأداء: استعلام واحد للحصول على الدور
+            $userRole = \DB::table('model_has_roles')
+                ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->where('model_has_roles.model_id', $user->id)
+                ->where('model_has_roles.model_type', 'App\\Models\\User')
+                ->value('roles.name');
+            
+            if ($userRole === 'admin') {
                 return redirect('/admin/dashboard');
-            } elseif ($user->hasRole('company')) {
+            } elseif ($userRole === 'company') {
                 return redirect('/company/dashboard');
-            } elseif ($user->hasRole('employee')) {
+            } elseif ($userRole === 'employee') {
                 return redirect('/employee/dashboard');
             }
             return redirect('/dashboard');
@@ -60,14 +68,21 @@ class AuthController extends Controller
             if (Auth::attempt($credentials, $remember)) {
                 $request->session()->regenerate();
 
-                // توجيه المستخدم حسب دوره - استخدام redirect عادي بدلاً من intended
+                // توجيه المستخدم حسب دوره - محسن للأداء
                 $user = Auth::user();
                 
-                if ($user->hasRole('admin')) {
+                // تحسين الأداء: استعلام واحد للحصول على الدور
+                $userRole = \DB::table('model_has_roles')
+                    ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                    ->where('model_has_roles.model_id', $user->id)
+                    ->where('model_has_roles.model_type', 'App\\Models\\User')
+                    ->value('roles.name');
+                
+                if ($userRole === 'admin') {
                     return redirect('/admin/dashboard')->with('success', 'مرحباً بك في لوحة الإدارة');
-                } elseif ($user->hasRole('company')) {
+                } elseif ($userRole === 'company') {
                     return redirect('/company/dashboard')->with('success', 'مرحباً بك في لوحة تحكم الشركة');
-                } elseif ($user->hasRole('employee')) {
+                } elseif ($userRole === 'employee') {
                     return redirect('/employee/dashboard')->with('success', 'مرحباً بك في لوحة تحكم الموظف');
                 }
 
@@ -93,11 +108,19 @@ class AuthController extends Controller
         // إذا كان المستخدم مسجل دخول بالفعل، وجهه إلى لوحة التحكم المناسبة
         if (Auth::check()) {
             $user = Auth::user();
-            if ($user->hasRole('admin')) {
+            
+            // تحسين الأداء: استعلام واحد للحصول على الدور
+            $userRole = \DB::table('model_has_roles')
+                ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->where('model_has_roles.model_id', $user->id)
+                ->where('model_has_roles.model_type', 'App\\Models\\User')
+                ->value('roles.name');
+            
+            if ($userRole === 'admin') {
                 return redirect('/admin/dashboard');
-            } elseif ($user->hasRole('company')) {
+            } elseif ($userRole === 'company') {
                 return redirect('/company/dashboard');
-            } elseif ($user->hasRole('employee')) {
+            } elseif ($userRole === 'employee') {
                 return redirect('/employee/dashboard');
             }
             return redirect('/dashboard');
@@ -134,21 +157,41 @@ class AuthController extends Controller
                 ->withInput();
         }
 
-        // إنشاء المستخدم
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        // تعيين الدور
-        $user->assignRole($request->role);
-
-        // تسجيل دخول المستخدم تلقائياً
-        Auth::login($user);
+        // استخدام Database Transaction للأداء والأمان
+        \DB::beginTransaction();
         
-        // إعادة إنشاء الجلسة للأمان
-        $request->session()->regenerate();
+        try {
+            // إنشاء المستخدم
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
+
+            // تعيين الدور مع تحسين الأداء
+            \DB::table('model_has_roles')->insert([
+                'role_id' => \DB::table('roles')->where('name', $request->role)->value('id'),
+                'model_type' => 'App\\Models\\User',
+                'model_id' => $user->id,
+            ]);
+
+            \DB::commit();
+            
+            // تنظيف cache الأدوار
+            \Cache::forget('spatie.permission.cache');
+            
+            // تسجيل دخول المستخدم تلقائياً
+            Auth::login($user);
+            
+            // إعادة إنشاء الجلسة للأمان
+            $request->session()->regenerate();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Registration error: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'حدث خطأ أثناء إنشاء الحساب. حاول مرة أخرى.');
+        }
 
         // توجيه المستخدم حسب دوره
         if ($request->role === 'company') {

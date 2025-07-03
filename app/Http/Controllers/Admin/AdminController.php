@@ -15,35 +15,90 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
-        // إحصائيات عامة
-        $totalUsers = User::count();
-        $totalCompanies = User::role('company')->count();
-        $totalEmployees = User::role('employee')->count();
-        $totalJobs = HajjJob::count();
-        $activeJobs = HajjJob::where('status', 'active')->count();
-        $inactiveJobs = HajjJob::where('status', 'inactive')->count();
-        $closedJobs = HajjJob::where('status', 'closed')->count();
-        $totalApplications = JobApplication::count();
-        $pendingApplications = JobApplication::where('status', 'pending')->count();
-        $acceptedApplications = JobApplication::where('status', 'approved')->count();
-        $rejectedApplications = JobApplication::where('status', 'rejected')->count();
+        // تحسين الأداء: تجميع جميع الاستعلامات في استعلامات محسنة
         
-        // إحصائيات هذا الشهر
-        $newUsersThisMonth = User::whereMonth('created_at', now()->month)->count();
-        $newJobsThisMonth = HajjJob::whereMonth('created_at', now()->month)->count();
-        $newApplicationsThisMonth = JobApplication::whereMonth('created_at', now()->month)->count();
+        // إحصائيات المستخدمين بـ query واحد
+        $userStats = \DB::table('users')
+            ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->select(
+                \DB::raw('COUNT(users.id) as total_users'),
+                \DB::raw('COUNT(CASE WHEN roles.name = "company" THEN 1 END) as total_companies'),
+                \DB::raw('COUNT(CASE WHEN roles.name = "employee" THEN 1 END) as total_employees'),
+                \DB::raw('COUNT(CASE WHEN users.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_users_this_month'),
+                \DB::raw('COUNT(CASE WHEN DATE(users.created_at) = CURDATE() THEN 1 END) as today_registrations')
+            )
+            ->where('model_has_roles.model_type', 'App\\Models\\User')
+            ->first();
         
-        // إحصائيات اليوم
-        $todayRegistrations = User::whereDate('created_at', today())->count();
-        $todayJobs = HajjJob::whereDate('created_at', today())->count();
-        $todayApplications = JobApplication::whereDate('created_at', today())->count();
+        // إحصائيات الوظائف بـ query واحد
+        $jobStats = \DB::table('hajj_jobs')
+            ->select(
+                \DB::raw('COUNT(*) as total_jobs'),
+                \DB::raw('COUNT(CASE WHEN status = "active" THEN 1 END) as active_jobs'),
+                \DB::raw('COUNT(CASE WHEN status = "inactive" THEN 1 END) as inactive_jobs'),
+                \DB::raw('COUNT(CASE WHEN status = "closed" THEN 1 END) as closed_jobs'),
+                \DB::raw('COUNT(CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_jobs_this_month'),
+                \DB::raw('COUNT(CASE WHEN DATE(created_at) = CURDATE() THEN 1 END) as today_jobs')
+            )
+            ->first();
         
-        // أحدث الأنشطة
-        $recentUsers = User::latest()->take(5)->get();
-        $recentJobs = HajjJob::with('company')->withCount('applications')->latest()->take(5)->get();
-        $recent_jobs = HajjJob::with('company')->withCount('applications')->latest()->take(5)->get();
-        $recentApplications = JobApplication::with(['user', 'job'])->latest()->take(5)->get();
-        $recent_applications = JobApplication::with(['user', 'job'])->latest()->take(5)->get();
+        // إحصائيات الطلبات بـ query واحد
+        $applicationStats = \DB::table('job_applications')
+            ->select(
+                \DB::raw('COUNT(*) as total_applications'),
+                \DB::raw('COUNT(CASE WHEN status = "pending" THEN 1 END) as pending_applications'),
+                \DB::raw('COUNT(CASE WHEN status = "approved" THEN 1 END) as accepted_applications'),
+                \DB::raw('COUNT(CASE WHEN status = "rejected" THEN 1 END) as rejected_applications'),
+                \DB::raw('COUNT(CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_applications_this_month'),
+                \DB::raw('COUNT(CASE WHEN DATE(created_at) = CURDATE() THEN 1 END) as today_applications')
+            )
+            ->first();
+        
+        // تعيين المتغيرات للتوافق مع العرض
+        $totalUsers = $userStats->total_users;
+        $totalCompanies = $userStats->total_companies;
+        $totalEmployees = $userStats->total_employees;
+        $totalJobs = $jobStats->total_jobs;
+        $activeJobs = $jobStats->active_jobs;
+        $inactiveJobs = $jobStats->inactive_jobs;
+        $closedJobs = $jobStats->closed_jobs;
+        $totalApplications = $applicationStats->total_applications;
+        $pendingApplications = $applicationStats->pending_applications;
+        $acceptedApplications = $applicationStats->accepted_applications;
+        $rejectedApplications = $applicationStats->rejected_applications;
+        $newUsersThisMonth = $userStats->new_users_this_month;
+        $newJobsThisMonth = $jobStats->new_jobs_this_month;
+        $newApplicationsThisMonth = $applicationStats->new_applications_this_month;
+        $todayRegistrations = $userStats->today_registrations;
+        $todayJobs = $jobStats->today_jobs;
+        $todayApplications = $applicationStats->today_applications;
+        
+        // أحدث الأنشطة مع تحسين العلاقات
+        $recentUsers = User::select('id', 'name', 'email', 'created_at')
+            ->latest()
+            ->take(5)
+            ->get();
+        
+        $recentJobs = HajjJob::select('id', 'title', 'company_id', 'status', 'created_at')
+            ->with(['company:id,name'])
+            ->withCount('applications')
+            ->latest()
+            ->take(5)
+            ->get();
+        
+        $recent_jobs = $recentJobs; // للتوافق مع العرض
+        
+        $recentApplications = JobApplication::select('id', 'user_id', 'job_id', 'status', 'created_at')
+            ->with([
+                'user:id,name,email',
+                'job:id,title,company_id'
+            ])
+            ->latest()
+            ->take(5)
+            ->get();
+        
+        $recent_applications = $recentApplications; // للتوافق مع العرض
         
         // مؤشرات الأداء الرئيسية (KPIs)
         $kpis = $this->calculateKPIs();
@@ -102,22 +157,39 @@ class AdminController extends Controller
         ));
     }
 
-    // إدارة المستخدمين
+    // إدارة المستخدمين - محسن للأداء
     public function users()
     {
-        $users = User::with('roles')->latest()->paginate(15);
+        $users = User::select('id', 'name', 'email', 'created_at', 'updated_at')
+            ->with(['roles:id,name'])
+            ->latest()
+            ->paginate(15);
         return view('admin.users.index', compact('users'));
     }
     
     public function companies()
     {
-        $companies = User::role('company')->with('profile')->latest()->paginate(15);
+        $companies = User::select('users.id', 'users.name', 'users.email', 'users.created_at')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', 'company')
+            ->where('model_has_roles.model_type', 'App\\Models\\User')
+            ->with(['profile:user_id,company_name,company_phone,company_address'])
+            ->latest('users.created_at')
+            ->paginate(15);
         return view('admin.companies.index', compact('companies'));
     }
     
     public function employees()
     {
-        $employees = User::role('employee')->with('profile')->latest()->paginate(15);
+        $employees = User::select('users.id', 'users.name', 'users.email', 'users.created_at')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', 'employee')
+            ->where('model_has_roles.model_type', 'App\\Models\\User')
+            ->with(['profile:user_id,phone,national_id,birth_date'])
+            ->latest('users.created_at')
+            ->paginate(15);
         return view('admin.employees.index', compact('employees'));
     }
     
@@ -140,7 +212,11 @@ class AdminController extends Controller
             'phone' => 'nullable|string|max:20',
         ]);
         
+        // استخدام Database Transaction للأداء والأمان
+        \DB::beginTransaction();
+        
         try {
+            // إنشاء المستخدم
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -148,26 +224,44 @@ class AdminController extends Controller
                 'email_verified_at' => now(),
             ]);
             
-            $user->assignRole($request->role);
+            // تعيين الدور مع تحسين الأداء
+            \DB::table('model_has_roles')->insert([
+                'role_id' => \DB::table('roles')->where('name', $request->role)->value('id'),
+                'model_type' => 'App\\Models\\User',
+                'model_id' => $user->id,
+            ]);
             
             // إضافة معلومات الملف الشخصي حسب النوع
             if ($request->role === 'company') {
-                $user->profile()->create([
+                \DB::table('user_profiles')->insert([
+                    'user_id' => $user->id,
                     'company_name' => $request->company_name,
                     'company_phone' => $request->company_phone,
                     'company_address' => $request->company_address,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             } elseif ($request->role === 'employee') {
-                $user->profile()->create([
+                \DB::table('user_profiles')->insert([
+                    'user_id' => $user->id,
                     'phone' => $request->phone,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
+            
+            \DB::commit();
+            
+            // تنظيف cache الأدوار
+            \Cache::forget('spatie.permission.cache');
             
             $roleText = $request->role == 'admin' ? 'مدير' : ($request->role == 'company' ? 'شركة' : 'موظف');
             
             return redirect()->route('admin.users.index')->with('success', 'تم إنشاء ' . $roleText . ' جديد: ' . $user->name . ' بنجاح');
             
         } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('User creation error: ' . $e->getMessage());
             return redirect()->back()->withInput()->with('error', 'حدث خطأ أثناء إنشاء المستخدم: ' . $e->getMessage());
         }
     }
@@ -264,10 +358,14 @@ class AdminController extends Controller
         }
     }
 
-    // إدارة الوظائف
+    // إدارة الوظائف - محسن للأداء
     public function jobs()
     {
-        $jobs = HajjJob::with(['company', 'applications'])->withCount('applications')->latest()->paginate(15);
+        $jobs = HajjJob::select('id', 'title', 'description', 'company_id', 'status', 'salary_range', 'location', 'created_at')
+            ->with(['company:id,name'])
+            ->withCount('applications')
+            ->latest()
+            ->paginate(15);
         return view('admin.jobs.index', compact('jobs'));
     }
     
@@ -286,10 +384,17 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'تم حذف الوظيفة بنجاح');
     }
 
-    // إدارة طلبات التوظيف
+    // إدارة طلبات التوظيف - محسن للأداء
     public function applications()
     {
-        $applications = JobApplication::with(['user', 'job', 'job.company'])->latest()->paginate(15);
+        $applications = JobApplication::select('id', 'user_id', 'job_id', 'status', 'notes', 'created_at')
+            ->with([
+                'user:id,name,email',
+                'job:id,title,company_id',
+                'job.company:id,name'
+            ])
+            ->latest()
+            ->paginate(15);
         return view('admin.applications.index', compact('applications'));
     }
     
