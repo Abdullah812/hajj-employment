@@ -16,6 +16,19 @@ class AuthController extends Controller
      */
     public function showLoginForm()
     {
+        // إذا كان المستخدم مسجل دخول بالفعل، وجهه إلى لوحة التحكم المناسبة
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->hasRole('admin')) {
+                return redirect('/admin/dashboard');
+            } elseif ($user->hasRole('company')) {
+                return redirect('/company/dashboard');
+            } elseif ($user->hasRole('employee')) {
+                return redirect('/employee/dashboard');
+            }
+            return redirect('/dashboard');
+        }
+        
         return view('auth.login');
     }
 
@@ -24,11 +37,6 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        // معالجة خطأ CSRF
-        if (!$request->hasValidSignature() && !$request->hasSession()) {
-            return redirect()->route('login')->with('error', 'انتهت صلاحية الجلسة. حاول مرة أخرى.');
-        }
-
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
@@ -52,19 +60,21 @@ class AuthController extends Controller
             if (Auth::attempt($credentials, $remember)) {
                 $request->session()->regenerate();
 
-                // توجيه المستخدم حسب دوره
+                // توجيه المستخدم حسب دوره - استخدام redirect عادي بدلاً من intended
                 $user = Auth::user();
+                
                 if ($user->hasRole('admin')) {
-                    return redirect()->intended('/admin/dashboard');
+                    return redirect('/admin/dashboard')->with('success', 'مرحباً بك في لوحة الإدارة');
                 } elseif ($user->hasRole('company')) {
-                    return redirect()->intended('/company/dashboard');
+                    return redirect('/company/dashboard')->with('success', 'مرحباً بك في لوحة تحكم الشركة');
                 } elseif ($user->hasRole('employee')) {
-                    return redirect()->intended('/employee/dashboard');
+                    return redirect('/employee/dashboard')->with('success', 'مرحباً بك في لوحة تحكم الموظف');
                 }
 
-                return redirect()->intended('/dashboard');
+                return redirect('/dashboard')->with('success', 'تم تسجيل الدخول بنجاح');
             }
         } catch (\Exception $e) {
+            \Log::error('Login error: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'حدث خطأ أثناء تسجيل الدخول. حاول مرة أخرى.')
                 ->withInput();
@@ -80,6 +90,19 @@ class AuthController extends Controller
      */
     public function showRegisterForm()
     {
+        // إذا كان المستخدم مسجل دخول بالفعل، وجهه إلى لوحة التحكم المناسبة
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->hasRole('admin')) {
+                return redirect('/admin/dashboard');
+            } elseif ($user->hasRole('company')) {
+                return redirect('/company/dashboard');
+            } elseif ($user->hasRole('employee')) {
+                return redirect('/employee/dashboard');
+            }
+            return redirect('/dashboard');
+        }
+        
         return view('auth.register');
     }
 
@@ -123,15 +146,18 @@ class AuthController extends Controller
 
         // تسجيل دخول المستخدم تلقائياً
         Auth::login($user);
+        
+        // إعادة إنشاء الجلسة للأمان
+        $request->session()->regenerate();
 
         // توجيه المستخدم حسب دوره
         if ($request->role === 'company') {
-            return redirect('/company/dashboard')->with('success', 'تم إنشاء الحساب بنجاح!');
+            return redirect('/company/dashboard')->with('success', "مرحباً {$user->name}! تم إنشاء حساب الشركة بنجاح");
         } elseif ($request->role === 'employee') {
-            return redirect('/employee/dashboard')->with('success', 'تم إنشاء الحساب بنجاح!');
+            return redirect('/employee/dashboard')->with('success', "مرحباً {$user->name}! تم إنشاء حساب الموظف بنجاح");
         }
 
-        return redirect('/dashboard')->with('success', 'تم إنشاء الحساب بنجاح!');
+        return redirect('/dashboard')->with('success', "مرحباً {$user->name}! تم إنشاء الحساب بنجاح");
     }
 
     /**
@@ -139,11 +165,18 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        // التأكد من أن المستخدم مسجل دخول
+        if (!Auth::check()) {
+            return redirect('/')->with('info', 'أنت غير مسجل دخول');
+        }
+
+        $userName = Auth::user()->name;
+        
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/')->with('success', 'تم تسجيل الخروج بنجاح');
+        return redirect('/')->with('success', "تم تسجيل خروج {$userName} بنجاح");
     }
 }

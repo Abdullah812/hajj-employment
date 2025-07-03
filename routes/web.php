@@ -10,6 +10,18 @@ use App\Http\Controllers\ContractController;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 Route::get('/', function () {
+    // إذا كان المستخدم مسجل دخول، وجهه إلى لوحة التحكم المناسبة
+    if (Auth::check()) {
+        $user = Auth::user();
+        if ($user->hasRole('admin')) {
+            return redirect('/admin/dashboard');
+        } elseif ($user->hasRole('company')) {
+            return redirect('/company/dashboard');
+        } elseif ($user->hasRole('employee')) {
+            return redirect('/employee/dashboard');
+        }
+        return redirect('/dashboard');
+    }
     return view('welcome');
 })->name('home');
 
@@ -19,11 +31,14 @@ Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
 Route::post('/jobs/{job}/apply', [JobController::class, 'apply'])->name('jobs.apply');
 
 // مسارات المصادقة
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::middleware(['guest'])->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+});
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // مسار تحديث CSRF Token
 Route::get('/csrf-token', function() {

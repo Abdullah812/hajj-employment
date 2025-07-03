@@ -51,8 +51,12 @@
                         </div>
                         
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                تسجيل الدخول
+                            <button type="submit" class="btn btn-primary" id="loginBtn">
+                                <span class="btn-text">تسجيل الدخول</span>
+                                <span class="btn-loading d-none">
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    جاري تسجيل الدخول...
+                                </span>
                             </button>
                         </div>
                     </form>
@@ -65,4 +69,65 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.querySelector('form');
+    const loginBtn = document.getElementById('loginBtn');
+    const btnText = loginBtn.querySelector('.btn-text');
+    const btnLoading = loginBtn.querySelector('.btn-loading');
+    
+    let isSubmitting = false;
+    
+    loginForm.addEventListener('submit', function(e) {
+        // منع التسليم المتكرر
+        if (isSubmitting) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // تحقق من صحة البيانات
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        
+        if (!email || !password) {
+            e.preventDefault();
+            alert('يرجى إدخال البريد الإلكتروني وكلمة المرور');
+            return false;
+        }
+        
+        // تحقق من صحة البريد الإلكتروني
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            e.preventDefault();
+            alert('يرجى إدخال بريد إلكتروني صحيح');
+            return false;
+        }
+        
+        // عرض تحميل
+        isSubmitting = true;
+        loginBtn.disabled = true;
+        btnText.classList.add('d-none');
+        btnLoading.classList.remove('d-none');
+        
+        // إعادة تفعيل الزر بعد مهلة زمنية (في حالة فشل التسليم)
+        setTimeout(function() {
+            if (isSubmitting) {
+                isSubmitting = false;
+                loginBtn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnLoading.classList.add('d-none');
+            }
+        }, 30000); // 30 ثانية
+    });
+    
+    // معالجة إعادة التوجيه في حالة وجود session مسبق
+    if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD) {
+        // المستخدم عاد من المتصفح، أعد تحميل الصفحة
+        window.location.reload();
+    }
+});
+</script>
+@endpush 
