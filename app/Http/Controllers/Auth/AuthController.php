@@ -24,6 +24,11 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        // معالجة خطأ CSRF
+        if (!$request->hasValidSignature() && !$request->hasSession()) {
+            return redirect()->route('login')->with('error', 'انتهت صلاحية الجلسة. حاول مرة أخرى.');
+        }
+
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
@@ -43,20 +48,26 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->has('remember');
 
-        if (Auth::attempt($credentials, $remember)) {
-            $request->session()->regenerate();
+        try {
+            if (Auth::attempt($credentials, $remember)) {
+                $request->session()->regenerate();
 
-            // توجيه المستخدم حسب دوره
-            $user = Auth::user();
-            if ($user->hasRole('admin')) {
-                return redirect()->intended('/admin/dashboard');
-            } elseif ($user->hasRole('company')) {
-                return redirect()->intended('/company/dashboard');
-            } elseif ($user->hasRole('employee')) {
-                return redirect()->intended('/employee/dashboard');
+                // توجيه المستخدم حسب دوره
+                $user = Auth::user();
+                if ($user->hasRole('admin')) {
+                    return redirect()->intended('/admin/dashboard');
+                } elseif ($user->hasRole('company')) {
+                    return redirect()->intended('/company/dashboard');
+                } elseif ($user->hasRole('employee')) {
+                    return redirect()->intended('/employee/dashboard');
+                }
+
+                return redirect()->intended('/dashboard');
             }
-
-            return redirect()->intended('/dashboard');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'حدث خطأ أثناء تسجيل الدخول. حاول مرة أخرى.')
+                ->withInput();
         }
 
         return redirect()->back()

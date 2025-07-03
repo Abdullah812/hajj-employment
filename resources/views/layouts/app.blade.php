@@ -803,5 +803,90 @@
     @endauth
     
     @stack('scripts')
+    
+    <!-- CSRF and Session Management Script -->
+    <script>
+        // إعداد CSRF Token للطلبات AJAX
+        window.Laravel = {
+            csrfToken: '{{ csrf_token() }}'
+        };
+        
+        // إعداد axios للاستخدام مع CSRF
+        if (typeof axios !== 'undefined') {
+            axios.defaults.headers.common['X-CSRF-TOKEN'] = window.Laravel.csrfToken;
+        }
+        
+        // إعداد jQuery للاستخدام مع CSRF
+        if (typeof $ !== 'undefined') {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': window.Laravel.csrfToken
+                }
+            });
+        }
+
+        // معالجة انتهاء Session وخطأ CSRF
+        document.addEventListener('DOMContentLoaded', function() {
+            // تحديث CSRF Token كل 10 دقائق
+            setInterval(function() {
+                fetch('/csrf-token', {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.token) {
+                        window.Laravel.csrfToken = data.token;
+                        document.querySelector('meta[name="csrf-token"]').setAttribute('content', data.token);
+                        
+                        // تحديث جميع input fields hidden للـ CSRF
+                        document.querySelectorAll('input[name="_token"]').forEach(input => {
+                            input.value = data.token;
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.log('خطأ في تحديث CSRF Token:', error);
+                });
+            }, 600000); // كل 10 دقائق
+
+            // معالجة الأخطاء 419 في النماذج
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    // التحقق من وجود CSRF token
+                    const csrfInput = form.querySelector('input[name="_token"]');
+                    if (!csrfInput || !csrfInput.value) {
+                        e.preventDefault();
+                        alert('انتهت صلاحية الجلسة. سيتم إعادة تحميل الصفحة.');
+                        window.location.reload();
+                        return false;
+                    }
+                });
+            });
+
+            // معالجة الطلبات AJAX مع خطأ 419
+            if (typeof $ !== 'undefined') {
+                $(document).ajaxError(function(event, xhr, settings) {
+                    if (xhr.status === 419) {
+                        alert('انتهت صلاحية الجلسة. سيتم إعادة تحميل الصفحة.');
+                        window.location.reload();
+                    }
+                });
+            }
+
+            // معالجة عامة للطلبات fetch
+            const originalFetch = window.fetch;
+            window.fetch = function(...args) {
+                return originalFetch.apply(this, args)
+                    .then(response => {
+                        if (response.status === 419) {
+                            alert('انتهت صلاحية الجلسة. سيتم إعادة تحميل الصفحة.');
+                            window.location.reload();
+                        }
+                        return response;
+                    });
+            };
+        });
+    </script>
 </body>
 </html> 
