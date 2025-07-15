@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Department\DepartmentController;
 use App\Http\Controllers\Employee\EmployeeController;
@@ -23,7 +24,47 @@ Route::get('/', function () {
         }
         return redirect('/dashboard');
     }
-    return view('welcome');
+    
+    // جلب البيانات للصفحة الرئيسية
+    $news = [];
+    $testimonials = [];
+    $galleries = [];
+    $videos = [];
+    
+    try {
+        if (Schema::hasTable('news')) {
+            $news = App\Models\News::where('status', 'published')
+                ->latest('published_at')
+                ->take(6)
+                ->get();
+        }
+        
+        if (Schema::hasTable('testimonials')) {
+            $testimonials = App\Models\Testimonial::where('is_active', true)
+                ->latest()
+                ->take(6)
+                ->get();
+        }
+        
+        if (Schema::hasTable('galleries')) {
+            $galleries = App\Models\Gallery::where('is_active', true)
+                ->orderBy('order_sort', 'asc')
+                ->take(6)
+                ->get();
+        }
+        
+        if (Schema::hasTable('company_videos')) {
+            $videos = App\Models\CompanyVideo::where('is_active', true)
+                ->where('is_featured', true)
+                ->latest()
+                ->take(1)
+                ->get();
+        }
+    } catch (Exception $e) {
+        // إذا حدث خطأ في قاعدة البيانات، استخدم arrays فارغة
+    }
+    
+    return view('welcome', compact('news', 'testimonials', 'galleries', 'videos'));
 })->name('home');
 
 // مسارات الوظائف العامة

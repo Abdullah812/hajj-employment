@@ -686,173 +686,72 @@
         </div>
         
         <div class="row g-4">
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="position-relative overflow-hidden" style="height: 200px;">
-                        <div class="bg-primary bg-opacity-10 d-flex align-items-center justify-content-center h-100">
-                            <i class="fas fa-newspaper fa-4x text-primary"></i>
-                        </div>
-                        <div class="position-absolute top-0 start-0 m-3">
-                            <span class="badge bg-primary">أخبار</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-muted">
-                                <i class="fas fa-calendar me-1"></i>
-                                15 يناير 2025
-                            </small>
-                            <small class="text-muted">
-                                <i class="fas fa-eye me-1"></i>
-                                250 مشاهدة
-                            </small>
-                        </div>
-                        <h5 class="card-title">إطلاق برنامج التوظيف الموسمي لحج 2025</h5>
-                        <p class="card-text">نعلن عن بدء استقبال طلبات التوظيف الموسمي لموسم حج 2025 في جميع الأقسام مع رواتب تنافسية وبرامج تدريبية متطورة.</p>
-                        <a href="#" class="btn btn-outline-primary btn-sm">قراءة المزيد</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="position-relative overflow-hidden" style="height: 200px;">
-                        <div class="bg-success bg-opacity-10 d-flex align-items-center justify-content-center h-100">
-                            <i class="fas fa-award fa-4x text-success"></i>
-                        </div>
-                        <div class="position-absolute top-0 start-0 m-3">
-                            <span class="badge bg-success">إنجازات</span>
+            @if($news && count($news) > 0)
+                @foreach($news->take(6) as $article)
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="position-relative overflow-hidden" style="height: 200px;">
+                                @if($article->image)
+                                    <img src="{{ asset('storage/' . $article->image) }}" 
+                                         alt="{{ $article->title }}" 
+                                         class="w-100 h-100" 
+                                         style="object-fit: cover;">
+                                @else
+                                    <div class="bg-primary bg-opacity-10 d-flex align-items-center justify-content-center h-100">
+                                        <i class="fas fa-newspaper fa-4x text-primary"></i>
+                                    </div>
+                                @endif
+                                <div class="position-absolute top-0 start-0 m-3">
+                                    <span class="badge bg-primary">{{ $article->category ?? 'أخبار' }}</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ $article->published_at ? $article->published_at->format('d F Y') : $article->created_at->format('d F Y') }}
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="fas fa-eye me-1"></i>
+                                        {{ number_format($article->views ?? 0) }} مشاهدة
+                                    </small>
+                                </div>
+                                <h5 class="card-title">{{ Str::limit($article->title, 60) }}</h5>
+                                <p class="card-text">{{ Str::limit($article->excerpt ?: strip_tags($article->content), 120) }}</p>
+                                <a href="#" class="btn btn-outline-primary btn-sm">قراءة المزيد</a>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-muted">
-                                <i class="fas fa-calendar me-1"></i>
-                                10 يناير 2025
-                            </small>
-                            <small class="text-muted">
-                                <i class="fas fa-eye me-1"></i>
-                                420 مشاهدة
-                            </small>
+                @endforeach
+            @else
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="position-relative overflow-hidden" style="height: 200px;">
+                            <div class="bg-primary bg-opacity-10 d-flex align-items-center justify-content-center h-100">
+                                <i class="fas fa-newspaper fa-4x text-primary"></i>
+                            </div>
+                            <div class="position-absolute top-0 start-0 m-3">
+                                <span class="badge bg-primary">أخبار</span>
+                            </div>
                         </div>
-                        <h5 class="card-title">حصولنا على جائزة التميز في خدمة الحجاج</h5>
-                        <p class="card-text">تم تكريم شركة مناسك المشاعر من قبل وزارة الحج والعمرة لحصولها على أعلى تقييمات الرضا من الحجاج لموسم 2024.</p>
-                        <a href="#" class="btn btn-outline-success btn-sm">قراءة المزيد</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="position-relative overflow-hidden" style="height: 200px;">
-                        <div class="bg-info bg-opacity-10 d-flex align-items-center justify-content-center h-100">
-                            <i class="fas fa-lightbulb fa-4x text-info"></i>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    15 يناير 2025
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-eye me-1"></i>
+                                    250 مشاهدة
+                                </small>
+                            </div>
+                            <h5 class="card-title">إطلاق برنامج التوظيف الموسمي لحج 2025</h5>
+                            <p class="card-text">نعلن عن بدء استقبال طلبات التوظيف الموسمي لموسم حج 2025 في جميع الأقسام مع رواتب تنافسية وبرامج تدريبية متطورة.</p>
+                            <a href="#" class="btn btn-outline-primary btn-sm">قراءة المزيد</a>
                         </div>
-                        <div class="position-absolute top-0 start-0 m-3">
-                            <span class="badge bg-info">نصائح</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-muted">
-                                <i class="fas fa-calendar me-1"></i>
-                                8 يناير 2025
-                            </small>
-                            <small class="text-muted">
-                                <i class="fas fa-eye me-1"></i>
-                                180 مشاهدة
-                            </small>
-                        </div>
-                        <h5 class="card-title">نصائح للموظفين الجدد في موسم الحج</h5>
-                        <p class="card-text">دليل شامل للموظفين الجدد يتضمن أهم النصائح والإرشادات للعمل الناجح في خدمة الحجاج والتعامل مع التحديات.</p>
-                        <a href="#" class="btn btn-outline-info btn-sm">قراءة المزيد</a>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="position-relative overflow-hidden" style="height: 200px;">
-                        <div class="bg-warning bg-opacity-10 d-flex align-items-center justify-content-center h-100">
-                            <i class="fas fa-graduation-cap fa-4x text-warning"></i>
-                        </div>
-                        <div class="position-absolute top-0 start-0 m-3">
-                            <span class="badge bg-warning">تدريب</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-muted">
-                                <i class="fas fa-calendar me-1"></i>
-                                5 يناير 2025
-                            </small>
-                            <small class="text-muted">
-                                <i class="fas fa-eye me-1"></i>
-                                320 مشاهدة
-                            </small>
-                        </div>
-                        <h5 class="card-title">برامج التدريب المتخصصة للموسم الجديد</h5>
-                        <p class="card-text">تفاصيل البرامج التدريبية الجديدة التي تم تطويرها لرفع كفاءة الموظفين وضمان تقديم أفضل الخدمات للحجاج.</p>
-                        <a href="#" class="btn btn-outline-warning btn-sm">قراءة المزيد</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="position-relative overflow-hidden" style="height: 200px;">
-                        <div class="bg-danger bg-opacity-10 d-flex align-items-center justify-content-center h-100">
-                            <i class="fas fa-heart fa-4x text-danger"></i>
-                        </div>
-                        <div class="position-absolute top-0 start-0 m-3">
-                            <span class="badge bg-danger">قصص نجاح</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-muted">
-                                <i class="fas fa-calendar me-1"></i>
-                                2 يناير 2025
-                            </small>
-                            <small class="text-muted">
-                                <i class="fas fa-eye me-1"></i>
-                                510 مشاهدة
-                            </small>
-                        </div>
-                        <h5 class="card-title">قصص ملهمة من موظفينا المتميزين</h5>
-                        <p class="card-text">حكايات ملهمة من موظفين التحقوا بالشركة كموظفين موسميين وأصبحوا الآن جزءاً من الفريق الدائم والإداري.</p>
-                        <a href="#" class="btn btn-outline-danger btn-sm">قراءة المزيد</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="position-relative overflow-hidden" style="height: 200px;">
-                        <div class="bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center h-100">
-                            <i class="fas fa-cogs fa-4x text-secondary"></i>
-                        </div>
-                        <div class="position-absolute top-0 start-0 m-3">
-                            <span class="badge bg-secondary">تطوير</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-muted">
-                                <i class="fas fa-calendar me-1"></i>
-                                30 ديسمبر 2024
-                            </small>
-                            <small class="text-muted">
-                                <i class="fas fa-eye me-1"></i>
-                                290 مشاهدة
-                            </small>
-                        </div>
-                        <h5 class="card-title">تطوير النظام الإلكتروني للتوظيف</h5>
-                        <p class="card-text">إطلاق النسخة المحدثة من نظام التوظيف الإلكتروني مع واجهة محسنة ومميزات جديدة لتسهيل عملية التقديم والمتابعة.</p>
-                        <a href="#" class="btn btn-outline-secondary btn-sm">قراءة المزيد</a>
-                    </div>
-                </div>
-            </div>
+            @endif
         </div>
         
         <!-- View All News Button -->
