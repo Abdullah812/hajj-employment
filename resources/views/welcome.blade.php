@@ -718,7 +718,7 @@
                                 </div>
                                 <h5 class="card-title">{{ Str::limit($article->title, 60) }}</h5>
                                 <p class="card-text">{{ Str::limit($article->excerpt ?: strip_tags($article->content), 120) }}</p>
-                                <a href="#" class="btn btn-outline-primary btn-sm">قراءة المزيد</a>
+                                <a href="{{ route('news.show', $article->id) }}" class="btn btn-outline-primary btn-sm">قراءة المزيد</a>
                             </div>
                         </div>
                     </div>
@@ -756,7 +756,7 @@
         
         <!-- View All News Button -->
         <div class="text-center mt-5">
-            <a href="#" class="btn btn-primary btn-lg px-5">
+            <a href="{{ route('news.index') }}" class="btn btn-primary btn-lg px-5">
                 <i class="fas fa-newspaper me-2"></i>عرض جميع الأخبار
             </a>
         </div>

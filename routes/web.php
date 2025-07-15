@@ -72,6 +72,10 @@ Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
 Route::post('/jobs/{job}/apply', [JobController::class, 'apply'])->name('jobs.apply');
 
+// مسارات الأخبار العامة
+Route::get('/news', [\App\Http\Controllers\NewsController::class, 'index'])->name('news.index');
+Route::get('/news/{news}', [\App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
+
 // مسارات المصادقة
 Route::middleware(['guest'])->group(function () {
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
