@@ -11,7 +11,7 @@
                 <!-- Featured Image -->
                 @if($news->image)
                     <div class="position-relative overflow-hidden">
-                        <img src="{{ asset('storage/' . $news->image) }}" 
+                        <img src="{{ $news->image }}" 
                              alt="{{ $news->title }}" 
                              class="card-img-top"
                              style="height: 400px; object-fit: cover;">
@@ -110,7 +110,7 @@
                             <div class="border-bottom p-3">
                                 <div class="d-flex">
                                     @if($related->image)
-                                        <img src="{{ asset('storage/' . $related->image) }}" 
+                                        <img src="{{ $related->image }}" 
                                              alt="{{ $related->title }}" 
                                              class="rounded me-3" 
                                              style="width: 80px; height: 80px; object-fit: cover;">

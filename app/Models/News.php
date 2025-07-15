@@ -88,6 +88,14 @@ class News extends Model
         return $value ?: \Str::limit(strip_tags($this->content), 150);
     }
 
+    public function getImageAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+        return asset('storage/news/' . $value);
+    }
+
     public function incrementViews()
     {
         $this->increment('views');
