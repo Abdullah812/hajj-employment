@@ -23,21 +23,21 @@ class CompanyController extends Controller
     {
         $user = Auth::user();
         
-        // إحصائيات الشركة
-        $totalJobs = HajjJob::where('company_id', $user->id)->count();
-        $activeJobs = HajjJob::where('company_id', $user->id)->where('status', 'active')->count();
-        $inactiveJobs = HajjJob::where('company_id', $user->id)->where('status', 'inactive')->count();
+        // إحصائيات القسم
+        $totalJobs = HajjJob::where('department_id', $user->department->id ?? 0)->count();
+        $activeJobs = HajjJob::where('department_id', $user->department->id ?? 0)->where('status', 'active')->count();
+        $inactiveJobs = HajjJob::where('department_id', $user->department->id ?? 0)->where('status', 'inactive')->count();
         $totalApplications = JobApplication::whereHas('job', function($query) use ($user) {
-            $query->where('company_id', $user->id);
+            $query->where('department_id', $user->department->id ?? 0);
         })->count();
         $pendingApplications = JobApplication::whereHas('job', function($query) use ($user) {
-            $query->where('company_id', $user->id);
+            $query->where('department_id', $user->department->id ?? 0);
         })->where('status', 'pending')->count();
         $approvedApplications = JobApplication::whereHas('job', function($query) use ($user) {
-            $query->where('company_id', $user->id);
+            $query->where('department_id', $user->department->id ?? 0);
         })->where('status', 'approved')->count();
         $rejectedApplications = JobApplication::whereHas('job', function($query) use ($user) {
-            $query->where('company_id', $user->id);
+            $query->where('department_id', $user->department->id ?? 0);
         })->where('status', 'rejected')->count();
         
         // تجميع الإحصائيات في مصفوفة
@@ -56,7 +56,7 @@ class CompanyController extends Controller
         ];
         
         // الوظائف الحديثة
-        $recentJobs = HajjJob::where('company_id', $user->id)
+        $recentJobs = HajjJob::where('department_id', $user->department->id ?? 0)
             ->withCount('applications')
             ->latest()
             ->take(5)
@@ -67,7 +67,7 @@ class CompanyController extends Controller
             
         // الطلبات الحديثة
         $recentApplications = JobApplication::whereHas('job', function($query) use ($user) {
-            $query->where('company_id', $user->id);
+            $query->where('department_id', $user->department->id ?? 0);
         })->with(['user', 'job'])->latest()->take(5)->get();
         
         // أيضاً للتوافق مع view
@@ -95,13 +95,13 @@ class CompanyController extends Controller
         
         // إحصائيات للملف الشخصي
         $stats = [
-            'jobs' => HajjJob::where('company_id', $user->id)->count(),
-            'active_jobs' => HajjJob::where('company_id', $user->id)->where('status', 'active')->count(),
+            'jobs' => HajjJob::where('department_id', $user->department->id ?? 0)->count(),
+            'active_jobs' => HajjJob::where('department_id', $user->department->id ?? 0)->where('status', 'active')->count(),
             'applications' => JobApplication::whereHas('job', function($query) use ($user) {
-                $query->where('company_id', $user->id);
+                $query->where('department_id', $user->department->id ?? 0);
             })->count(),
             'approved' => JobApplication::whereHas('job', function($query) use ($user) {
-                $query->where('company_id', $user->id);
+                $query->where('department_id', $user->department->id ?? 0);
             })->where('status', 'approved')->count(),
         ];
         
@@ -147,13 +147,13 @@ class CompanyController extends Controller
         
         // إحصائيات سريعة للوظائف
         $stats = [
-            'total' => HajjJob::where('company_id', $user->id)->count(),
-            'active' => HajjJob::where('company_id', $user->id)->where('status', 'active')->count(),
-            'inactive' => HajjJob::where('company_id', $user->id)->where('status', 'inactive')->count(),
-            'closed' => HajjJob::where('company_id', $user->id)->where('status', 'closed')->count(),
+            'total' => HajjJob::where('department_id', $user->department->id ?? 0)->count(),
+            'active' => HajjJob::where('department_id', $user->department->id ?? 0)->where('status', 'active')->count(),
+            'inactive' => HajjJob::where('department_id', $user->department->id ?? 0)->where('status', 'inactive')->count(),
+            'closed' => HajjJob::where('department_id', $user->department->id ?? 0)->where('status', 'closed')->count(),
         ];
         
-        $jobs = HajjJob::where('company_id', $user->id)
+        $jobs = HajjJob::where('department_id', $user->department->id ?? 0)
             ->latest()
             ->paginate(10);
             
@@ -182,11 +182,10 @@ class CompanyController extends Controller
         ]);
         
         $job = HajjJob::create([
-            'company_id' => Auth::id(),
+            'department_id' => Auth::user()->department->id ?? 0,
             'title' => $request->title,
             'description' => $request->description,
             'location' => $request->location,
-            'department' => $request->department,
             'employment_type' => $request->employment_type,
             'salary_min' => $request->salary_min,
             'salary_max' => $request->salary_max,
@@ -205,10 +204,10 @@ class CompanyController extends Controller
             $this->notificationService->notifyAdminActivity(
                 'new_job',
                 'وظيفة جديدة تم نشرها',
-                "قامت شركة {$job->company->name} بنشر وظيفة جديدة: {$job->title}",
+                "قام القسم {$job->department->name} بنشر وظيفة جديدة: {$job->title}",
                 [
                     'job_id' => $job->id,
-                    'company_name' => $job->company->name,
+                    'department_name' => $job->department->name,
                     'job_title' => $job->title
                 ]
             );
@@ -216,13 +215,13 @@ class CompanyController extends Controller
             \Log::error('فشل في إرسال إشعارات الوظيفة الجديدة: ' . $e->getMessage());
         }
         
-        return redirect()->route('company.jobs')->with('success', 'تم إنشاء الوظيفة بنجاح وإشعار جميع الموظفين');
+        return redirect()->route('company.jobs.index')->with('success', 'تم إنشاء الوظيفة بنجاح وإشعار جميع الموظفين');
     }
     
     public function showJob(HajjJob $job)
     {
-        // التأكد من أن الوظيفة تخص الشركة المسجلة
-        if ($job->company_id !== Auth::id()) {
+        // التأكد من أن الوظيفة تخص القسم المسجل
+        if ($job->department_id !== Auth::user()->department->id ?? 0) {
             abort(403);
         }
         
@@ -233,7 +232,7 @@ class CompanyController extends Controller
     
     public function editJob(HajjJob $job)
     {
-        if ($job->company_id !== Auth::id()) {
+        if ($job->department_id !== Auth::user()->department->id ?? 0) {
             abort(403);
         }
         
@@ -242,7 +241,7 @@ class CompanyController extends Controller
     
     public function updateJob(Request $request, HajjJob $job)
     {
-        if ($job->company_id !== Auth::id()) {
+        if ($job->department_id !== Auth::user()->department->id ?? 0) {
             abort(403);
         }
         
@@ -268,7 +267,7 @@ class CompanyController extends Controller
     
     public function deleteJob(HajjJob $job)
     {
-        if ($job->company_id !== Auth::id()) {
+        if ($job->department_id !== Auth::user()->department->id ?? 0) {
             abort(403);
         }
         
@@ -285,24 +284,24 @@ class CompanyController extends Controller
         // إحصائيات الطلبات
         $stats = [
             'total' => JobApplication::whereHas('job', function($query) use ($user) {
-                $query->where('company_id', $user->id);
+                $query->where('department_id', $user->department->id ?? 0);
             })->count(),
             'pending' => JobApplication::whereHas('job', function($query) use ($user) {
-                $query->where('company_id', $user->id);
+                $query->where('department_id', $user->department->id ?? 0);
             })->where('status', 'pending')->count(),
             'approved' => JobApplication::whereHas('job', function($query) use ($user) {
-                $query->where('company_id', $user->id);
+                $query->where('department_id', $user->department->id ?? 0);
             })->where('status', 'approved')->count(),
             'rejected' => JobApplication::whereHas('job', function($query) use ($user) {
-                $query->where('company_id', $user->id);
+                $query->where('department_id', $user->department->id ?? 0);
             })->where('status', 'rejected')->count(),
         ];
         
-        // وظائف الشركة للفلترة
-        $jobs = HajjJob::where('company_id', $user->id)->get();
+        // وظائف القسم للفلترة
+        $jobs = HajjJob::where('department_id', $user->department->id ?? 0)->get();
         
         $applications = JobApplication::whereHas('job', function($query) use ($user) {
-            $query->where('company_id', $user->id);
+            $query->where('department_id', $user->department->id ?? 0);
         })->with(['user', 'job'])->latest()->paginate(15);
         
         return view('company.applications.index', compact('applications', 'stats', 'jobs'));
@@ -311,7 +310,7 @@ class CompanyController extends Controller
     // تحديث حالة الوظيفة
     public function updateJobStatus(Request $request, HajjJob $job)
     {
-        if ($job->company_id !== Auth::id()) {
+        if ($job->department_id !== Auth::user()->department->id ?? 0) {
             abort(403, 'غير مصرح لك بهذا الإجراء');
         }
         
@@ -329,8 +328,8 @@ class CompanyController extends Controller
     // تحديث حالة طلب التوظيف
     public function updateApplication(Request $request, JobApplication $application)
     {
-        // التحقق من أن الطلب يخص الشركة
-        if ($application->job->company_id !== Auth::id()) {
+        // التحقق من أن الطلب يخص القسم
+        if ($application->job->department_id !== Auth::user()->department->id ?? 0) {
             abort(403, 'غير مصرح لك بهذا الإجراء');
         }
         
@@ -371,7 +370,7 @@ class CompanyController extends Controller
         
         $applications = JobApplication::whereIn('id', $request->applications)
             ->whereHas('job', function($query) {
-                $query->where('company_id', Auth::id());
+                $query->where('department_id', Auth::user()->department->id ?? 0);
             })->get();
             
         foreach ($applications as $application) {

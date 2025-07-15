@@ -7,7 +7,7 @@ use App\Models\JobApplication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
+// PDF imports removed - using Word documents only
 use Carbon\Carbon;
 
 class ContractController extends Controller
@@ -17,8 +17,8 @@ class ContractController extends Controller
      */
     private function checkContractsServiceAvailable()
     {
-        // خدمة العقود متوقفة مؤقتاً
-        return redirect()->back()->with('error', 'عذراً، خدمة العقود متوقفة مؤقتاً لأعمال الصيانة والتطوير. سيتم إعادة تفعيلها قريباً.');
+        // خدمة العقود مُفعلة
+        return null;
     }
 
     /**
@@ -26,22 +26,24 @@ class ContractController extends Controller
      */
     public function index()
     {
-        return $this->checkContractsServiceAvailable();
+        // تحقق من توفر الخدمة - إذا كانت غير متوفرة سيتم redirect
+        $serviceCheck = $this->checkContractsServiceAvailable();
+        if ($serviceCheck) return $serviceCheck;
         
         $user = Auth::user();
         
         if ($user->hasRole('admin')) {
-            $contracts = Contract::with(['employee', 'company', 'job'])
+            $contracts = Contract::with(['employee', 'department', 'job'])
                                ->latest()
                                ->paginate(15);
-        } elseif ($user->hasRole('company')) {
-            $contracts = $user->companyContracts()
+        } elseif ($user->hasRole('department')) {
+            $contracts = $user->departmentContracts()
                              ->with(['employee', 'job'])
                              ->latest()
                              ->paginate(15);
         } else {
             $contracts = $user->employeeContracts()
-                             ->with(['company', 'job'])
+                             ->with(['department', 'job'])
                              ->latest()
                              ->paginate(15);
         }
@@ -54,10 +56,18 @@ class ContractController extends Controller
      */
     public function createFromApplication(JobApplication $application)
     {
-        return $this->checkContractsServiceAvailable();
+        $serviceCheck = $this->checkContractsServiceAvailable();
+        if ($serviceCheck) return $serviceCheck;
         
         // التحقق من الصلاحيات
-        if (!Auth::user()->hasRole('company') || $application->job->company_id !== Auth::id()) {
+        $user = Auth::user();
+        
+        // المدير يمكنه إنشاء عقود لجميع الأقسام
+        if ($user->hasRole('admin')) {
+            // المدير له صلاحية إنشاء العقود لجميع الأقسام
+        } elseif ($user->hasRole('department') && $application->job->department_id === $user->id) {
+            // القسم يمكنه إنشاء عقود لوظائفه فقط
+        } else {
             abort(403, 'غير مصرح لك بإنشاء عقد لهذا الطلب');
         }
 
@@ -83,11 +93,12 @@ class ContractController extends Controller
      */
     public function show(Contract $contract)
     {
-        return $this->checkContractsServiceAvailable();
+        $serviceCheck = $this->checkContractsServiceAvailable();
+        if ($serviceCheck) return $serviceCheck;
         
         $this->authorizeContractAccess($contract);
         
-        $contract->load(['employee.profile', 'company.profile', 'job', 'jobApplication']);
+        $contract->load(['employee.profile', 'department.profile', 'job', 'jobApplication']);
         
         return view('contracts.show', compact('contract'));
     }
@@ -97,7 +108,8 @@ class ContractController extends Controller
      */
     public function updateStatus(Request $request, Contract $contract)
     {
-        return $this->checkContractsServiceAvailable();
+        $serviceCheck = $this->checkContractsServiceAvailable();
+        if ($serviceCheck) return $serviceCheck;
         
         $this->authorizeContractAccess($contract);
         
@@ -123,7 +135,8 @@ class ContractController extends Controller
      */
     public function signaturePage(Contract $contract)
     {
-        return $this->checkContractsServiceAvailable();
+        $serviceCheck = $this->checkContractsServiceAvailable();
+        if ($serviceCheck) return $serviceCheck;
         
         // التحقق من أن المستخدم هو الموظف المعني
         if (Auth::id() !== $contract->employee_id) {
@@ -144,7 +157,8 @@ class ContractController extends Controller
      */
     public function sign(Request $request, Contract $contract)
     {
-        return $this->checkContractsServiceAvailable();
+        $serviceCheck = $this->checkContractsServiceAvailable();
+        if ($serviceCheck) return $serviceCheck;
         
         // التحقق من أن المستخدم هو الموظف المعني
         if (Auth::id() !== $contract->employee_id) {
@@ -171,41 +185,25 @@ class ContractController extends Controller
                         ->with('success', 'تم توقيع العقد بنجاح');
     }
 
-    /**
-     * تحميل العقد كـ PDF
-     */
-    public function downloadPdf(Contract $contract)
-    {
-        return $this->checkContractsServiceAvailable();
-        
-        try {
-            $this->authorizeContractAccess($contract);
-
-            $mpdf = $this->generateContractPdf($contract);
-            
-            $fileName = "contract-{$contract->contract_number}.pdf";
-            
-            // تحميل PDF باستخدام mPDF
-            return response()->streamDownload(function() use ($mpdf) {
-                echo $mpdf->Output('', 'S');
-            }, $fileName, [
-                'Content-Type' => 'application/pdf',
-            ]);
-            
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'حدث خطأ أثناء إنشاء PDF: ' . $e->getMessage());
-        }
-    }
+    // PDF function removed - using Word documents only
 
     /**
      * إرسال العقد للموظف
      */
     public function sendToEmployee(Contract $contract)
     {
-        return $this->checkContractsServiceAvailable();
+        $serviceCheck = $this->checkContractsServiceAvailable();
+        if ($serviceCheck) return $serviceCheck;
         
         // التحقق من الصلاحيات
-        if (!Auth::user()->hasRole('company') || $contract->company_id !== Auth::id()) {
+        $user = Auth::user();
+        
+        // المدير يمكنه إرسال جميع العقود
+        if ($user->hasRole('admin')) {
+            // المدير له صلاحية إرسال جميع العقود
+        } elseif ($user->hasRole('department') && $contract->department_id === $user->id) {
+            // القسم يمكنه إرسال عقوده فقط
+        } else {
             abort(403, 'غير مصرح لك بإرسال هذا العقد');
         }
 
@@ -221,7 +219,8 @@ class ContractController extends Controller
      */
     public function cancel(Request $request, Contract $contract)
     {
-        return $this->checkContractsServiceAvailable();
+        $serviceCheck = $this->checkContractsServiceAvailable();
+        if ($serviceCheck) return $serviceCheck;
         
         $this->authorizeContractAccess($contract);
 
@@ -235,13 +234,45 @@ class ContractController extends Controller
     }
 
     /**
+     * إنشاء عقد Word-HTML
+     */
+    public function downloadWordContract(Contract $contract)
+    {
+        $this->authorizeContractAccess($contract);
+        $contract->load(['employee.profile', 'department', 'job']);
+        
+        // إنشاء HTML متوافق مع Word
+        $html = view('contracts.word_template', compact('contract'))->render();
+        
+        // إرجاع الملف كـ Word document
+        $filename = 'contract-' . ($contract->contract_number ?? 'MMS-2025-001') . '.doc';
+        
+        return response($html, 200, [
+            'Content-Type' => 'application/msword',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Transfer-Encoding' => 'binary',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ]);
+    }
+
+    /**
      * دالة مساعدة لإنشاء عقد من طلب توظيف
      */
     private function createContractFromApplication(JobApplication $application): Contract
     {
         $employee = $application->user;
-        $company = Auth::user();
         $job = $application->job;
+        $currentUser = Auth::user();
+
+        // تحديد القسم المسؤول عن العقد
+        if ($currentUser->hasRole('admin')) {
+            // المدير ينشئ العقد: نأخذ المستخدم المسؤول عن القسم
+            $department = $job->department->user ?? $currentUser;
+        } else {
+            // القسم ينشئ العقد بنفسه
+            $department = $currentUser;
+        }
 
         // تحديد التواريخ (افتراضياً من 1 نوفمبر إلى 15 يناير)
         $currentYear = now()->year;
@@ -251,7 +282,7 @@ class ContractController extends Controller
         return Contract::create([
             'job_application_id' => $application->id,
             'employee_id' => $employee->id,
-            'company_id' => $company->id,
+            'department_id' => $department->id,
             'job_id' => $job->id,
             'salary' => $job->salary_max ?? 6000,
             'start_date' => $startDate,
@@ -268,12 +299,12 @@ class ContractController extends Controller
             'employee_bank_name' => $employee->profile->bank_name ?? 'الراجحي',
             
             // معلومات الشركة
-            'company_name' => 'شركة مناسك المشاعر',
-            'company_address' => 'مدينة مكة المكرمة حي الحمراء',
-            'company_commercial_register' => '4031275261',
-            'company_email' => 'atif.azhar@manasek.sa',
-            'company_representative_name' => 'محمد عدنان حمزه',
-            'company_representative_title' => 'الرئيس التنفيذي',
+            'department_name' => 'شركة مناسك المشاعر',
+            'department_address' => 'مدينة مكة المكرمة حي الحمراء',
+            'department_commercial_register' => '4031275261',
+            'department_email' => 'atif.azhar@manasek.sa',
+            'department_representative_name' => 'محمد عدنان حمزه',
+            'department_representative_title' => 'الرئيس التنفيذي',
             
             'status' => 'draft'
         ]);
@@ -290,8 +321,8 @@ class ContractController extends Controller
             return; // المدير يمكنه الوصول لجميع العقود
         }
         
-        if ($user->hasRole('company') && $contract->company_id === $user->id) {
-            return; // الشركة يمكنها الوصول لعقودها
+        if ($user->hasRole('department') && $contract->department_id === $user->id) {
+            return; // القسم يمكنه الوصول لعقوده
         }
         
         if ($user->hasRole('employee') && $contract->employee_id === $user->id) {
@@ -301,17 +332,5 @@ class ContractController extends Controller
         abort(403, 'غير مصرح لك بالوصول لهذا العقد');
     }
 
-    /**
-     * إنشاء PDF للعقد
-     */
-    private function generateContractPdf(Contract $contract)
-    {
-        $contract->load(['employee.profile', 'company.profile', 'job']);
-        
-        // إنشاء PDF بإعدادات بسيطة
-        $pdf = PDF::loadView('contracts.tcpdf', compact('contract'));
-        $pdf->setPaper('A4', 'portrait');
-        
-        return $pdf;
-    }
+    // PDF generation function removed - using Word documents only
 }

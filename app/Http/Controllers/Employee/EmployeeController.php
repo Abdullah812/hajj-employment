@@ -43,7 +43,7 @@ class EmployeeController extends Controller
         
         // الطلبات الحديثة
         $recentApplications = JobApplication::where('user_id', $user->id)
-            ->with(['job', 'job.company'])
+            ->with(['job', 'job.department'])
             ->latest()
             ->take(5)
             ->get();
@@ -57,7 +57,7 @@ class EmployeeController extends Controller
             ->whereDoesntHave('applications', function($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
-            ->with('company')
+            ->with('department')
             ->withCount('applications')
             ->latest()
             ->take(6)
@@ -77,54 +77,119 @@ class EmployeeController extends Controller
     
     public function updateProfile(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . Auth::id(),
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'date_of_birth' => 'nullable|date',
-            'national_id' => 'nullable|string|max:20',
-            'education' => 'nullable|string',
-            'experience' => 'nullable|string',
-            'skills' => 'nullable|string',
-            'bio' => 'nullable|string',
-            'cv' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // 5MB max
-        ]);
-        
         $user = Auth::user();
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
+        $formType = $request->input('form_type', 'basic');
+        
+        \Log::info('Updating profile', [
+            'form_type' => $formType,
+            'request_data' => $request->all()
         ]);
         
-        $profileData = [
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'date_of_birth' => $request->date_of_birth,
-            'national_id' => $request->national_id,
-            'education' => $request->education,
-            'experience' => $request->experience,
-            'skills' => $request->skills,
-            'bio' => $request->bio,
-        ];
-        
-        // رفع ملف السيرة الذاتية
-        if ($request->hasFile('cv')) {
-            // حذف الملف القديم إن وجد
-            if ($user->profile && $user->profile->cv_path) {
-                Storage::delete($user->profile->cv_path);
+        if ($formType === 'basic') {
+            // validation للمعلومات الأساسية
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email,' . Auth::id(),
+                'phone' => 'nullable|string|max:20',
+                'address' => 'nullable|string',
+                'date_of_birth' => 'nullable|date',
+                'national_id' => 'nullable|string|max:20',
+            ]);
+            
+            $user->update([
+                'name' => $request->name,
+                'email' => $request->email,
+            ]);
+            
+            $profileData = [
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'date_of_birth' => $request->date_of_birth,
+                'national_id' => $request->national_id,
+            ];
+            
+            $user->profile()->updateOrCreate(
+                ['user_id' => $user->id],
+                $profileData
+            );
+            
+            return redirect()->back()->with('success', 'تم تحديث المعلومات الأساسية بنجاح');
+            
+        } elseif ($formType === 'additional') {
+            // validation للمعلومات الإضافية
+            $request->validate([
+                'qualification' => 'nullable|string|max:255',
+                'iban_number' => 'nullable|string|max:24|regex:/^SA[0-9]{22}$/',
+                'national_id' => 'nullable|string|max:20',
+                'academic_experience' => 'nullable|string',
+                'iban_attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'national_address_attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'national_id_attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'experience_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            ]);
+            
+            $profileData = [
+                'qualification' => $request->qualification,
+                'iban_number' => $request->iban_number,
+                'national_id' => $request->national_id,
+                'academic_experience' => $request->academic_experience,
+            ];
+            
+            \Log::info('Profile data before files', ['profile_data' => $profileData]);
+            
+            // رفع الملفات الجديدة
+            $fileFields = [
+                'iban_attachment' => ['field' => 'iban_attachment', 'folder' => 'documents/iban'],
+                'national_address_attachment' => ['field' => 'national_address_attachment', 'folder' => 'documents/national_address'],
+                'national_id_attachment' => ['field' => 'national_id_attachment', 'folder' => 'documents/national_id'],
+                'experience_certificate' => ['field' => 'experience_certificate', 'folder' => 'documents/experience']
+            ];
+            
+            foreach ($fileFields as $inputField => $config) {
+                if ($request->hasFile($inputField)) {
+                    \Log::info('Processing file', ['field' => $inputField]);
+                    
+                    // حذف الملف القديم إن وجد
+                    if ($user->profile && $user->profile->{$config['field']}) {
+                        Storage::delete('public/' . $user->profile->{$config['field']});
+                    }
+                    
+                    $file = $request->file($inputField);
+                    $filePath = $file->store($config['folder'], 'public');
+                    $profileData[$config['field']] = $filePath;
+                    
+                    \Log::info('File stored', [
+                        'field' => $inputField,
+                        'path' => $filePath
+                    ]);
+                }
             }
             
-            $cvPath = $request->file('cv')->store('cvs', 'public');
-            $profileData['cv_path'] = $cvPath;
+            \Log::info('Final profile data', ['profile_data' => $profileData]);
+            
+            try {
+                // تحديث أو إنشاء الملف الشخصي
+                $profile = $user->profile()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    $profileData
+                );
+                
+                \Log::info('Profile updated', ['profile' => $profile]);
+                
+                return redirect()->back()->with('success', 'تم تحديث المعلومات الإضافية بنجاح');
+            } catch (\Exception $e) {
+                \Log::error('Error updating profile', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                return redirect()->back()
+                    ->with('error', 'حدث خطأ في تحديث الملف الشخصي: ' . $e->getMessage())
+                    ->withInput();
+            }
         }
         
-        $user->profile()->updateOrCreate(
-            ['user_id' => $user->id],
-            $profileData
-        );
-        
-        return redirect()->back()->with('success', 'تم تحديث الملف الشخصي بنجاح');
+        return redirect()->back()->with('error', 'حدث خطأ في تحديث الملف الشخصي');
     }
 
     public function uploadCV(Request $request)
@@ -170,7 +235,7 @@ class EmployeeController extends Controller
         
         // قائمة الطلبات
         $applications = JobApplication::where('user_id', $user->id)
-            ->with(['job', 'job.company'])
+            ->with(['job', 'job.department'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
             
@@ -179,6 +244,13 @@ class EmployeeController extends Controller
     
     public function applyForJob(Request $request, HajjJob $job)
     {
+        $user = Auth::user();
+
+        // التحقق من حالة الموافقة على الحساب
+        if (!$user->isApproved()) {
+            return redirect()->back()->with('error', 'عذراً، يجب أن يتم اعتماد حسابك من قبل المدير قبل التقديم على الوظائف');
+        }
+        
         // التحقق من أن الوظيفة متاحة
         if ($job->status !== 'active') {
             return redirect()->back()->with('error', 'هذه الوظيفة غير متاحة حالياً');
@@ -190,7 +262,7 @@ class EmployeeController extends Controller
         }
         
         // التحقق من عدم التقديم المسبق
-        $existingApplication = JobApplication::where('user_id', Auth::id())
+        $existingApplication = JobApplication::where('user_id', $user->id)
             ->where('job_id', $job->id)
             ->first();
             
@@ -208,52 +280,16 @@ class EmployeeController extends Controller
         ]);
         
         $application = JobApplication::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'job_id' => $job->id,
             'cover_letter' => $request->cover_letter,
-            'status' => 'pending',
+            'status' => 'pending'
         ]);
         
-        // إرسال إشعارات
-        try {
-            // إشعار للموظف بتأكيد التقديم
-            $this->notificationService->createNotification(
-                Auth::id(),
-                'application_status',
-                'تم تقديم طلبك بنجاح',
-                "تم تقديم طلبك لوظيفة \"{$job->title}\" وهو الآن قيد المراجعة من قبل {$job->company->name}",
-                [
-                    'application_id' => $application->id,
-                    'job_id' => $job->id,
-                    'job_title' => $job->title,
-                    'company_name' => $job->company->name
-                ],
-                route('employee.applications'),
-                false // عدم إرسال إيميل للموظف نفسه
-            );
-
-            // إشعار الشركة بطلب جديد
-            $this->notificationService->notifyCompanyNewApplication($application);
-            
-            // إشعار الإدارة بنشاط جديد
-            $this->notificationService->notifyAdminActivity(
-                'application_status',
-                'طلب توظيف جديد',
-                "تقدم {$application->user->name} لوظيفة {$job->title} في شركة {$job->company->name}",
-                [
-                    'application_id' => $application->id,
-                    'job_id' => $job->id,
-                    'employee_name' => $application->user->name,
-                    'company_name' => $job->company->name
-                ]
-            );
-            
-        } catch (\Exception $e) {
-            // تسجيل الخطأ لكن عدم إيقاف العملية
-            \Log::error('فشل في إرسال إشعارات التقديم: ' . $e->getMessage());
-        }
+        // إرسال إشعار للقسم
+        $this->notificationService->notifyDepartmentAboutNewApplication($application);
         
-        return redirect()->back()->with('success', 'تم تقديم طلبك بنجاح! سيتم مراجعته من قبل الشركة');
+        return redirect()->route('employee.applications')->with('success', 'تم تقديم طلبك بنجاح');
     }
     
     public function cancelApplication(JobApplication $application)

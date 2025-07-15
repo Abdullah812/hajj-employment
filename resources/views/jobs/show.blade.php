@@ -22,7 +22,7 @@
                             <h1 class="h2 text-primary mb-2">{{ $job->title }}</h1>
                             <div class="d-flex align-items-center mb-2">
                                 <i class="fas fa-building text-muted me-2"></i>
-                                <span class="text-muted">{{ $job->company->name }}</span>
+                                <span class="text-muted">{{ optional($job->department)->name ?? 'قسم غير معروف' }}</span>
                             </div>
                         </div>
                         <span class="badge bg-primary fs-6">{{ $job->employment_type_text }}</span>
@@ -39,7 +39,7 @@
                         <div class="col-md-6">
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-tags text-muted me-2"></i>
-                                <span><strong>القسم:</strong> {{ $job->department }}</span>
+                                <span><strong>القسم:</strong> {{ optional($job->department)->name ?? 'قسم غير معروف' }}</span>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -178,10 +178,10 @@
                                     </small>
                                 </div>
                             @endif
-                        @elseif(auth()->user()->hasRole('company'))
+                        @elseif(auth()->user()->hasRole('department'))
                             <div class="alert alert-warning text-center">
                                 <i class="fas fa-exclamation-triangle mb-2 d-block"></i>
-                                <strong>لا يمكن للشركات التقديم على الوظائف</strong>
+                                <strong>لا يمكن للأقسام التقديم على الوظائف</strong>
                             </div>
                         @else
                             <div class="alert alert-info text-center">
@@ -208,10 +208,10 @@
                 </div>
             </div>
             
-            <!-- معلومات الشركة -->
+            <!-- معلومات القسم -->
             <div class="card shadow-sm border-0 mt-4">
                 <div class="card-body p-4">
-                    <h3 class="h6 mb-3">معلومات الشركة</h3>
+                    <h3 class="h6 mb-3">معلومات القسم</h3>
                     
                     <div class="d-flex align-items-center mb-3">
                         <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" 
@@ -219,19 +219,19 @@
                             <i class="fas fa-building text-primary"></i>
                         </div>
                         <div>
-                            <h6 class="mb-0">{{ $job->company->name }}</h6>
-                            <small class="text-muted">{{ $job->company->email }}</small>
+                            <h6 class="mb-0">{{ optional($job->department)->name ?? 'قسم غير معروف' }}</h6>
+                            <small class="text-muted">{{ optional($job->department)->email ?? 'بريد إلكتروني غير متوفر' }}</small>
                         </div>
                     </div>
                     
-                    @if($job->company->profile && $job->company->profile->company_description)
-                        <p class="text-muted small">{{ Str::limit($job->company->profile->company_description, 150) }}</p>
+                    @if(optional($job->department)->profile && optional($job->department->profile)->department_description)
+                        <p class="text-muted small">{{ Str::limit($job->department->profile->department_description, 150) }}</p>
                     @endif
                     
                     <div class="text-center">
                         <small class="text-muted">
                             <i class="fas fa-calendar me-1"></i>
-                            عضو منذ {{ $job->company->created_at->format('Y') }}
+                            عضو منذ {{ optional($job->department)->created_at ? $job->department->created_at->format('Y') : 'غير معروف' }}
                         </small>
                     </div>
                 </div>

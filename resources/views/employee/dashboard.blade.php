@@ -3,7 +3,19 @@
 @section('title', 'لوحة تحكم الموظف - شركة مناسك المشاعر')
 
 @section('content')
-<div class="container py-5">
+<div class="container py-4">
+    @if(Auth::user()->approval_status === 'pending')
+    <div class="alert alert-warning" role="alert">
+        <i class="fas fa-clock me-2"></i>
+        حسابك قيد المراجعة من قبل الإدارة. سيتم إخطارك عند الموافقة على حسابك.
+    </div>
+    @elseif(Auth::user()->approval_status === 'rejected')
+    <div class="alert alert-danger" role="alert">
+        <i class="fas fa-times-circle me-2"></i>
+        عذراً، تم رفض طلب تسجيلك. يرجى التواصل مع الإدارة لمزيد من المعلومات.
+    </div>
+    @endif
+
     <!-- الترحيب -->
     <div class="row mb-4">
         <div class="col-12">
@@ -103,7 +115,7 @@
                                         {{ $job->title }}
                                     </a>
                                 </h6>
-                                <p class="text-muted small mb-2">{{ $job->company->name }} • {{ $job->location }}</p>
+                                <p class="text-muted small mb-2">{{ $job->department->name }} • {{ $job->location }}</p>
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-light text-dark me-2">{{ $job->employment_type_text }}</span>
                                     <span class="text-success fw-bold">{{ $job->salary_range }}</span>
@@ -155,7 +167,7 @@
                                         {{ $application->job->title }}
                                     </a>
                                 </h6>
-                                <p class="text-muted small mb-0">{{ $application->job->company->name }}</p>
+                                <p class="text-muted small mb-0">{{ $application->job->department->name }}</p>
                                 <small class="text-muted">{{ $application->applied_at->diffForHumans() }}</small>
                             </div>
                         </div>

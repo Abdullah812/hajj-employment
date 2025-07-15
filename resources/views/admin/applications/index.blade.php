@@ -44,9 +44,14 @@
         <div class="col-md-3">
             <div class="card border-0 bg-success bg-opacity-10">
                 <div class="card-body text-center">
+                    <a href="{{ route('applications.approved') }}" class="text-decoration-none">
                     <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
                     <h4 class="text-success mb-1">{{ $applications->where('status', 'approved')->count() }}</h4>
                     <small class="text-muted">مقبولة</small>
+                        <div class="mt-2">
+                            <small class="text-success"><i class="fas fa-mouse-pointer"></i> انقر للعرض</small>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
@@ -57,6 +62,26 @@
                     <h4 class="text-danger mb-1">{{ $applications->where('status', 'rejected')->count() }}</h4>
                     <small class="text-muted">مرفوضة</small>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- أزرار التصفية السريعة -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ route('admin.applications.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-list me-1"></i>جميع الطلبات
+                </a>
+                <a href="{{ route('admin.applications.index', ['status' => 'pending']) }}" class="btn btn-outline-warning">
+                    <i class="fas fa-clock me-1"></i>قيد المراجعة
+                </a>
+                <a href="{{ route('applications.approved') }}" class="btn btn-outline-success">
+                    <i class="fas fa-check-circle me-1"></i>المقبولين
+                </a>
+                <a href="{{ route('admin.applications.index', ['status' => 'rejected']) }}" class="btn btn-outline-danger">
+                    <i class="fas fa-times-circle me-1"></i>المرفوضين
+                </a>
             </div>
         </div>
     </div>
@@ -100,13 +125,13 @@
                                     <td>
                                         <div>
                                             <h6 class="mb-0 small">{{ $application->job->title }}</h6>
-                                            <small class="text-muted">{{ $application->job->department }}</small>
+                                            <small class="text-muted">{{ $application->job->department->name }}</small>
                                         </div>
                                     </td>
                                     <td>
                                         <div>
-                                            <h6 class="mb-0 small">{{ $application->job->company->profile->company_name ?? $application->job->company->name }}</h6>
-                                            <small class="text-muted">{{ $application->job->company->email }}</small>
+                                            <h6 class="mb-0 small">{{ $application->job->department->name }}</h6>
+                                            <small class="text-muted">{{ $application->job->department->user->email }}</small>
                                         </div>
                                     </td>
                                     <td>
@@ -139,6 +164,23 @@
                                                         <i class="fas fa-check"></i>
                                                     </button>
                                                 </form>
+                                            @endif
+                                            
+                                            <!-- إنشاء عقد للطلبات المقبولة -->
+                                            @if($application->status === 'approved')
+                                                @if(!$application->contract)
+                                                    <form method="POST" action="{{ route('contracts.create', $application) }}" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-outline-warning" title="إنشاء عقد">
+                                                            <i class="fas fa-file-contract"></i>
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <a href="{{ route('contracts.show', $application->contract) }}" 
+                                                       class="btn btn-outline-primary" title="عرض العقد">
+                                                        <i class="fas fa-file-text"></i>
+                                                    </a>
+                                                @endif
                                             @endif
                                             
                                             @if($application->status !== 'rejected')
@@ -201,8 +243,8 @@
                                 <h6 class="text-success">معلومات الوظيفة:</h6>
                                 <table class="table table-sm">
                                     <tr><td><strong>المسمى:</strong></td><td>{{ $application->job->title }}</td></tr>
-                                    <tr><td><strong>القسم:</strong></td><td>{{ $application->job->department }}</td></tr>
-                                    <tr><td><strong>الشركة:</strong></td><td>{{ $application->job->company->profile->company_name ?? $application->job->company->name }}</td></tr>
+                                    <tr><td><strong>القسم:</strong></td><td>{{ $application->job->department->name }}</td></tr>
+                                    <tr><td><strong>البريد:</strong></td><td>{{ $application->job->department->user->email }}</td></tr>
                                 </table>
                             </div>
                         </div>
@@ -286,3 +328,33 @@
     </div>
 </div>
 @endsection 
+
+<style>
+.card-body a {
+    display: block;
+    color: inherit;
+    transition: transform 0.2s ease;
+}
+
+.card-body a:hover {
+    transform: translateY(-2px);
+}
+
+.card-body a:hover .text-success {
+    color: #198754 !important;
+}
+
+.timeline-item {
+    position: relative;
+}
+
+.timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 50px;
+    width: 2px;
+    height: 20px;
+    background: #e9ecef;
+}
+</style> 

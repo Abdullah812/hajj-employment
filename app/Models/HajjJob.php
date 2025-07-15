@@ -7,11 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class HajjJob extends Model
 {
     protected $fillable = [
-        'company_id',
+        'department_id',
         'title',
         'description',
         'location',
-        'department',
         'employment_type',
         'salary_min',
         'salary_max',
@@ -29,9 +28,9 @@ class HajjJob extends Model
     ];
     
     // العلاقات
-    public function company()
+    public function department()
     {
-        return $this->belongsTo(User::class, 'company_id');
+        return $this->belongsTo(Department::class);
     }
     
     public function applications()
@@ -83,6 +82,6 @@ class HajjJob extends Model
     
     public function getDepartmentTextAttribute()
     {
-        return $this->department ?? 'عام';
+        return optional($this->department)->name ?? 'عام';
     }
 }

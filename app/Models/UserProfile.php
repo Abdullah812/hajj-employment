@@ -8,38 +8,26 @@ class UserProfile extends Model
 {
     protected $fillable = [
         'user_id',
-        // حقول الموظف
+        'national_id',
         'phone',
         'address',
         'date_of_birth',
-        'national_id',
-        'education',
-        'experience',
-        'skills',
-        'bio',
+        'qualification',
+        'academic_experience',
+        'iban_number',
         'cv_path',
-        // حقول الشركة
-        'company_name',
-        'company_description',
-        'company_website',
-        'company_phone',
-        'company_address',
-        'company_license',
+        'iban_attachment',
+        'national_id_attachment',
+        'national_address_attachment',
+        'experience_certificate'
     ];
-    
+
     protected $casts = [
-        'date_of_birth' => 'date',
+        'date_of_birth' => 'date'
     ];
-    
-    // العلاقات
+
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-    
-    // Accessors
-    public function getCvUrlAttribute()
-    {
-        return $this->cv_path ? asset('storage/' . $this->cv_path) : null;
     }
 }

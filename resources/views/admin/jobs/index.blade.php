@@ -17,6 +17,11 @@
                         </ol>
                     </nav>
                 </div>
+                <div>
+                    <a href="{{ route('department.jobs.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i>إضافة وظيفة
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -75,7 +80,7 @@
                         <thead class="bg-light">
                             <tr>
                                 <th>الوظيفة</th>
-                                <th>الشركة</th>
+                                <th>القسم</th>
                                 <th>الطلبات</th>
                                 <th>الحالة</th>
                                 <th>تاريخ النشر</th>
@@ -93,7 +98,7 @@
                                             </div>
                                             <div>
                                                 <h6 class="mb-0">{{ $job->title }}</h6>
-                                                <small class="text-muted">{{ $job->department }}</small>
+                                                <small class="text-muted">{{ optional($job->department)->name ?? 'قسم غير معروف' }}</small>
                                                 @if($job->salary_min && $job->salary_max)
                                                     <br>
                                                     <small class="text-success">{{ number_format($job->salary_min) }} - {{ number_format($job->salary_max) }} ريال</small>
@@ -103,8 +108,12 @@
                                     </td>
                                     <td>
                                         <div>
-                                            <h6 class="mb-0 small">{{ $job->company->profile->company_name ?? $job->company->name }}</h6>
-                                            <small class="text-muted">{{ $job->company->email }}</small>
+                                            <h6 class="mb-0 small">{{ optional($job->department)->name ?? 'قسم غير معروف' }}</h6>
+                                            @php
+                                                $department = optional($job->department);
+                                                $email = $department ? optional($department->user)->email : null;
+                                            @endphp
+                                            <small class="text-muted">{{ $email ?? 'بريد إلكتروني غير متوفر' }}</small>
                                         </div>
                                     </td>
                                     <td>

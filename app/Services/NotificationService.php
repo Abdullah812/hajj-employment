@@ -73,36 +73,65 @@ class NotificationService
             $actionUrl
         );
 
-        // إشعار الشركة أيضاً
+        // إشعار القسم أيضاً
         if ($status === 'pending') {
-            $this->notifyCompanyNewApplication($application);
+            $this->notifyDepartmentNewApplication($application);
         }
     }
 
     /**
-     * إشعار الشركة بطلب جديد
+     * إشعار القسم بطلب جديد
      */
-    public function notifyCompanyNewApplication(JobApplication $application)
+    public function notifyDepartmentNewApplication(JobApplication $application)
     {
-        $company = $application->job->company;
-        if (!$company) return;
+        $department = $application->job->department;
+        if (!$department) return;
 
         $title = "طلب توظيف جديد";
         $message = "تقدم " . $application->user->name . " لوظيفة " . $application->job->title;
-        $actionUrl = route('company.applications.index');
+        $actionUrl = route('department.applications.index');
 
-        $this->createNotification(
-            $company->id,
-            'application_status',
-            $title,
-            $message,
-            [
-                'application_id' => $application->id,
-                'job_id' => $application->job->id,
-                'employee_name' => $application->user->name
-            ],
-            $actionUrl
-        );
+        // التحقق من وجود مدير للقسم
+        if ($department->manager_id) {
+            $this->createNotification(
+                $department->manager_id,
+                'new_application',
+                $title,
+                $message,
+                [
+                    'application_id' => $application->id,
+                    'job_id' => $application->job->id,
+                    'employee_name' => $application->user->name
+                ],
+                $actionUrl
+            );
+        } else {
+            // إذا لم يكن هناك مدير محدد، إرسال إشعار لجميع المدراء
+            $admins = User::role('admin')->get();
+            foreach ($admins as $admin) {
+                $this->createNotification(
+                    $admin->id,
+                    'new_application',
+                    $title,
+                    $message . " (قسم: " . $department->name . ")",
+                    [
+                        'application_id' => $application->id,
+                        'job_id' => $application->job->id,
+                        'employee_name' => $application->user->name,
+                        'department_name' => $department->name
+                    ],
+                    $actionUrl
+                );
+            }
+        }
+    }
+
+    /**
+     * إشعار القسم بطلب توظيف جديد (Alias method)
+     */
+    public function notifyDepartmentAboutNewApplication(JobApplication $application)
+    {
+        return $this->notifyDepartmentNewApplication($application);
     }
 
     /**
@@ -134,7 +163,7 @@ class NotificationService
         
         foreach ($employees as $employee) {
             $title = "وظيفة جديدة متاحة";
-            $message = "تم نشر وظيفة جديدة: " . $job->title . " من شركة " . $job->company->name;
+            $message = "تم نشر وظيفة جديدة: " . $job->title . " من قسم " . $job->department->name;
             $actionUrl = route('jobs.show', $job->id);
 
             $this->createNotification(
@@ -144,7 +173,7 @@ class NotificationService
                 $message,
                 [
                     'job_id' => $job->id,
-                    'company_name' => $job->company->name
+                    'department_name' => $job->department->name
                 ],
                 $actionUrl,
                 false // عدم إرسال إيميل لجميع الموظفين
@@ -157,16 +186,16 @@ class NotificationService
      */
     public function notifyContractSigned(Contract $contract, $signerType)
     {
-        if ($signerType === 'company') {
-            // إشعار الموظف أن الشركة وقعت
-            $title = "تم توقيع العقد من الشركة";
-            $message = "قامت الشركة بتوقيع العقد، يرجى مراجعته وتوقيعه";
+        if ($signerType === 'department') {
+            // إشعار الموظف أن القسم وقع
+            $title = "تم توقيع العقد من القسم";
+            $message = "قام القسم بتوقيع العقد، يرجى مراجعته وتوقيعه";
             $recipient = $contract->employee;
         } else {
-            // إشعار الشركة أن الموظف وقع
+            // إشعار القسم أن الموظف وقع
             $title = "تم توقيع العقد من الموظف";
             $message = "قام الموظف بتوقيع العقد، العقد مكتمل الآن";
-            $recipient = $contract->company;
+            $recipient = $contract->department;
         }
 
         if ($recipient) {
@@ -199,6 +228,44 @@ class NotificationService
                 $actionUrl
             );
         }
+    }
+
+    /**
+     * إشعار تحديث حالة الحساب
+     */
+    public function notifyAccountStatusChange(User $user)
+    {
+        $status = $user->approval_status;
+        
+        $statusMessages = [
+            'pending' => 'تم استلام طلب تسجيلك وهو قيد المراجعة',
+            'approved' => 'تهانينا! تم اعتماد حسابك. يمكنك الآن استخدام جميع مميزات النظام',
+            'rejected' => 'نأسف، لم يتم اعتماد حسابك. يرجى التواصل مع الإدارة'
+        ];
+
+        $colors = [
+            'pending' => 'warning',
+            'approved' => 'success',
+            'rejected' => 'danger'
+        ];
+
+        $title = "تحديث حالة الحساب";
+        $message = $statusMessages[$status];
+        $actionUrl = $user->hasRole('employee') ? route('employee.dashboard') : route('department.dashboard');
+
+        $this->createNotification(
+            $user->id,
+            'account_status',
+            $title,
+            $message,
+            [
+                'status' => $status,
+                'approved_at' => $user->approved_at,
+                'approved_by' => $user->approved_by
+            ],
+            $actionUrl,
+            true // إرسال إيميل
+        );
     }
 
     /**

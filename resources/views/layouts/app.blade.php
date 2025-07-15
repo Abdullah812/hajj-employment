@@ -6,6 +6,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'شركة مناسك المشاعر - التوظيف الموسمي')</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
+    <meta name="theme-color" content="#b47e13">
+    
     <!-- Bootstrap RTL CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     
@@ -249,6 +254,19 @@
             border-bottom: 3px solid var(--primary-gold);
         }
         
+        /* تنسيق اللوقو */
+        .navbar-brand img {
+            height: 70px;
+            width: auto;
+            margin-left: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar-brand img {
+                height: 50px;
+            }
+        }
+        
         /* Main content area */
         main {
             flex: 1;
@@ -397,14 +415,16 @@
             opacity: 0.5;
         }
     </style>
+    
+    @stack('styles')
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <!-- شريط التنقل -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
-            <a class="navbar-brand text-primary" href="{{ route('home') }}">
-                <i class="fas fa-kaaba me-2"></i>
-                شركة مناسك المشاعر
+            <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
+                <img src="{{ asset('images/logo.png') }}" alt="شركة مناسك المشاعر" class="img-fluid">
+                <span class="text-primary">مناسك المشاعر</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -427,9 +447,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('employee.dashboard') }}">لوحة التحكم</a>
                             </li>
-                        @elseif(auth()->user()->hasRole('company'))
+                        @elseif(auth()->user()->hasRole('department'))
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('company.dashboard') }}">لوحة التحكم</a>
+                                <a class="nav-link" href="{{ route('department.dashboard') }}">لوحة التحكم</a>
                             </li>
                         @elseif(auth()->user()->hasRole('admin'))
                             <li class="nav-item">
@@ -472,17 +492,16 @@
                             <ul class="dropdown-menu">
                                 @if(auth()->user()->hasRole('employee'))
                                     <li><a class="dropdown-item" href="{{ route('employee.profile') }}">الملف الشخصي</a></li>
-                                    <li><a class="dropdown-item text-muted" href="#" onclick="alert('عذراً، خدمة العقود متوقفة مؤقتاً لأعمال الصيانة والتطوير.'); return false;">
-                                        <i class="fas fa-file-contract me-2"></i>عقودي <small class="text-danger">(متوقف مؤقتاً)</small>
+                                    <li><a class="dropdown-item" href="{{ route('contracts.index') }}">
+                                        <i class="fas fa-file-contract me-2"></i>عقودي
                                     </a></li>
-                                @elseif(auth()->user()->hasRole('company'))
-                                    <li><a class="dropdown-item" href="{{ route('company.profile') }}">الملف الشخصي</a></li>
-                                    <li><a class="dropdown-item text-muted" href="#" onclick="alert('عذراً، خدمة العقود متوقفة مؤقتاً لأعمال الصيانة والتطوير.'); return false;">
-                                        <i class="fas fa-file-contract me-2"></i>العقود <small class="text-danger">(متوقف مؤقتاً)</small>
+                                @elseif(auth()->user()->hasRole('department'))
+                                    <li><a class="dropdown-item" href="{{ route('contracts.index') }}">
+                                        <i class="fas fa-file-contract me-2"></i>العقود
                                     </a></li>
                                 @elseif(auth()->user()->hasRole('admin'))
-                                    <li><a class="dropdown-item text-muted" href="#" onclick="alert('عذراً، خدمة العقود متوقفة مؤقتاً لأعمال الصيانة والتطوير.'); return false;">
-                                        <i class="fas fa-file-contract me-2"></i>إدارة العقود <small class="text-danger">(متوقف مؤقتاً)</small>
+                                    <li><a class="dropdown-item" href="{{ route('contracts.index') }}">
+                                        <i class="fas fa-file-contract me-2"></i>إدارة العقود
                                     </a></li>
                                 @endif
                                 <li><hr class="dropdown-divider"></li>

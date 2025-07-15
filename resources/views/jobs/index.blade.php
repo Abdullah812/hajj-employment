@@ -41,8 +41,8 @@
                         <select class="form-select" id="department" name="department">
                             <option value="">جميع الأقسام</option>
                             @foreach($departments as $department)
-                                <option value="{{ $department }}" {{ request('department') == $department ? 'selected' : '' }}>
-                                    {{ $department }}
+                                <option value="{{ $department->id }}" {{ request('department') == $department->id ? 'selected' : '' }}>
+                                    {{ $department->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -127,10 +127,10 @@
                             <span class="badge bg-primary">{{ $job->employment_type_text }}</span>
                         </div>
                         
-                        <!-- معلومات الشركة -->
+                        <!-- معلومات القسم -->
                         <div class="d-flex align-items-center mb-2">
                             <i class="fas fa-building text-muted me-2"></i>
-                            <span class="text-muted">{{ $job->company->name }}</span>
+                            <span class="text-muted">{{ $job->department_text }}</span>
                         </div>
                         
                         <!-- الموقع -->
@@ -142,7 +142,7 @@
                         <!-- القسم -->
                         <div class="d-flex align-items-center mb-3">
                             <i class="fas fa-tags text-muted me-2"></i>
-                            <span class="text-muted">{{ $job->department }}</span>
+                            <span class="text-muted">{{ $job->department_text }}</span>
                         </div>
                         
                         <!-- الوصف -->

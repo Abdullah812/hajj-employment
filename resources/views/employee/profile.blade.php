@@ -52,6 +52,7 @@
                     <form method="POST" action="{{ route('employee.profile.update') }}">
                         @csrf
                         @method('PUT')
+                        <input type="hidden" name="form_type" value="basic">
                         
                         <div class="row g-3">
                             <!-- الاسم -->
@@ -84,8 +85,8 @@
                             
                             <!-- رقم الهوية -->
                             <div class="col-md-6">
-                                <label for="national_id" class="form-label">رقم الهوية الوطنية</label>
-                                <input type="text" class="form-control" id="national_id" name="national_id" 
+                                <label for="national_id_basic" class="form-label">رقم الهوية الوطنية</label>
+                                <input type="text" class="form-control" id="national_id_basic" name="national_id" 
                                        value="{{ old('national_id', $profile->national_id ?? '') }}" placeholder="1xxxxxxxxx">
                             </div>
                             
@@ -106,51 +107,115 @@
                 </div>
             </div>
 
-            <!-- المعلومات المهنية -->
+            <!-- المعلومات الإضافية والمطلوبة -->
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white border-0 py-3">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-briefcase me-2 text-success"></i>المعلومات المهنية
+                        <i class="fas fa-file-alt me-2 text-warning"></i>المعلومات الإضافية المطلوبة
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('employee.profile.update') }}">
+                    <form method="POST" action="{{ route('employee.profile.update') }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
+                        <input type="hidden" name="form_type" value="additional">
                         
                         <div class="row g-3">
-                            <!-- التعليم -->
-                            <div class="col-12">
-                                <label for="education" class="form-label">المؤهل العلمي</label>
-                                <textarea class="form-control" id="education" name="education" rows="3" 
-                                          placeholder="مثل: بكالوريوس إدارة أعمال - جامعة الملك سعود - 2020">{{ old('education', $profile->education ?? '') }}</textarea>
+                            <!-- المؤهل -->
+                            <div class="col-md-6">
+                                <label for="qualification" class="form-label">المؤهل <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="qualification" name="qualification" 
+                                       value="{{ old('qualification', $profile->qualification ?? '') }}" 
+                                       placeholder="مثل: دبلوم، بكالوريوس، ماجستير">
                             </div>
                             
-                            <!-- الخبرة -->
-                            <div class="col-12">
-                                <label for="experience" class="form-label">الخبرة العملية</label>
-                                <textarea class="form-control" id="experience" name="experience" rows="4" 
-                                          placeholder="اذكر خبراتك العملية السابقة مع الشركات والمدد الزمنية">{{ old('experience', $profile->experience ?? '') }}</textarea>
+                            <!-- رقم الايبان -->
+                            <div class="col-md-6">
+                                <label for="iban_number" class="form-label">رقم الايبان <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="iban_number" name="iban_number" 
+                                       value="{{ old('iban_number', $profile->iban_number ?? '') }}" 
+                                       placeholder="SA0000000000000000000000" maxlength="24">
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    يجب أن يبدأ الرقم بـ SA ويتكون من 24 رقم
+                                </div>
                             </div>
                             
-                            <!-- المهارات -->
-                            <div class="col-12">
-                                <label for="skills" class="form-label">المهارات</label>
-                                <textarea class="form-control" id="skills" name="skills" rows="3" 
-                                          placeholder="مثل: إجادة اللغة الإنجليزية، مهارات الحاسوب، خدمة العملاء، إلخ">{{ old('skills', $profile->skills ?? '') }}</textarea>
+                            <!-- رقم الهوية -->
+                            <div class="col-md-6">
+                                <label for="national_id_additional" class="form-label">رقم الهوية الوطنية <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="national_id_additional" name="national_id" 
+                                       value="{{ old('national_id', $profile->national_id ?? '') }}" 
+                                       placeholder="1xxxxxxxxx" maxlength="10">
                             </div>
                             
-                            <!-- نبذة شخصية -->
+                            <!-- الخبرات العلمية -->
                             <div class="col-12">
-                                <label for="bio" class="form-label">نبذة شخصية</label>
-                                <textarea class="form-control" id="bio" name="bio" rows="3" 
-                                          placeholder="اكتب نبذة مختصرة عن نفسك وأهدافك المهنية">{{ old('bio', $profile->bio ?? '') }}</textarea>
+                                <label for="academic_experience" class="form-label">الخبرات العلمية</label>
+                                <textarea class="form-control" id="academic_experience" name="academic_experience" rows="3" 
+                                          placeholder="اذكر خبراتك العلمية والأكاديمية والبحثية">{{ old('academic_experience', $profile->academic_experience ?? '') }}</textarea>
+                            </div>
+                            
+                            <!-- ارفاق الايبان -->
+                            <div class="col-md-6">
+                                <label for="iban_attachment" class="form-label">ارفاق صورة الايبان <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control" id="iban_attachment" name="iban_attachment" 
+                                       accept=".pdf,.jpg,.jpeg,.png">
+                                @if($profile && $profile->iban_attachment)
+                                    <div class="mt-2">
+                                        <a href="{{ Storage::url($profile->iban_attachment) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                            
+                            <!-- ارفاق صورة من العنوان الوطني -->
+                            <div class="col-md-6">
+                                <label for="national_address_attachment" class="form-label">ارفاق صورة العنوان الوطني <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control" id="national_address_attachment" name="national_address_attachment" 
+                                       accept=".pdf,.jpg,.jpeg,.png">
+                                @if($profile && $profile->national_address_attachment)
+                                    <div class="mt-2">
+                                        <a href="{{ Storage::url($profile->national_address_attachment) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                            
+                            <!-- ارفاق صورة من الهوية -->
+                            <div class="col-md-6">
+                                <label for="national_id_attachment" class="form-label">ارفاق صورة الهوية <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control" id="national_id_attachment" name="national_id_attachment" 
+                                       accept=".pdf,.jpg,.jpeg,.png">
+                                @if($profile && $profile->national_id_attachment)
+                                    <div class="mt-2">
+                                        <a href="{{ Storage::url($profile->national_id_attachment) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                            
+                            <!-- شهادة الخبرة -->
+                            <div class="col-md-6">
+                                <label for="experience_certificate" class="form-label">شهادة الخبرة</label>
+                                <input type="file" class="form-control" id="experience_certificate" name="experience_certificate" 
+                                       accept=".pdf,.jpg,.jpeg,.png">
+                                @if($profile && $profile->experience_certificate)
+                                    <div class="mt-2">
+                                        <a href="{{ Storage::url($profile->experience_certificate) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        </a>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                         
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-save me-2"></i>حفظ المعلومات المهنية
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save me-2"></i>حفظ المعلومات الإضافية
                             </button>
                         </div>
                     </form>
@@ -229,13 +294,23 @@
                     <!-- إكمال الملف الشخصي -->
                     @php
                         $completionPercentage = 0;
-                        $completionPercentage += auth()->user()->name ? 20 : 0;
-                        $completionPercentage += auth()->user()->email ? 20 : 0;
+                        // المعلومات الأساسية (40%)
+                        $completionPercentage += auth()->user()->name ? 10 : 0;
+                        $completionPercentage += auth()->user()->email ? 10 : 0;
                         $completionPercentage += ($profile && $profile->phone) ? 10 : 0;
                         $completionPercentage += ($profile && $profile->address) ? 10 : 0;
-                        $completionPercentage += ($profile && $profile->education) ? 15 : 0;
-                        $completionPercentage += ($profile && $profile->experience) ? 15 : 0;
-                        $completionPercentage += ($profile && $profile->cv_path) ? 10 : 0;
+                        
+                        // المعلومات الإضافية المطلوبة (40%)
+                        $completionPercentage += ($profile && $profile->qualification) ? 10 : 0;
+                        $completionPercentage += ($profile && $profile->iban_number) ? 10 : 0;
+                        $completionPercentage += ($profile && $profile->national_id) ? 10 : 0;
+                        $completionPercentage += ($profile && $profile->academic_experience) ? 10 : 0;
+                        
+                        // المرفقات والوثائق (20%)
+                        $completionPercentage += ($profile && $profile->cv_path) ? 5 : 0;
+                        $completionPercentage += ($profile && $profile->iban_attachment) ? 5 : 0;
+                        $completionPercentage += ($profile && $profile->national_id_attachment) ? 5 : 0;
+                        $completionPercentage += ($profile && $profile->national_address_attachment) ? 5 : 0;
                     @endphp
                     
                     <div class="mb-3">
@@ -284,7 +359,7 @@
                         </li>
                         <li class="mb-2">
                             <i class="fas fa-check text-success me-2"></i>
-                            <small>اكتب خبراتك بالتفصيل</small>
+                            <small>أدخل رقم الايبان بشكل صحيح</small>
                         </li>
                         <li class="mb-2">
                             <i class="fas fa-check text-success me-2"></i>
@@ -292,11 +367,11 @@
                         </li>
                         <li class="mb-2">
                             <i class="fas fa-check text-success me-2"></i>
-                            <small>اذكر مهاراتك التقنية</small>
+                            <small>ارفع جميع الوثائق المطلوبة</small>
                         </li>
                         <li class="mb-0">
                             <i class="fas fa-check text-success me-2"></i>
-                            <small>تأكد من صحة رقم الهاتف</small>
+                            <small>تأكد من صحة رقم الهاتف والهوية</small>
                         </li>
                     </ul>
                 </div>
@@ -304,4 +379,176 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+// التحقق من صحة رقم الايبان
+const ibanNumber = document.getElementById('iban_number');
+if (ibanNumber) {
+    ibanNumber.addEventListener('input', function(e) {
+        let value = e.target.value.toUpperCase();
+        
+        // إزالة أي مسافات
+        value = value.replace(/\s/g, '');
+        
+        // التأكد من أن الرقم يبدأ بـ SA
+        if (value.length > 0 && !value.startsWith('SA')) {
+            value = 'SA' + value.replace(/^SA/, '');
+        }
+        
+        // الحد الأقصى 24 رقم
+        if (value.length > 24) {
+            value = value.substring(0, 24);
+        }
+        
+        e.target.value = value;
+        
+        // التحقق من صحة التنسيق
+        const isValid = /^SA[0-9]{22}$/.test(value);
+        const feedbackElement = document.getElementById('iban-feedback');
+        
+        if (feedbackElement) {
+            feedbackElement.remove();
+        }
+        
+        if (value.length > 0) {
+            const feedback = document.createElement('div');
+            feedback.id = 'iban-feedback';
+            feedback.className = isValid ? 'text-success small' : 'text-danger small';
+            feedback.innerHTML = isValid ? 
+                '<i class="fas fa-check-circle"></i> رقم الايبان صحيح' : 
+                '<i class="fas fa-exclamation-triangle"></i> رقم الايبان غير صحيح';
+            
+            e.target.parentNode.appendChild(feedback);
+        }
+    });
+}
+
+// التحقق من صحة رقم الهوية - للفورم الأساسي
+function validateNationalId(inputElement, feedbackId) {
+    let value = inputElement.value.replace(/\D/g, ''); // إزالة أي شيء غير رقم
+    
+    // الحد الأقصى 10 أرقام
+    if (value.length > 10) {
+        value = value.substring(0, 10);
+    }
+    
+    inputElement.value = value;
+    
+    // التحقق من صحة التنسيق
+    const isValid = /^[12][0-9]{9}$/.test(value);
+    const feedbackElement = document.getElementById(feedbackId);
+    
+    if (feedbackElement) {
+        feedbackElement.remove();
+    }
+    
+    if (value.length > 0) {
+        const feedback = document.createElement('div');
+        feedback.id = feedbackId;
+        feedback.className = isValid ? 'text-success small' : 'text-danger small';
+        feedback.innerHTML = isValid ? 
+            '<i class="fas fa-check-circle"></i> رقم الهوية صحيح' : 
+            '<i class="fas fa-exclamation-triangle"></i> رقم الهوية يجب أن يبدأ بـ 1 أو 2 ويتكون من 10 أرقام';
+        
+        inputElement.parentNode.appendChild(feedback);
+    }
+}
+
+// التحقق من صحة رقم الهوية - للفورم الأساسي
+const nationalIdBasic = document.getElementById('national_id_basic');
+if (nationalIdBasic) {
+    nationalIdBasic.addEventListener('input', function(e) {
+        validateNationalId(e.target, 'national-id-basic-feedback');
+    });
+}
+
+// التحقق من صحة رقم الهوية - للفورم الإضافي
+const nationalIdAdditional = document.getElementById('national_id_additional');
+if (nationalIdAdditional) {
+    nationalIdAdditional.addEventListener('input', function(e) {
+        validateNationalId(e.target, 'national-id-additional-feedback');
+    });
+}
+
+// معاينة الملفات قبل الرفع
+function previewFile(input, previewId) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById(previewId);
+            if (preview) {
+                preview.innerHTML = `
+                    <div class="alert alert-info mt-2">
+                        <i class="fas fa-file me-2"></i>
+                        <strong>ملف مختار:</strong> ${file.name}
+                        <br>
+                        <small>الحجم: ${(file.size / 1024 / 1024).toFixed(2)} ميجا</small>
+                    </div>
+                `;
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// إضافة معاينة الملفات
+const ibanAttachment = document.getElementById('iban_attachment');
+if (ibanAttachment) {
+    ibanAttachment.addEventListener('change', function() {
+        previewFile(this, 'iban-preview');
+    });
+}
+
+const nationalAddressAttachment = document.getElementById('national_address_attachment');
+if (nationalAddressAttachment) {
+    nationalAddressAttachment.addEventListener('change', function() {
+        previewFile(this, 'address-preview');
+    });
+}
+
+const nationalIdAttachment = document.getElementById('national_id_attachment');
+if (nationalIdAttachment) {
+    nationalIdAttachment.addEventListener('change', function() {
+        previewFile(this, 'id-preview');
+    });
+}
+
+const experienceCertificate = document.getElementById('experience_certificate');
+if (experienceCertificate) {
+    experienceCertificate.addEventListener('change', function() {
+        previewFile(this, 'experience-preview');
+    });
+}
+
+const cvUpload = document.getElementById('cv');
+if (cvUpload) {
+    cvUpload.addEventListener('change', function() {
+        previewFile(this, 'cv-preview');
+    });
+}
+
+// إضافة عناصر المعاينة
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة عناصر المعاينة للملفات
+    const attachmentFields = [
+        'iban_attachment',
+        'national_address_attachment', 
+        'national_id_attachment',
+        'experience_certificate',
+        'cv'
+    ];
+    
+    attachmentFields.forEach(field => {
+        const input = document.getElementById(field);
+        if (input) {
+            const previewDiv = document.createElement('div');
+            previewDiv.id = field.replace(/_/g, '-') + '-preview';
+            input.parentNode.appendChild(previewDiv);
+        }
+    });
+});
+</script>
 @endsection 

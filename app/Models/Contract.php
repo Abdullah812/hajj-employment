@@ -11,7 +11,7 @@ class Contract extends Model
     protected $fillable = [
         'job_application_id',
         'employee_id',
-        'company_id',
+        'department_id',
         'job_id',
         'contract_number',
         'contract_type',
@@ -29,14 +29,14 @@ class Contract extends Model
         'employee_address',
         'employee_bank_account',
         'employee_bank_name',
-        'company_name',
-        'company_address',
-        'company_national_address',
-        'company_commercial_register',
-        'company_email',
-        'company_phone',
-        'company_representative_name',
-        'company_representative_title',
+        'department_name',
+        'department_address',
+        'department_national_address',
+        'department_commercial_register',
+        'department_email',
+        'department_phone',
+        'department_representative_name',
+        'department_representative_title',
         'contract_terms',
         'special_terms',
         'contract_date',
@@ -47,8 +47,8 @@ class Contract extends Model
         'status',
         'employee_signature',
         'employee_signed_at',
-        'company_signature',
-        'company_signed_at',
+        'department_signature',
+        'department_signed_at',
         'digital_signature_data',
         'notes',
         'contract_file_path',
@@ -61,7 +61,7 @@ class Contract extends Model
         'end_date' => 'date',
         'contract_date' => 'date',
         'employee_signed_at' => 'datetime',
-        'company_signed_at' => 'datetime',
+        'department_signed_at' => 'datetime',
         'salary' => 'decimal:2',
         'is_government_employee_confirmed' => 'boolean',
         'ajeer_system_registered' => 'boolean',
@@ -78,9 +78,9 @@ class Contract extends Model
         return $this->belongsTo(User::class, 'employee_id');
     }
 
-    public function company(): BelongsTo
+    public function department(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'company_id');
+        return $this->belongsTo(User::class, 'department_id');
     }
 
     public function job(): BelongsTo
@@ -190,7 +190,7 @@ class Contract extends Model
 
     public function getIsSignedAttribute(): bool
     {
-        return !is_null($this->employee_signed_at) && !is_null($this->company_signed_at);
+        return !is_null($this->employee_signed_at) && !is_null($this->department_signed_at);
     }
 
     public function getIsExpiredAttribute(): bool
@@ -212,7 +212,7 @@ class Contract extends Model
     public function scopeSigned($query)
     {
         return $query->whereNotNull('employee_signed_at')
-                    ->whereNotNull('company_signed_at');
+                    ->whereNotNull('department_signed_at');
     }
 
     public function scopePending($query)
@@ -243,15 +243,15 @@ class Contract extends Model
         return $this->update([
             'employee_signature' => $signature,
             'employee_signed_at' => now(),
-            'status' => $this->company_signed_at ? 'signed' : 'reviewed'
+            'status' => $this->department_signed_at ? 'signed' : 'reviewed'
         ]);
     }
 
-    public function signByCompany(string $signature): bool
+    public function signByDepartment(string $signature): bool
     {
         return $this->update([
-            'company_signature' => $signature,
-            'company_signed_at' => now(),
+            'department_signature' => $signature,
+            'department_signed_at' => now(),
             'status' => $this->employee_signed_at ? 'signed' : 'sent'
         ]);
     }

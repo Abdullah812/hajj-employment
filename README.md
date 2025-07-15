@@ -131,7 +131,7 @@ docker run -p 80:80 hajj-employment
 - **Framework**: Laravel 11.x
 - **Authentication**: Laravel Sanctum
 - **Permissions**: Spatie Laravel Permission
-- **PDF Generation**: DomPDF
+- **Document Generation**: Word documents
 - **Queue System**: Redis + Supervisor
 
 ### Frontend  

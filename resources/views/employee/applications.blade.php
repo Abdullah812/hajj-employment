@@ -106,7 +106,7 @@
                                         </a>
                                     </h6>
                                     <p class="text-muted small mb-1">
-                                        <i class="fas fa-building me-1"></i>{{ $application->job->company->name }}
+                                        <i class="fas fa-building me-1"></i>{{ $application->job->department->name }}
                                     </p>
                                     <p class="text-muted small mb-0">
                                         <i class="fas fa-map-marker-alt me-1"></i>{{ $application->job->location }}

@@ -15,11 +15,16 @@ class JobApplication extends Model
         'notes',
         'applied_at',
         'reviewed_at',
+        'is_locked',
+        'locked_at',
+        'locked_by'
     ];
     
     protected $casts = [
         'applied_at' => 'datetime',
         'reviewed_at' => 'datetime',
+        'locked_at' => 'datetime',
+        'is_locked' => 'boolean'
     ];
     
     protected static function boot()
@@ -45,6 +50,11 @@ class JobApplication extends Model
     public function contract(): HasOne
     {
         return $this->hasOne(Contract::class);
+    }
+    
+    public function lockedBy()
+    {
+        return $this->belongsTo(User::class, 'locked_by');
     }
     
     // Accessors

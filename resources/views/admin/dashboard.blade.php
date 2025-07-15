@@ -81,8 +81,8 @@
                             <i class="fas fa-building fa-2x text-info"></i>
                         </div>
                         <div>
-                            <h3 class="h4 text-info mb-1">{{ $stats['total_companies'] }}</h3>
-                            <p class="text-muted mb-0 small">الشركات المسجلة</p>
+                            <h3 class="h4 text-info mb-1">{{ $stats['total_departments'] }}</h3>
+                            <p class="text-muted mb-0 small">الأقسام المسجلة</p>
                         </div>
                     </div>
                 </div>
@@ -109,8 +109,8 @@
                                 <strong class="text-success">{{ $stats['employees'] }}</strong>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <span class="small">الشركات</span>
-                                <strong class="text-info">{{ $stats['companies'] }}</strong>
+                                <span class="small">الأقسام</span>
+                                <strong class="text-info">{{ $stats['departments'] }}</strong>
                             </div>
                         </div>
 
@@ -136,7 +136,10 @@
                             </div>
                             <div class="d-flex justify-content-between mb-1">
                                 <span class="small">مقبولة</span>
+                                <a href="{{ route('applications.approved') }}" class="text-decoration-none dashboard-link">
                                 <strong class="text-success">{{ $stats['approved_applications'] }}</strong>
+                                    <small class="text-success"><i class="fas fa-external-link-alt ms-1"></i></small>
+                                </a>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <span class="small">مرفوضة</span>
@@ -267,41 +270,41 @@
                             </div>
                         </div>
 
-                        <!-- معدل نشاط الشركات -->
+                        <!-- معدل نشاط الأقسام -->
                         <div class="col-lg-3 col-md-6">
                             <div class="text-center">
                                 <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
                                      style="width: 80px; height: 80px;">
-                                    <h4 class="text-info mb-0">{{ $kpis['company_activity_rate'] }}%</h4>
+                                    <h4 class="text-info mb-0">{{ $kpis['department_activity_rate'] }}%</h4>
                                 </div>
-                                <h6 class="text-muted mb-1">معدل نشاط الشركات</h6>
-                                <small class="text-{{ $kpis['company_activity_rate'] >= 70 ? 'success' : 'warning' }}">
-                                    {{ $kpis['company_activity_rate'] >= 70 ? 'نشاط عالي' : 'يحتاج تشجيع' }}
+                                <h6 class="text-muted mb-1">معدل نشاط الأقسام</h6>
+                                <small class="text-{{ $kpis['department_activity_rate'] >= 70 ? 'success' : 'warning' }}">
+                                    {{ $kpis['department_activity_rate'] >= 70 ? 'نشاط عالي' : 'يحتاج تشجيع' }}
                                 </small>
                             </div>
                         </div>
                     </div>
 
-                    <!-- أكثر الشركات نشاطاً -->
+                    <!-- أكثر الأقسام نشاطاً -->
                     <div class="row mt-4">
                         <div class="col-md-6">
-                            <h6 class="text-primary border-bottom pb-2 mb-3">أكثر الشركات نشاطاً</h6>
-                            @forelse($kpis['top_companies'] as $index => $company)
+                            <h6 class="text-primary border-bottom pb-2 mb-3">أكثر الأقسام نشاطاً</h6>
+                            @forelse($kpis['top_departments'] as $index => $department)
                                 <div class="d-flex align-items-center mb-2">
                                     <div class="bg-{{ ['primary', 'success', 'warning'][$index] }} bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" 
                                          style="width: 30px; height: 30px;">
                                         <span class="small fw-bold text-{{ ['primary', 'success', 'warning'][$index] }}">{{ $index + 1 }}</span>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <div class="small fw-bold">{{ $company->name }}</div>
-                                        <div class="text-muted small">{{ $company->jobs_count }} وظيفة</div>
+                                        <div class="small fw-bold">{{ $department->name }}</div>
+                                        <div class="text-muted small">{{ $department->jobs_count }} وظيفة</div>
                                     </div>
                                     <div class="badge bg-{{ ['primary', 'success', 'warning'][$index] }}">
                                         #{{ $index + 1 }}
                                     </div>
                                 </div>
                             @empty
-                                <p class="text-muted small">لا توجد شركات نشطة</p>
+                                <p class="text-muted small">لا توجد أقسام نشطة</p>
                             @endforelse
                         </div>
 
@@ -323,7 +326,7 @@
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4 mb-5">
         <!-- أحدث الوظائف -->
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm">
@@ -347,7 +350,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-1">{{ $job->title }}</h6>
                                 <p class="text-muted small mb-0">
-                                    <i class="fas fa-building me-1"></i>{{ $job->company->name }}
+                                    <i class="fas fa-building me-1"></i>{{ optional($job->department)->name ?? 'قسم غير معروف' }}
                                     <span class="mx-2">•</span>
                                     <i class="fas fa-users me-1"></i>{{ $job->applications_count }} طلب
                                 </p>
@@ -394,7 +397,7 @@
                                 <p class="text-muted small mb-0">
                                     {{ Str::limit($application->job->title, 25) }}
                                     <span class="mx-2">•</span>
-                                    {{ $application->job->company->name }}
+                                    {{ optional($application->job->department)->name ?? 'قسم غير معروف' }}
                                 </p>
                             </div>
                             <div class="text-end">
@@ -434,10 +437,10 @@
                         </div>
 
                         <div class="col-lg-2 col-md-4 col-sm-6">
-                            <a href="{{ route('admin.companies.index') }}" class="card border-0 bg-success bg-opacity-10 text-decoration-none h-100">
+                            <a href="{{ route('admin.departments.index') }}" class="card border-0 bg-success bg-opacity-10 text-decoration-none h-100">
                                 <div class="card-body text-center">
                                     <i class="fas fa-building fa-2x text-success mb-2"></i>
-                                    <h6 class="text-success mb-0">إدارة الشركات</h6>
+                                    <h6 class="text-success mb-0">إدارة الأقسام</h6>
                                 </div>
                             </a>
                         </div>
@@ -527,6 +530,39 @@
             </div>
         </div>
     </div>
+
+    <!-- روابط سريعة -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">إدارة الوظائف</h5>
+                    <p class="card-text">إدارة الوظائف المتاحة والطلبات</p>
+                    <a href="{{ route('admin.jobs.index') }}" class="btn btn-primary">عرض الوظائف</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">إدارة الأقسام</h5>
+                    <p class="card-text">إدارة الأقسام والموظفين</p>
+                    <a href="{{ route('admin.departments.index') }}" class="btn btn-primary">عرض الأقسام</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">التقارير والإحصائيات</h5>
+                    <p class="card-text">عرض وتصدير التقارير المتقدمة</p>
+                    <a href="{{ route('admin.reports.index') }}" class="btn btn-success">عرض التقارير</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -537,41 +573,24 @@
 .timeline-item:not(:last-child)::after {
     content: '';
     position: absolute;
-    left: 23px;
-    top: 35px;
-    width: 2px;
-    height: 20px;
-    background-color: #e9ecef;
+    left: 20px;
+    top: 40px;
+    height: calc(100% + 1rem);
+    border-left: 2px dashed #e9ecef;
 }
 
-.timeline {
-    position: relative;
-}
-
-.last\:mb-0:last-child {
-    margin-bottom: 0 !important;
-}
-
-.last\:border-bottom-0:last-child {
-    border-bottom: none !important;
-}
-
-/* KPI Styles */
 .progress-circle {
     position: relative;
-    display: inline-block;
-}
-
-.progress-ring {
-    transform: rotate(-90deg);
+    width: 80px;
+    height: 80px;
 }
 
 .progress-ring-circle {
-    fill: transparent;
+    fill: none;
     stroke: #28a745;
     stroke-width: 4;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 0.5s ease-in-out;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
 }
 
 .progress-text {
@@ -581,45 +600,13 @@
     transform: translate(-50%, -50%);
 }
 
-/* Chart Container Styles */
-.chart-container {
-    max-height: 250px !important;
-    overflow: hidden;
-}
-
-.chart-container canvas {
-    max-height: 250px !important;
-}
-
-/* KPI Section Styles */
-.kpi-section {
-    margin-bottom: 2rem;
-}
-
 .kpi-card {
-    border-radius: 10px;
-    transition: transform 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .kpi-card:hover {
-    transform: translateY(-2px);
-}
-
-/* Responsive Chart Styles */
-@media (max-width: 768px) {
-    .chart-container {
-        height: 180px !important;
-    }
-    
-    .kpi-section .col-lg-3 {
-        margin-bottom: 1rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .chart-container {
-        height: 160px !important;
-    }
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
 </style>
 
@@ -740,3 +727,20 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection 
+
+<style>
+.dashboard-link {
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.dashboard-link:hover {
+    background-color: rgba(25, 135, 84, 0.1);
+    transform: translateX(-2px);
+}
+
+.dashboard-link:hover .text-success {
+    color: #198754 !important;
+}
+</style> 

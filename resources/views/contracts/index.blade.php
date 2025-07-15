@@ -21,17 +21,7 @@
         </div>
     </div>
 
-    <!-- إشعار إيقاف خدمة العقود -->
-    <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm" role="alert">
-        <div class="d-flex align-items-center">
-            <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
-            <div>
-                <h6 class="mb-1">خدمة العقود متوقفة مؤقتاً</h6>
-                <p class="mb-0">نعتذر عن عدم توفر خدمة العقود حالياً لأعمال الصيانة والتطوير. سيتم إعادة تفعيلها قريباً.</p>
-            </div>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+    <!-- خدمة العقود نشطة ومُفعلة -->
 
     <!-- رسائل النجاح والخطأ -->
     @if(session('success'))
@@ -154,8 +144,8 @@
                                     @if(auth()->user()->hasRole('admin'))
                                         <td>
                                             <div>
-                                                <h6 class="mb-0">{{ $contract->company_name }}</h6>
-                                                <small class="text-muted">{{ $contract->company->email }}</small>
+                                                <h6 class="mb-0">{{ $contract->department->name }}</h6>
+                                                <small class="text-muted">{{ $contract->department->email }}</small>
                                             </div>
                                         </td>
                                     @endif
@@ -194,12 +184,12 @@
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             
-                                            <a href="{{ route('contracts.pdf', $contract) }}" 
-                                               class="btn btn-outline-success" title="تحميل PDF">
-                                                <i class="fas fa-download"></i>
+                                            <a href="{{ route('contracts.download.word', $contract) }}" 
+                                               class="btn btn-outline-primary" title="تحميل Word">
+                                                <i class="fas fa-file-word"></i>
                                             </a>
                                             
-                                            @if(auth()->user()->hasRole('company') && $contract->company_id === auth()->id())
+                                            @if(auth()->user()->hasRole('department') && $contract->department_id === auth()->id())
                                                 @if($contract->status === 'draft')
                                                     <form method="POST" action="{{ route('contracts.send', $contract) }}" class="d-inline">
                                                         @csrf

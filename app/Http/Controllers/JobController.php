@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\HajjJob;
 use App\Models\JobApplication;
+use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,7 +14,7 @@ class JobController extends Controller
     {
         $query = HajjJob::where('status', 'active')
             ->where('application_deadline', '>', now())
-            ->with('company');
+            ->with('department');
         
         // البحث بالكلمات المفتاحية
         if ($request->filled('search')) {
@@ -32,7 +33,7 @@ class JobController extends Controller
         
         // فلترة حسب القسم
         if ($request->filled('department')) {
-            $query->where('department', $request->department);
+            $query->where('department_id', $request->department);
         }
         
         // فلترة حسب نوع العمل
@@ -56,10 +57,9 @@ class JobController extends Controller
         $jobs = $query->paginate(12)->appends($request->all());
         
         // الحصول على قائمة الأقسام والمواقع للفلترة
-        $departments = HajjJob::where('status', 'active')
-            ->select('department')
-            ->distinct()
-            ->pluck('department');
+        $departments = Department::where('status', 'active')
+            ->select('id', 'name')
+            ->get();
             
         $locations = HajjJob::where('status', 'active')
             ->select('location')
@@ -76,7 +76,7 @@ class JobController extends Controller
             abort(404);
         }
         
-        $job->load('company');
+        $job->load('department');
         
         // التحقق من تقديم المستخدم المسجل
         $hasApplied = false;
@@ -90,11 +90,11 @@ class JobController extends Controller
         $relatedJobs = HajjJob::where('status', 'active')
             ->where('id', '!=', $job->id)
             ->where(function($query) use ($job) {
-                $query->where('department', $job->department)
+                $query->where('department_id', $job->department_id)
                       ->orWhere('location', $job->location);
             })
-            ->with('company')
-            ->take(3)
+            ->with('department')
+            ->limit(3)
             ->get();
         
         return view('jobs.show', compact('job', 'hasApplied', 'relatedJobs'));

@@ -38,6 +38,7 @@
                                 <option value="contract_signed">توقيع العقود</option>
                                 <option value="message">رسائل</option>
                                 <option value="system">النظام</option>
+                                <option value="department">الأقسام فقط</option>
                             </select>
                         </div>
                         <div class="col-md-4">

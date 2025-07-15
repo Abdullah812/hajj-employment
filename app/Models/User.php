@@ -3,7 +3,6 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -11,7 +10,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +21,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'approval_status',
+        'approved_at',
+        'approved_by',
+        'rejection_reason'
     ];
 
     /**
@@ -43,7 +46,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'approved_at' => 'datetime',
+            'approval_status' => 'string'
         ];
     }
     
@@ -55,7 +59,7 @@ class User extends Authenticatable
     
     public function jobs()
     {
-        return $this->hasMany(HajjJob::class, 'company_id');
+        return $this->hasMany(HajjJob::class, 'department_id');
     }
     
     public function applications()
@@ -68,17 +72,25 @@ class User extends Authenticatable
         return $this->hasMany(Contract::class, 'employee_id');
     }
 
-    public function companyContracts()
+    public function departmentContracts()
     {
-        return $this->hasMany(Contract::class, 'company_id');
+        return $this->hasMany(Contract::class, 'department_id');
     }
 
     /**
-     * علاقة مع الشركة (إذا كان المستخدم شركة)
+     * علاقة مع القسم (إذا كان المستخدم قسم)
      */
-    public function company()
+    public function department()
     {
-        return $this->hasOne(Company::class);
+        return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * علاقة مع القسم الذي يديره المستخدم
+     */
+    public function managedDepartment()
+    {
+        return $this->hasOne(Department::class, 'manager_id');
     }
 
     /**
@@ -113,9 +125,9 @@ class User extends Authenticatable
         return $this->hasRole('admin');
     }
 
-    public function isCompany()
+    public function isDepartment()
     {
-        return $this->hasRole('company');
+        return $this->hasRole('department');
     }
 
     public function isEmployee()
@@ -123,13 +135,42 @@ class User extends Authenticatable
         return $this->hasRole('employee');
     }
     
-    /**
-     * الحصول على اسم الشركة أو اسم المستخدم
-     */
-    public function getCompanyNameAttribute()
+    public function isApproved(): bool
     {
-        if ($this->isCompany() && $this->profile && $this->profile->company_name) {
-            return $this->profile->company_name;
+        return $this->approval_status === 'approved';
+    }
+
+    public function isPending(): bool
+    {
+        return $this->approval_status === 'pending';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->approval_status === 'rejected';
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function getApprovalStatusTextAttribute()
+    {
+        return [
+            'pending' => 'في انتظار الموافقة',
+            'approved' => 'معتمد',
+            'rejected' => 'مرفوض'
+        ][$this->approval_status] ?? $this->approval_status;
+    }
+    
+    /**
+     * الحصول على اسم القسم أو اسم المستخدم
+     */
+    public function getDepartmentNameAttribute()
+    {
+        if ($this->isDepartment() && $this->department && $this->department->name) {
+            return $this->department->name;
         }
         
         return $this->name;

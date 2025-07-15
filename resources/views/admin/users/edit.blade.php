@@ -92,12 +92,9 @@
                                 <select class="form-select @error('role') is-invalid @enderror" 
                                         id="role" name="role" required onchange="toggleRoleFields()">
                                     <option value="">اختر نوع المستخدم</option>
-                                    @foreach($roles as $role)
-                                        <option value="{{ $role->name }}" 
-                                                {{ old('role', $user->roles->first()->name ?? '') == $role->name ? 'selected' : '' }}>
-                                            {{ $role->name == 'admin' ? 'مدير' : ($role->name == 'company' ? 'شركة' : 'موظف') }}
-                                        </option>
-                                    @endforeach
+                                    <option value="employee" {{ old('role', $user->roles->first()->name ?? '') == 'employee' ? 'selected' : '' }}>موظف</option>
+                                    <option value="admin" {{ old('role', $user->roles->first()->name ?? '') == 'admin' ? 'selected' : '' }}>مدير</option>
+                                    <option value="department" {{ old('role', $user->roles->first()->name ?? '') == 'department' ? 'selected' : '' }}>قسم</option>
                                 </select>
                                 @error('role')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -139,6 +136,39 @@
                                 <textarea class="form-control @error('company_address') is-invalid @enderror" 
                                           id="company_address" name="company_address" rows="3">{{ old('company_address', $user->profile->company_address ?? '') }}</textarea>
                                 @error('company_address')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- حقول خاصة بالقسم -->
+                        <div id="department-fields" class="row g-3 mt-3" style="display: none;">
+                            <div class="col-12">
+                                <h6 class="text-primary">معلومات القسم</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="department_name" class="form-label">اسم القسم <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('department_name') is-invalid @enderror"
+                                       id="department_name" name="department_name"
+                                       value="{{ old('department_name', $user->profile->department_name ?? '') }}">
+                                @error('department_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label for="department_phone" class="form-label">هاتف القسم</label>
+                                <input type="text" class="form-control @error('department_phone') is-invalid @enderror"
+                                       id="department_phone" name="department_phone"
+                                       value="{{ old('department_phone', $user->profile->department_phone ?? '') }}">
+                                @error('department_phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-12">
+                                <label for="department_address" class="form-label">عنوان القسم</label>
+                                <textarea class="form-control @error('department_address') is-invalid @enderror"
+                                          id="department_address" name="department_address" rows="3">{{ old('department_address', $user->profile->department_address ?? '') }}</textarea>
+                                @error('department_address')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -260,40 +290,22 @@
 <script>
 function toggleRoleFields() {
     const role = document.getElementById('role').value;
-    const companyFields = document.getElementById('company-fields');
+    const departmentFields = document.getElementById('department-fields');
     const employeeFields = document.getElementById('employee-fields');
     
-    // إخفاء جميع الحقول وتنظيف القيم
-    companyFields.style.display = 'none';
+    // إخفاء جميع الحقول أولاً
+    departmentFields.style.display = 'none';
     employeeFields.style.display = 'none';
     
-    // تنظيف قيم حقول الشركة
-    if (role !== 'company') {
-        document.getElementById('company_name').value = '';
-        document.getElementById('company_phone').value = '';
-        document.getElementById('company_address').value = '';
-    }
-    
-    // تنظيف قيم حقول الموظف
-    if (role !== 'employee') {
-        document.getElementById('phone').value = '';
-    }
-    
-    // إظهار الحقول المناسبة
-    if (role === 'company') {
-        companyFields.style.display = 'block';
-        // استعادة القيم الأصلية للشركة
-        if ('{{ old('role', $user->roles->first()->name ?? '') }}' === 'company' || role === 'company') {
-            document.getElementById('company_name').value = '{{ old('company_name', $user->profile->company_name ?? '') }}';
-            document.getElementById('company_phone').value = '{{ old('company_phone', $user->profile->company_phone ?? '') }}';
-            document.getElementById('company_address').value = '{{ old('company_address', $user->profile->company_address ?? '') }}';
-        }
+    // إظهار الحقول المناسبة حسب نوع المستخدم
+    if (role === 'department') {
+        departmentFields.style.display = 'flex';
+        // جعل حقل اسم القسم مطلوباً
+        document.getElementById('department_name').required = true;
     } else if (role === 'employee') {
-        employeeFields.style.display = 'block';
-        // استعادة القيم الأصلية للموظف
-        if ('{{ old('role', $user->roles->first()->name ?? '') }}' === 'employee' || role === 'employee') {
-            document.getElementById('phone').value = '{{ old('phone', $user->profile->phone ?? '') }}';
-        }
+        employeeFields.style.display = 'flex';
+        // إلغاء جعل حقل اسم القسم مطلوباً
+        document.getElementById('department_name').required = false;
     }
 }
 
@@ -303,7 +315,7 @@ function toggleUserStatus(userId, userName) {
     }
 }
 
-// تشغيل الدالة عند تحميل الصفحة للحفاظ على القيم القديمة
+// تشغيل الدالة عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', function() {
     toggleRoleFields();
 });

@@ -26,13 +26,17 @@ return new class extends Migration
             $table->text('bio')->nullable();
             $table->string('cv_path')->nullable();
             
-            // حقول الشركة
-            $table->string('company_name')->nullable();
-            $table->text('company_description')->nullable();
-            $table->string('company_website')->nullable();
-            $table->string('company_phone')->nullable();
-            $table->text('company_address')->nullable();
-            $table->string('company_license')->nullable();
+            // حقول القسم
+            $table->string('department_name')->nullable();
+            $table->text('department_description')->nullable();
+            $table->string('department_phone')->nullable();
+            $table->text('department_address')->nullable();
+            $table->string('department_license')->nullable();
+
+            $table->string('approval_status')->default('pending');
+            $table->timestamp('approved_at')->nullable();
+            $table->foreignId('approved_by')->nullable()->constrained('users');
+            $table->text('rejection_reason')->nullable();
             
             $table->timestamps();
         });

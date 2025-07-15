@@ -106,9 +106,9 @@
                                 <select class="form-select @error('role') is-invalid @enderror" 
                                         id="role" name="role" required onchange="toggleRoleFields()">
                                     <option value="">اختر نوع المستخدم</option>
-                                    <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>مدير</option>
-                                    <option value="company" {{ old('role') == 'company' ? 'selected' : '' }}>شركة</option>
                                     <option value="employee" {{ old('role') == 'employee' ? 'selected' : '' }}>موظف</option>
+                                    <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>مدير</option>
+                                    <option value="department" {{ old('role') == 'department' ? 'selected' : '' }}>قسم</option>
                                 </select>
                                 @error('role')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -148,6 +148,37 @@
                                 <textarea class="form-control @error('company_address') is-invalid @enderror" 
                                           id="company_address" name="company_address" rows="3">{{ old('company_address') }}</textarea>
                                 @error('company_address')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- حقول خاصة بالقسم -->
+                        <div id="department-fields" class="row g-3 mt-3" style="display: none;">
+                            <div class="col-12">
+                                <h6 class="text-primary">معلومات القسم</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="department_name" class="form-label">اسم القسم <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('department_name') is-invalid @enderror"
+                                       id="department_name" name="department_name" value="{{ old('department_name') }}">
+                                @error('department_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label for="department_phone" class="form-label">هاتف القسم</label>
+                                <input type="text" class="form-control @error('department_phone') is-invalid @enderror"
+                                       id="department_phone" name="department_phone" value="{{ old('department_phone') }}">
+                                @error('department_phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-12">
+                                <label for="department_address" class="form-label">عنوان القسم</label>
+                                <textarea class="form-control @error('department_address') is-invalid @enderror"
+                                          id="department_address" name="department_address" rows="3">{{ old('department_address') }}</textarea>
+                                @error('department_address')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -216,44 +247,26 @@
 <script>
 function toggleRoleFields() {
     const role = document.getElementById('role').value;
-    const companyFields = document.getElementById('company-fields');
+    const departmentFields = document.getElementById('department-fields');
     const employeeFields = document.getElementById('employee-fields');
     
-    // إخفاء جميع الحقول وتنظيف القيم
-    companyFields.style.display = 'none';
+    // إخفاء جميع الحقول أولاً
+    departmentFields.style.display = 'none';
     employeeFields.style.display = 'none';
     
-    // تنظيف قيم حقول الشركة
-    if (role !== 'company') {
-        document.getElementById('company_name').value = '';
-        document.getElementById('company_phone').value = '';
-        document.getElementById('company_address').value = '';
-    }
-    
-    // تنظيف قيم حقول الموظف
-    if (role !== 'employee') {
-        document.getElementById('phone').value = '';
-    }
-    
-    // إظهار الحقول المناسبة
-    if (role === 'company') {
-        companyFields.style.display = 'block';
-        // استعادة القيم القديمة للشركة إن وجدت
-        @if(old('role') == 'company')
-            document.getElementById('company_name').value = '{{ old('company_name') }}';
-            document.getElementById('company_phone').value = '{{ old('company_phone') }}';
-            document.getElementById('company_address').value = '{{ old('company_address') }}';
-        @endif
+    // إظهار الحقول المناسبة حسب نوع المستخدم
+    if (role === 'department') {
+        departmentFields.style.display = 'flex';
+        // جعل حقل اسم القسم مطلوباً
+        document.getElementById('department_name').required = true;
     } else if (role === 'employee') {
-        employeeFields.style.display = 'block';
-        // استعادة القيم القديمة للموظف إن وجدت
-        @if(old('role') == 'employee')
-            document.getElementById('phone').value = '{{ old('phone') }}';
-        @endif
+        employeeFields.style.display = 'flex';
+        // إلغاء جعل حقل اسم القسم مطلوباً
+        document.getElementById('department_name').required = false;
     }
 }
 
-// تشغيل الدالة عند تحميل الصفحة للحفاظ على القيم القديمة
+// تشغيل الدالة عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', function() {
     toggleRoleFields();
 });

@@ -6,99 +6,50 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\HajjJob;
 use App\Models\JobApplication;
-use App\Models\Company;
+use App\Models\Department;
+use App\Models\Contract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\DB;
+use App\Exports\JobsExport;
+use App\Exports\ApplicationsExport;
+use Maatwebsite\Excel\Facades\Excel;
+// PDF import removed - using Word only
 
 class AdminController extends Controller
 {
     public function dashboard()
     {
-        // تحسين الأداء: تجميع جميع الاستعلامات في استعلامات محسنة
+        // إحصائيات عامة
+        $totalUsers = User::count();
+        $totalDepartments = User::role('department')->count();
+        $totalEmployees = User::role('employee')->count();
+        $totalJobs = HajjJob::count();
+        $activeJobs = HajjJob::where('status', 'active')->count();
+        $inactiveJobs = HajjJob::where('status', 'inactive')->count();
+        $closedJobs = HajjJob::where('status', 'closed')->count();
+        $totalApplications = JobApplication::count();
+        $pendingApplications = JobApplication::where('status', 'pending')->count();
+        $acceptedApplications = JobApplication::where('status', 'approved')->count();
+        $rejectedApplications = JobApplication::where('status', 'rejected')->count();
         
-        // إحصائيات المستخدمين بـ query واحد
-        $userStats = \DB::table('users')
-            ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-            ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
-            ->select(
-                \DB::raw('COUNT(users.id) as total_users'),
-                \DB::raw('COUNT(CASE WHEN roles.name = "company" THEN 1 END) as total_companies'),
-                \DB::raw('COUNT(CASE WHEN roles.name = "employee" THEN 1 END) as total_employees'),
-                \DB::raw('COUNT(CASE WHEN users.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_users_this_month'),
-                \DB::raw('COUNT(CASE WHEN DATE(users.created_at) = CURDATE() THEN 1 END) as today_registrations')
-            )
-            ->where('model_has_roles.model_type', 'App\\Models\\User')
-            ->first();
+        // إحصائيات هذا الشهر
+        $newUsersThisMonth = User::whereMonth('created_at', now()->month)->count();
+        $newJobsThisMonth = HajjJob::whereMonth('created_at', now()->month)->count();
+        $newApplicationsThisMonth = JobApplication::whereMonth('created_at', now()->month)->count();
         
-        // إحصائيات الوظائف بـ query واحد
-        $jobStats = \DB::table('hajj_jobs')
-            ->select(
-                \DB::raw('COUNT(*) as total_jobs'),
-                \DB::raw('COUNT(CASE WHEN status = "active" THEN 1 END) as active_jobs'),
-                \DB::raw('COUNT(CASE WHEN status = "inactive" THEN 1 END) as inactive_jobs'),
-                \DB::raw('COUNT(CASE WHEN status = "closed" THEN 1 END) as closed_jobs'),
-                \DB::raw('COUNT(CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_jobs_this_month'),
-                \DB::raw('COUNT(CASE WHEN DATE(created_at) = CURDATE() THEN 1 END) as today_jobs')
-            )
-            ->first();
+        // إحصائيات اليوم
+        $todayRegistrations = User::whereDate('created_at', today())->count();
+        $todayJobs = HajjJob::whereDate('created_at', today())->count();
+        $todayApplications = JobApplication::whereDate('created_at', today())->count();
         
-        // إحصائيات الطلبات بـ query واحد
-        $applicationStats = \DB::table('job_applications')
-            ->select(
-                \DB::raw('COUNT(*) as total_applications'),
-                \DB::raw('COUNT(CASE WHEN status = "pending" THEN 1 END) as pending_applications'),
-                \DB::raw('COUNT(CASE WHEN status = "approved" THEN 1 END) as accepted_applications'),
-                \DB::raw('COUNT(CASE WHEN status = "rejected" THEN 1 END) as rejected_applications'),
-                \DB::raw('COUNT(CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_applications_this_month'),
-                \DB::raw('COUNT(CASE WHEN DATE(created_at) = CURDATE() THEN 1 END) as today_applications')
-            )
-            ->first();
-        
-        // تعيين المتغيرات للتوافق مع العرض
-        $totalUsers = $userStats->total_users;
-        $totalCompanies = $userStats->total_companies;
-        $totalEmployees = $userStats->total_employees;
-        $totalJobs = $jobStats->total_jobs;
-        $activeJobs = $jobStats->active_jobs;
-        $inactiveJobs = $jobStats->inactive_jobs;
-        $closedJobs = $jobStats->closed_jobs;
-        $totalApplications = $applicationStats->total_applications;
-        $pendingApplications = $applicationStats->pending_applications;
-        $acceptedApplications = $applicationStats->accepted_applications;
-        $rejectedApplications = $applicationStats->rejected_applications;
-        $newUsersThisMonth = $userStats->new_users_this_month;
-        $newJobsThisMonth = $jobStats->new_jobs_this_month;
-        $newApplicationsThisMonth = $applicationStats->new_applications_this_month;
-        $todayRegistrations = $userStats->today_registrations;
-        $todayJobs = $jobStats->today_jobs;
-        $todayApplications = $applicationStats->today_applications;
-        
-        // أحدث الأنشطة مع تحسين العلاقات
-        $recentUsers = User::select('id', 'name', 'email', 'created_at')
-            ->latest()
-            ->take(5)
-            ->get();
-        
-        $recentJobs = HajjJob::select('id', 'title', 'company_id', 'status', 'created_at')
-            ->with(['company:id,name'])
-            ->withCount('applications')
-            ->latest()
-            ->take(5)
-            ->get();
-        
-        $recent_jobs = $recentJobs; // للتوافق مع العرض
-        
-        $recentApplications = JobApplication::select('id', 'user_id', 'job_id', 'status', 'created_at')
-            ->with([
-                'user:id,name,email',
-                'job:id,title,company_id'
-            ])
-            ->latest()
-            ->take(5)
-            ->get();
-        
-        $recent_applications = $recentApplications; // للتوافق مع العرض
+        // أحدث الأنشطة
+        $recentUsers = User::latest()->take(5)->get();
+        $recentJobs = HajjJob::with(['department', 'applications'])->withCount('applications')->latest()->take(5)->get();
+        $recent_jobs = HajjJob::with(['department', 'applications'])->withCount('applications')->latest()->take(5)->get();
+        $recentApplications = JobApplication::with(['user', 'job.department'])->latest()->take(5)->get();
+        $recent_applications = JobApplication::with(['user', 'job.department'])->latest()->take(5)->get();
         
         // مؤشرات الأداء الرئيسية (KPIs)
         $kpis = $this->calculateKPIs();
@@ -106,7 +57,7 @@ class AdminController extends Controller
         // تجميع الإحصائيات في مصفوفة
         $stats = [
             'total_users' => $totalUsers,
-            'total_companies' => $totalCompanies,
+            'total_departments' => $totalDepartments,
             'total_employees' => $totalEmployees,
             'total_jobs' => $totalJobs,
             'active_jobs' => $activeJobs,
@@ -123,7 +74,7 @@ class AdminController extends Controller
             'today_jobs' => $todayJobs,
             'today_applications' => $todayApplications,
             'employees' => $totalEmployees,
-            'companies' => $totalCompanies,
+            'departments' => $totalDepartments,
             'jobs' => $totalJobs,
             'applications' => $totalApplications,
             'approved_applications' => $acceptedApplications,
@@ -131,7 +82,7 @@ class AdminController extends Controller
         
         return view('admin.dashboard', compact(
             'totalUsers',
-            'totalCompanies',
+            'totalDepartments',
             'totalEmployees',
             'totalJobs',
             'activeJobs',
@@ -157,39 +108,51 @@ class AdminController extends Controller
         ));
     }
 
-    // إدارة المستخدمين - محسن للأداء
+    public function unifiedDashboard()
+    {
+        // إحصائيات شاملة للوحة التحكم الموحدة
+        $stats = [
+            'total_users' => User::count(),
+            'approved_users' => User::where('approval_status', 'approved')
+                ->whereDoesntHave('roles', function($query) {
+                    $query->where('name', 'admin');
+                })->count(),
+            'pending_users' => User::where('approval_status', 'pending')->count(),
+            'rejected_users' => User::where('approval_status', 'rejected')->count(),
+            'total_departments' => Department::count(),
+            'total_jobs' => HajjJob::count(),
+            'active_jobs' => HajjJob::where('status', 'active')->count(),
+            'total_applications' => JobApplication::count(),
+            'pending_applications' => JobApplication::where('status', 'pending')->count(),
+            'approved_applications' => JobApplication::where('status', 'approved')->count(),
+            'rejected_applications' => JobApplication::where('status', 'rejected')->count(),
+            'total_contracts' => Contract::count(),
+            'active_contracts' => Contract::where('status', 'active')->count(),
+            'signed_contracts' => Contract::where('status', 'signed')->count(),
+        ];
+
+        return view('admin.unified-dashboard', compact('stats'));
+    }
+
+    // إدارة المستخدمين
     public function users()
     {
-        $users = User::select('id', 'name', 'email', 'created_at', 'updated_at')
-            ->with(['roles:id,name'])
-            ->latest()
-            ->paginate(15);
+        $users = User::with('roles')->latest()->paginate(15);
         return view('admin.users.index', compact('users'));
     }
     
-    public function companies()
+    public function departments()
     {
-        $companies = User::select('users.id', 'users.name', 'users.email', 'users.created_at')
-            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-            ->where('roles.name', 'company')
-            ->where('model_has_roles.model_type', 'App\\Models\\User')
-            ->with(['profile:user_id,company_name,company_phone,company_address'])
-            ->latest('users.created_at')
+        $departments = Department::with(['user'])
+            ->withCount('jobs')
+            ->latest()
             ->paginate(15);
-        return view('admin.companies.index', compact('companies'));
+        return view('admin.departments.index', compact('departments'));
     }
     
     public function employees()
     {
-        $employees = User::select('users.id', 'users.name', 'users.email', 'users.created_at')
-            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-            ->where('roles.name', 'employee')
-            ->where('model_has_roles.model_type', 'App\\Models\\User')
-            ->with(['profile:user_id,phone,national_id,birth_date'])
-            ->latest('users.created_at')
-            ->paginate(15);
+        $employees = User::role('employee')->with('profile')->latest()->paginate(15);
         return view('admin.employees.index', compact('employees'));
     }
     
@@ -205,64 +168,62 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,company,employee',
-            'company_name' => 'nullable|required_if:role,company|string|max:255',
-            'company_phone' => 'nullable|string|max:20',
-            'company_address' => 'nullable|string',
+            'role' => 'required|in:admin,department,employee',
+            'department_name' => 'nullable|required_if:role,department|string|max:255',
+            'department_phone' => 'nullable|string|max:20',
+            'department_address' => 'nullable|string',
             'phone' => 'nullable|string|max:20',
         ]);
         
-        // استخدام Database Transaction للأداء والأمان
-        \DB::beginTransaction();
-        
         try {
-            // إنشاء المستخدم
-            $user = User::create([
+            DB::beginTransaction();
+            
+            // إنشاء المستخدم مع تحسين الأداء
+            $user = new User([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'email_verified_at' => now(),
             ]);
             
-            // تعيين الدور مع تحسين الأداء
-            \DB::table('model_has_roles')->insert([
-                'role_id' => \DB::table('roles')->where('name', $request->role)->value('id'),
-                'model_type' => 'App\\Models\\User',
-                'model_id' => $user->id,
-            ]);
+            $user->save();
             
-            // إضافة معلومات الملف الشخصي حسب النوع
-            if ($request->role === 'company') {
-                \DB::table('user_profiles')->insert([
+            // تعيين الدور مباشرة بدون eager loading
+            $user->roles()->attach(Role::where('name', $request->role)->value('id'));
+            
+            // إضافة معلومات الملف الشخصي بشكل مباشر
+            if ($request->role === 'department') {
+                $user->profile()->create([
+                    'department_name' => $request->department_name,
+                    'department_phone' => $request->department_phone,
+                    'department_address' => $request->department_address,
+                ]);
+                
+                // إنشاء قسم جديد
+                Department::create([
                     'user_id' => $user->id,
-                    'company_name' => $request->company_name,
-                    'company_phone' => $request->company_phone,
-                    'company_address' => $request->company_address,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'name' => $request->department_name,
+                    'phone' => $request->department_phone,
+                    'address' => $request->department_address,
                 ]);
             } elseif ($request->role === 'employee') {
-                \DB::table('user_profiles')->insert([
-                    'user_id' => $user->id,
+                $user->profile()->create([
                     'phone' => $request->phone,
-                    'created_at' => now(),
-                    'updated_at' => now(),
                 ]);
             }
             
-            \DB::commit();
+            DB::commit();
             
-            // تنظيف cache الأدوار
-            \Cache::forget('spatie.permission.cache');
+            $roleText = $request->role == 'admin' ? 'مدير' : ($request->role == 'department' ? 'قسم' : 'موظف');
             
-            $roleText = $request->role == 'admin' ? 'مدير' : ($request->role == 'company' ? 'شركة' : 'موظف');
-            
-            return redirect()->route('admin.users.index')->with('success', 'تم إنشاء ' . $roleText . ' جديد: ' . $user->name . ' بنجاح');
+            return redirect()->route('admin.users.index')
+                ->with('success', 'تم إنشاء ' . $roleText . ' جديد: ' . $user->name . ' بنجاح');
             
         } catch (\Exception $e) {
-            \DB::rollBack();
-            \Log::error('User creation error: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'حدث خطأ أثناء إنشاء المستخدم: ' . $e->getMessage());
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'حدث خطأ أثناء إنشاء المستخدم: ' . $e->getMessage());
         }
     }
     
@@ -277,14 +238,16 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|in:admin,company,employee',
-            'company_name' => 'nullable|required_if:role,company|string|max:255',
-            'company_phone' => 'nullable|string|max:20',
-            'company_address' => 'nullable|string',
+            'role' => 'required|in:admin,department,employee',
+            'department_name' => 'nullable|required_if:role,department|string|max:255',
+            'department_phone' => 'nullable|string|max:20',
+            'department_address' => 'nullable|string',
             'phone' => 'nullable|string|max:20',
         ]);
         
         try {
+            DB::beginTransaction();
+            
             // تحديث المعلومات الأساسية
             $user->update([
                 'name' => $request->name,
@@ -295,13 +258,23 @@ class AdminController extends Controller
             $user->syncRoles($request->role);
             
             // تحديث أو إنشاء الملف الشخصي
-            if ($request->role === 'company') {
+            if ($request->role === 'department') {
                 $user->profile()->updateOrCreate(
                     ['user_id' => $user->id],
                     [
-                        'company_name' => $request->company_name,
-                        'company_phone' => $request->company_phone,
-                        'company_address' => $request->company_address,
+                        'department_name' => $request->department_name,
+                        'department_phone' => $request->department_phone,
+                        'department_address' => $request->department_address,
+                    ]
+                );
+                
+                // تحديث أو إنشاء القسم
+                Department::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'name' => $request->department_name,
+                        'phone' => $request->department_phone,
+                        'address' => $request->department_address,
                     ]
                 );
             } elseif ($request->role === 'employee') {
@@ -313,9 +286,12 @@ class AdminController extends Controller
                 );
             }
             
+            DB::commit();
+            
             return redirect()->route('admin.users.index')->with('success', 'تم تحديث بيانات ' . $user->name . ' بنجاح');
             
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()->withInput()->with('error', 'حدث خطأ أثناء تحديث البيانات: ' . $e->getMessage());
         }
     }
@@ -332,37 +308,17 @@ class AdminController extends Controller
     
     public function toggleUserStatus(User $user)
     {
-        // منع إلغاء تفعيل المدير الوحيد
-        if ($user->hasRole('admin') && User::role('admin')->count() <= 1 && $user->email_verified_at) {
-            return redirect()->back()->with('error', 'لا يمكن إلغاء تفعيل المدير الوحيد في النظام');
-        }
+        $user->is_active = !$user->is_active;
+        $user->save();
         
-        try {
-            $oldStatus = $user->email_verified_at;
-            $newStatus = $oldStatus ? null : now();
-            
-            $user->update([
-                'email_verified_at' => $newStatus
-            ]);
-            
-            // تحديث البيانات من قاعدة البيانات
-            $user->refresh();
-            
-            $statusText = $user->email_verified_at ? 'تم تفعيل' : 'تم إلغاء تفعيل';
-            $message = $statusText . ' حساب ' . $user->name . ' بنجاح';
-            
-            return redirect()->back()->with('success', $message);
-            
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'حدث خطأ أثناء تغيير حالة المستخدم: ' . $e->getMessage());
-        }
+        $status = $user->is_active ? 'تفعيل' : 'تعطيل';
+        return redirect()->back()->with('success', "تم {$status} المستخدم بنجاح");
     }
 
-    // إدارة الوظائف - محسن للأداء
+    // إدارة الوظائف
     public function jobs()
     {
-        $jobs = HajjJob::select('id', 'title', 'description', 'company_id', 'status', 'salary_range', 'location', 'created_at')
-            ->with(['company:id,name'])
+        $jobs = HajjJob::with(['department.user', 'applications'])
             ->withCount('applications')
             ->latest()
             ->paginate(15);
@@ -371,30 +327,29 @@ class AdminController extends Controller
     
     public function toggleJobStatus(HajjJob $job)
     {
-        $newStatus = $job->status === 'active' ? 'inactive' : 'active';
-        $job->update(['status' => $newStatus]);
+        $job->status = $job->status === 'active' ? 'inactive' : 'active';
+        $job->save();
         
-        $statusText = $newStatus === 'active' ? 'تم تفعيل' : 'تم إلغاء تفعيل';
-        return redirect()->back()->with('success', $statusText . ' الوظيفة بنجاح');
+        $status = $job->status === 'active' ? 'تفعيل' : 'تعطيل';
+        return redirect()->back()->with('success', "تم {$status} الوظيفة بنجاح");
     }
     
     public function deleteJob(HajjJob $job)
     {
         $job->delete();
-        return redirect()->back()->with('success', 'تم حذف الوظيفة بنجاح');
+        return redirect()->route('admin.jobs.index')->with('success', 'تم حذف الوظيفة بنجاح');
     }
 
-    // إدارة طلبات التوظيف - محسن للأداء
+    /**
+     * عرض جميع طلبات التوظيف
+     */
     public function applications()
     {
-        $applications = JobApplication::select('id', 'user_id', 'job_id', 'status', 'notes', 'created_at')
-            ->with([
-                'user:id,name,email',
-                'job:id,title,company_id',
-                'job.company:id,name'
-            ])
-            ->latest()
-            ->paginate(15);
+        $applications = JobApplication::with([
+            'user.profile',
+            'job.department.user',
+        ])->latest()->paginate(15);
+
         return view('admin.applications.index', compact('applications'));
     }
     
@@ -402,16 +357,33 @@ class AdminController extends Controller
     {
         $request->validate([
             'status' => 'required|in:pending,approved,rejected',
-            'notes' => 'nullable|string|max:1000'
+            'feedback' => 'nullable|string',
         ]);
+        
+        $oldStatus = $application->status;
         
         $application->update([
             'status' => $request->status,
-            'notes' => $request->notes,
-            'reviewed_at' => now()
+            'feedback' => $request->feedback,
+            'reviewed_at' => now(),
         ]);
         
-        return redirect()->back()->with('success', 'تم تحديث حالة الطلب بنجاح');
+        // إذا تم قبول الطلب، نتأكد من عدم تغيير حالته لاحقاً إلا بإذن خاص
+        if ($request->status === 'approved') {
+            $application->update([
+                'is_locked' => true,
+                'locked_at' => now(),
+                'locked_by' => auth()->id()
+            ]);
+        }
+        
+        $statusText = [
+            'pending' => 'قيد المراجعة',
+            'approved' => 'مقبول',
+            'rejected' => 'مرفوض',
+        ][$request->status];
+        
+        return redirect()->back()->with('success', "تم تحديث حالة الطلب إلى {$statusText} بنجاح");
     }
 
     /**
@@ -419,61 +391,453 @@ class AdminController extends Controller
      */
     private function calculateKPIs()
     {
-        // معدل نجاح التوظيف
+        // حساب نسبة القبول
         $totalApplications = JobApplication::count();
-        $approvedApplications = JobApplication::where('status', 'approved')->count();
-        $successRate = $totalApplications > 0 ? round(($approvedApplications / $totalApplications) * 100, 1) : 0;
-
-        // نمو المستخدمين (مقارنة الشهر الحالي بالسابق)
-        $currentMonthUsers = User::whereMonth('created_at', now()->month)
-                                ->whereYear('created_at', now()->year)->count();
-        $lastMonthUsers = User::whereMonth('created_at', now()->subMonth()->month)
-                             ->whereYear('created_at', now()->subMonth()->year)->count();
-        $userGrowth = $lastMonthUsers > 0 ? round((($currentMonthUsers - $lastMonthUsers) / $lastMonthUsers) * 100, 1) : 0;
-
-        // متوسط التطبيقات لكل وظيفة
+        $acceptedApplications = JobApplication::where('status', 'approved')->count();
+        $acceptanceRate = $totalApplications > 0 ? round(($acceptedApplications / $totalApplications) * 100, 2) : 0;
+        
+        // متوسط وقت المراجعة (بالأيام)
+        $avgReviewTime = JobApplication::whereNotNull('reviewed_at')
+            ->selectRaw('AVG(TIMESTAMPDIFF(DAY, created_at, reviewed_at)) as avg_days')
+            ->value('avg_days') ?? 0;
+        
+        // نسبة الوظائف النشطة
         $totalJobs = HajjJob::count();
-        $avgApplicationsPerJob = $totalJobs > 0 ? round($totalApplications / $totalJobs, 1) : 0;
+        $activeJobs = HajjJob::where('status', 'active')->count();
+        $activeJobsRate = $totalJobs > 0 ? round(($activeJobs / $totalJobs) * 100, 2) : 0;
+        
+        // متوسط عدد المتقدمين لكل وظيفة
+        $avgApplicationsPerJob = $totalJobs > 0 ? round($totalApplications / $totalJobs, 2) : 0;
 
-        // أكثر الشركات نشاطاً
-        $topCompanies = User::role('company')
-            ->withCount('jobs')
+        // معدل نجاح التوظيف
+        $successRate = $totalApplications > 0 ? round(($acceptedApplications / $totalApplications) * 100, 2) : 0;
+
+        // نمو المستخدمين
+        $currentMonthUsers = User::whereMonth('created_at', now()->month)->count();
+        $lastMonthUsers = User::whereMonth('created_at', now()->subMonth()->month)->count();
+        $userGrowth = $lastMonthUsers > 0 ? round((($currentMonthUsers - $lastMonthUsers) / $lastMonthUsers) * 100, 2) : 0;
+
+        // معدل نشاط الأقسام
+        $totalDepartments = User::role('department')->count();
+        $activeDepartments = HajjJob::distinct('department_id')->count();
+        $departmentActivityRate = $totalDepartments > 0 ? round(($activeDepartments / $totalDepartments) * 100, 2) : 0;
+
+        // أكثر الأقسام نشاطاً
+        $topDepartments = Department::withCount('jobs')
             ->orderBy('jobs_count', 'desc')
             ->take(3)
             ->get();
 
-        // إحصائيات الأداء الشهرية للرسم البياني
+        // إحصائيات شهرية للرسم البياني
         $monthlyStats = [];
         for ($i = 5; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
+            $date = now()->subMonths($i);
+            $month = $date->format('Y-m');
+            $monthAr = $date->translatedFormat('F Y');
+            
             $monthlyStats[] = [
-                'month' => $month->format('M'),
-                'users' => User::whereMonth('created_at', $month->month)
-                              ->whereYear('created_at', $month->year)->count(),
-                'jobs' => HajjJob::whereMonth('created_at', $month->month)
-                                ->whereYear('created_at', $month->year)->count(),
-                'applications' => JobApplication::whereMonth('created_at', $month->month)
-                                               ->whereYear('created_at', $month->year)->count(),
+                'month' => $monthAr,
+                'users' => User::whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'jobs' => HajjJob::whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'applications' => JobApplication::whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'accepted' => JobApplication::where('status', 'approved')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
             ];
         }
-
-        // معدل نشاط الشركات
-        $activeCompanies = User::role('company')
-            ->whereHas('jobs', function($query) {
-                $query->where('status', 'active');
-            })->count();
-        $companyActivityRate = User::role('company')->count() > 0 
-            ? round(($activeCompanies / User::role('company')->count()) * 100, 1) : 0;
-
+        
         return [
+            'acceptance_rate' => $acceptanceRate,
+            'avg_review_time' => round($avgReviewTime, 1),
+            'active_jobs_rate' => $activeJobsRate,
+            'avg_applications_per_job' => $avgApplicationsPerJob,
             'success_rate' => $successRate,
             'user_growth' => $userGrowth,
-            'avg_applications_per_job' => $avgApplicationsPerJob,
-            'top_companies' => $topCompanies,
-            'monthly_stats' => $monthlyStats,
-            'company_activity_rate' => $companyActivityRate,
             'current_month_users' => $currentMonthUsers,
             'last_month_users' => $lastMonthUsers,
+            'department_activity_rate' => $departmentActivityRate,
+            'top_departments' => $topDepartments,
+            'monthly_stats' => $monthlyStats,
         ];
+    }
+
+    public function editDepartment(Department $department)
+    {
+        return view('admin.departments.edit', compact('department'));
+    }
+
+    public function updateDepartment(Request $request, Department $department)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'activity_type' => 'nullable|string|max:100',
+            'department_size' => 'nullable|string|max:50',
+            'website' => 'nullable|url|max:255',
+            'registration_number' => 'nullable|string|max:50',
+        ]);
+
+        $department->update($validated);
+
+        return redirect()->route('admin.departments.index')
+            ->with('success', 'تم تحديث بيانات القسم بنجاح');
+    }
+
+    /**
+     * تصدير الوظائف إلى Excel
+     */
+    public function exportJobs()
+    {
+        return Excel::download(new JobsExport, 'jobs.xlsx');
+    }
+
+    /**
+     * تصدير طلبات التوظيف إلى Excel
+     */
+    public function exportApplications(Request $request)
+    {
+        $filters = [
+            'status' => $request->get('status'),
+            'department' => $request->get('department'),
+            'date_from' => $request->get('date_from'),
+            'date_to' => $request->get('date_to'),
+        ];
+
+        $export = new ApplicationsExport($filters);
+        $fileName = 'applications_' . now()->format('Y_m_d_His');
+
+        // PDF export removed - using Word documents only
+
+        return Excel::download($export, $fileName . '.xlsx');
+    }
+
+    // PDF export functions removed - using Word documents only
+
+    /**
+     * عرض المتقدمين المقبولين
+     */
+    public function approvedApplications()
+    {
+        // عرض المستخدمين المعتمدين (الموظفين فقط) مع جميع معلوماتهم وطلباتهم
+        $approvedUsers = User::where('approval_status', 'approved')
+            ->where('id', '!=', auth()->id()) // استبعاد المدير الحالي
+            ->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
+            })
+            ->with([
+                'profile',
+                'applications' => function($query) {
+                    $query->with(['job.department'])
+                          ->orderBy('created_at', 'desc');
+                }
+            ])
+            ->latest('approved_at')
+            ->paginate(10);
+        
+        // إحصائيات سريعة (للموظفين فقط)
+        $stats = [
+            'total_approved_users' => User::where('approval_status', 'approved')
+                ->whereDoesntHave('roles', function($query) {
+                    $query->where('name', 'admin');
+                })->count(),
+            'users_with_applications' => User::where('approval_status', 'approved')
+                ->whereDoesntHave('roles', function($query) {
+                    $query->where('name', 'admin');
+                })
+                ->whereHas('applications')->count(),
+            'total_applications' => JobApplication::count(),
+            'approved_applications' => JobApplication::where('status', 'approved')->count(),
+        ];
+        
+        return view('admin.applications.approved', compact('approvedUsers', 'stats'));
+    }
+
+    public function createJob()
+    {
+        $departments = Department::where('status', 'active')->get();
+        return view('admin.jobs.create', compact('departments'));
+    }
+    
+    public function storeJob(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'location' => 'required|string|max:255',
+            'employment_type' => 'required|in:full_time,part_time,temporary,seasonal',
+            'salary_min' => 'nullable|numeric|min:0',
+            'salary_max' => 'nullable|numeric|min:0|gte:salary_min',
+            'requirements' => 'required|string',
+            'benefits' => 'nullable|string',
+            'application_deadline' => 'required|date|after:today',
+            'max_applicants' => 'nullable|integer|min:1',
+            'department_id' => 'required|exists:departments,id'
+        ]);
+        
+        $job = HajjJob::create([
+            'department_id' => $request->department_id,
+            'title' => $request->title,
+            'description' => $request->description,
+            'location' => $request->location,
+            'employment_type' => $request->employment_type,
+            'salary_min' => $request->salary_min,
+            'salary_max' => $request->salary_max,
+            'requirements' => $request->requirements,
+            'benefits' => $request->benefits,
+            'application_deadline' => $request->application_deadline,
+            'max_applicants' => $request->max_applicants,
+            'status' => 'active',
+        ]);
+        
+        return redirect()->route('admin.jobs.index')
+            ->with('success', 'تم إنشاء الوظيفة بنجاح');
+    }
+    
+    public function editJob(HajjJob $job)
+    {
+        $departments = Department::where('status', 'active')->get();
+        return view('admin.jobs.edit', compact('job', 'departments'));
+    }
+    
+    public function updateJob(Request $request, HajjJob $job)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'location' => 'required|string|max:255',
+            'employment_type' => 'required|in:full_time,part_time,temporary,seasonal',
+            'salary_min' => 'nullable|numeric|min:0',
+            'salary_max' => 'nullable|numeric|min:0|gte:salary_min',
+            'requirements' => 'required|string',
+            'benefits' => 'nullable|string',
+            'application_deadline' => 'required|date|after:today',
+            'max_applicants' => 'nullable|integer|min:1',
+            'department_id' => 'required|exists:departments,id'
+        ]);
+        
+        $job->update($request->all());
+        
+        return redirect()->route('admin.jobs.index')
+            ->with('success', 'تم تحديث الوظيفة بنجاح');
+    }
+
+    // API Methods للوحة التحكم الموحدة
+    public function getUsers()
+    {
+        $users = User::with(['profile', 'roles'])
+            ->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
+            })
+            ->latest()
+            ->take(100)
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $users
+        ]);
+    }
+
+    public function getPendingApprovals()
+    {
+        $pendingUsers = User::where('approval_status', 'pending')
+            ->with(['profile'])
+            ->latest()
+            ->take(100)
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $pendingUsers
+        ]);
+    }
+
+    public function getApprovedUsers()
+    {
+        $approvedUsers = User::where('approval_status', 'approved')
+            ->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
+            })
+            ->with([
+                'profile',
+                'applications' => function($query) {
+                    $query->with(['job.department'])
+                          ->orderBy('created_at', 'desc');
+                }
+            ])
+            ->latest('approved_at')
+            ->take(100)
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $approvedUsers
+        ]);
+    }
+
+    public function getDepartments()
+    {
+        $departments = Department::with(['user', 'jobs'])
+            ->withCount('jobs')
+            ->latest()
+            ->take(100)
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $departments
+        ]);
+    }
+
+    public function getJobs()
+    {
+        $jobs = HajjJob::with(['department.user', 'applications'])
+            ->withCount('applications')
+            ->latest()
+            ->take(100)
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $jobs
+        ]);
+    }
+
+    public function getApplications()
+    {
+        $applications = JobApplication::with(['user.profile', 'job.department'])
+            ->latest()
+            ->take(100)
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $applications
+        ]);
+    }
+
+    public function getContracts()
+    {
+        $contracts = \App\Models\Contract::with(['employee', 'department', 'job'])
+            ->orderBy('created_at', 'desc')
+            ->take(100)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $contracts
+        ]);
+    }
+
+    public function getDashboardData()
+    {
+        // إحصائيات عامة
+        $totalUsers = User::count();
+        $totalDepartments = User::role('department')->count();
+        $totalEmployees = User::role('employee')->count();
+        $totalJobs = HajjJob::count();
+        $activeJobs = HajjJob::where('status', 'active')->count();
+        $inactiveJobs = HajjJob::where('status', 'inactive')->count();
+        $closedJobs = HajjJob::where('status', 'closed')->count();
+        $totalApplications = JobApplication::count();
+        $pendingApplications = JobApplication::where('status', 'pending')->count();
+        $acceptedApplications = JobApplication::where('status', 'approved')->count();
+        $rejectedApplications = JobApplication::where('status', 'rejected')->count();
+        
+        // إحصائيات هذا الشهر
+        $newUsersThisMonth = User::whereMonth('created_at', now()->month)->count();
+        $newJobsThisMonth = HajjJob::whereMonth('created_at', now()->month)->count();
+        $newApplicationsThisMonth = JobApplication::whereMonth('created_at', now()->month)->count();
+        
+        // إحصائيات اليوم
+        $todayRegistrations = User::whereDate('created_at', today())->count();
+        $todayJobs = HajjJob::whereDate('created_at', today())->count();
+        $todayApplications = JobApplication::whereDate('created_at', today())->count();
+        
+        // أحدث الأنشطة
+        $recentUsers = User::latest()->take(5)->get();
+        $recentJobs = HajjJob::with(['department', 'applications'])->withCount('applications')->latest()->take(5)->get();
+        $recentApplications = JobApplication::with(['user', 'job.department'])->latest()->take(5)->get();
+        
+        // مؤشرات الأداء الرئيسية (KPIs)
+        $kpis = $this->calculateKPIs();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'stats' => [
+                    'total_users' => $totalUsers,
+                    'total_departments' => $totalDepartments,
+                    'total_employees' => $totalEmployees,
+                    'total_jobs' => $totalJobs,
+                    'active_jobs' => $activeJobs,
+                    'inactive_jobs' => $inactiveJobs,
+                    'closed_jobs' => $closedJobs,
+                    'total_applications' => $totalApplications,
+                    'pending_applications' => $pendingApplications,
+                    'accepted_applications' => $acceptedApplications,
+                    'rejected_applications' => $rejectedApplications,
+                    'new_users_this_month' => $newUsersThisMonth,
+                    'new_jobs_this_month' => $newJobsThisMonth,
+                    'new_applications_this_month' => $newApplicationsThisMonth,
+                    'today_registrations' => $todayRegistrations,
+                    'today_jobs' => $todayJobs,
+                    'today_applications' => $todayApplications,
+                ],
+                'recent_users' => $recentUsers,
+                'recent_jobs' => $recentJobs,
+                'recent_applications' => $recentApplications,
+                'kpis' => $kpis
+            ]
+        ]);
+    }
+
+    public function approveUser(User $user)
+    {
+        try {
+            $user->update([
+                'approval_status' => 'approved',
+                'approved_at' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم قبول المستخدم بنجاح'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ في العملية'
+            ], 500);
+        }
+    }
+
+    public function rejectUser(User $user)
+    {
+        try {
+            $user->update([
+                'approval_status' => 'rejected',
+                'rejected_at' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم رفض المستخدم بنجاح'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ في العملية'
+            ], 500);
+        }
     }
 }

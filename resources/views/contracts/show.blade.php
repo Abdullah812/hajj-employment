@@ -19,8 +19,8 @@
                     </nav>
                 </div>
                 <div>
-                    <a href="{{ route('contracts.pdf', $contract) }}" class="btn btn-success me-2">
-                        <i class="fas fa-download me-2"></i>تحميل PDF
+                    <a href="{{ route('contracts.download.word', $contract) }}" class="btn btn-primary me-2">
+                        <i class="fas fa-file-word me-2"></i>تحميل Word
                     </a>
                     <a href="{{ route('contracts.index') }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-right me-2"></i>العودة للقائمة
@@ -75,15 +75,15 @@
                         <div class="mb-4">
                             <h6 class="text-primary">1- الطرف الأول (الشركة):</h6>
                             <p class="mb-2">
-                                <strong>{{ $contract->company_name }}</strong>، ومقرها {{ $contract->company_address }} 
-                                سجل تجاري رقم: {{ $contract->company_commercial_register }}
+                                <strong>{{ $contract->department_name }}</strong>، ومقرها {{ $contract->department_address }} 
+                                سجل تجاري رقم: {{ $contract->department_commercial_register }}
                             </p>
                             <p class="mb-2">
-                                بريد إلكتروني: {{ $contract->company_email }}
+                                بريد إلكتروني: {{ $contract->department_email }}
                             </p>
                             <p class="mb-2">
-                                ويمثلها في هذا العقد: <strong>{{ $contract->company_representative_name }}</strong> 
-                                بصفته {{ $contract->company_representative_title }}
+                                ويمثلها في هذا العقد: <strong>{{ $contract->department_representative_name }}</strong> 
+                                بصفته {{ $contract->department_representative_title }}
                             </p>
                             <p class="text-muted">ويشار إليه فيما بعد (بالطرف الأول)</p>
                         </div>
@@ -144,13 +144,13 @@
                             <div class="col-md-6">
                                 <div class="text-center border p-3">
                                     <h6>الطرف الأول</h6>
-                                    <p class="mb-2"><strong>{{ $contract->company_name }}</strong></p>
-                                    @if($contract->company_signed_at)
+                                    <p class="mb-2"><strong>{{ $contract->department_name }}</strong></p>
+                                    @if($contract->department_signed_at)
                                         <div class="text-success">
                                             <i class="fas fa-check-circle"></i>
-                                            <strong>{{ $contract->company_signature }}</strong>
+                                            <strong>{{ $contract->department_signature }}</strong>
                                             <br>
-                                            <small>{{ $contract->company_signed_at->format('Y/m/d H:i') }}</small>
+                                            <small>{{ $contract->department_signed_at->format('Y/m/d H:i') }}</small>
                                         </div>
                                     @else
                                         <div class="text-muted">
@@ -242,7 +242,7 @@
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         <!-- إجراءات الشركة -->
-                        @if(auth()->user()->hasRole('company') && $contract->company_id === auth()->id())
+                        @if(auth()->user()->hasRole('department') && $contract->department_id === auth()->id())
                             @if($contract->status === 'draft')
                                 <form method="POST" action="{{ route('contracts.send', $contract) }}">
                                     @csrf

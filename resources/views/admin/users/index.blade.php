@@ -56,7 +56,7 @@
             <div class="card border-0 bg-success bg-opacity-10">
                 <div class="card-body text-center">
                     <i class="fas fa-building fa-2x text-success mb-2"></i>
-                    <h4 class="text-success mb-1">{{ $users->where('roles.0.name', 'company')->count() }}</h4>
+                    <h4 class="text-success mb-1">{{ $users->where('roles.0.name', 'department')->count() }}</h4>
                     <small class="text-muted">الشركات</small>
                 </div>
             </div>
@@ -118,8 +118,8 @@
                                     </td>
                                     <td>
                                         @foreach($user->roles as $role)
-                                            <span class="badge {{ $role->name == 'admin' ? 'bg-danger' : ($role->name == 'company' ? 'bg-success' : 'bg-warning') }}">
-                                                {{ $role->name == 'admin' ? 'مدير' : ($role->name == 'company' ? 'شركة' : 'موظف') }}
+                                            <span class="badge {{ $role->name == 'admin' ? 'bg-danger' : ($role->name == 'department' ? 'bg-success' : 'bg-warning') }}">
+                                                {{ $role->name == 'admin' ? 'مدير' : ($role->name == 'department' ? 'قسم' : 'موظف') }}
                                             </span>
                                         @endforeach
                                     </td>

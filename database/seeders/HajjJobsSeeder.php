@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\HajjJob;
 use App\Models\User;
+use App\Models\Department;
 
 class HajjJobsSeeder extends Seeder
 {
@@ -14,22 +15,37 @@ class HajjJobsSeeder extends Seeder
      */
     public function run(): void
     {
-        // الحصول على الشركات
-        $companies = User::role('company')->get();
+        // الحصول على الأقسام
+        $user = User::role('department')->first();
         
-        if ($companies->isEmpty()) {
-            $this->command->info('لا توجد شركات مسجلة. سيتم إنشاء الوظائف للمستخدم الأول.');
-            $company = User::first();
-        } else {
-            $company = $companies->first();
+        if (!$user) {
+            $this->command->info('لا توجد أقسام مسجلة. سيتم إنشاء الوظائف للمستخدم الأول.');
+            $user = User::first();
         }
+
+        // إنشاء قسم للمستخدم إذا لم يكن لديه قسم
+        $department = Department::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'name' => 'القسم الرئيسي',
+                'description' => 'القسم الرئيسي للنظام',
+                'phone' => '0500000000',
+                'address' => 'مكة المكرمة',
+                'email' => $user->email,
+                'website' => 'https://example.com',
+                'status' => 'active',
+                'type' => 'main',
+                'registration_number' => 'DEP' . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT),
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        );
         
         $jobs = [
             [
                 'title' => 'مشرف إعاشة - مكة المكرمة',
                 'description' => 'مطلوب مشرف إعاشة للإشراف على خدمات الطعام للحجاج في مكة المكرمة. يجب أن يكون لديه خبرة في إدارة المطابخ والوجبات الجماعية.',
                 'location' => 'مكة المكرمة',
-                'department' => 'قسم الإعاشة',
                 'employment_type' => 'seasonal',
                 'salary_min' => 4000,
                 'salary_max' => 6000,
@@ -50,7 +66,6 @@ class HajjJobsSeeder extends Seeder
                 'title' => 'مرشد حج - متعدد الجنسيات',
                 'description' => 'مطلوب مرشد حج للحجاج الإيرانيين والسنغاليين. يجب إجادة اللغات المطلوبة والمعرفة التامة بمناسك الحج.',
                 'location' => 'مكة المكرمة - المدينة المنورة',
-                'department' => 'الإرشاد والسفر',
                 'employment_type' => 'seasonal',
                 'salary_min' => 5000,
                 'salary_max' => 8000,
@@ -71,7 +86,6 @@ class HajjJobsSeeder extends Seeder
                 'title' => 'سائق نقل جماعي',
                 'description' => 'مطلوب سائق حافلة لنقل الحجاج بين المشاعر المقدسة. يجب أن يكون لديه رخصة قيادة درجة ثانية وخبرة في القيادة الآمنة.',
                 'location' => 'مكة المكرمة - منى - عرفات',
-                'department' => 'قسم النقل',
                 'employment_type' => 'seasonal',
                 'salary_min' => 3500,
                 'salary_max' => 5000,
@@ -92,7 +106,6 @@ class HajjJobsSeeder extends Seeder
                 'title' => 'موظف استقبال وخدمة عملاء',
                 'description' => 'مطلوب موظف استقبال للعمل في مكاتب الشركة لخدمة الحجاج وحل استفساراتهم وتنسيق خدماتهم.',
                 'location' => 'مكة المكرمة - المدينة المنورة',
-                'department' => 'خدمة العملاء',
                 'employment_type' => 'seasonal',
                 'salary_min' => 3000,
                 'salary_max' => 4500,
@@ -113,7 +126,6 @@ class HajjJobsSeeder extends Seeder
                 'title' => 'منسق سكن وإقامة',
                 'description' => 'مطلوب منسق سكن لإدارة ومتابعة أماكن إقامة الحجاج والتأكد من جودة الخدمات المقدمة.',
                 'location' => 'مكة المكرمة - منى',
-                'department' => 'قسم الإقامة',
                 'employment_type' => 'seasonal',
                 'salary_min' => 4500,
                 'salary_max' => 6500,
@@ -134,7 +146,6 @@ class HajjJobsSeeder extends Seeder
                 'title' => 'مساعد إداري',
                 'description' => 'مطلوب مساعد إداري للعمل في المكاتب الإدارية ومساعدة في الأعمال الإدارية والتنسيقية.',
                 'location' => 'مكة المكرمة',
-                'department' => 'الإدارة العامة',
                 'employment_type' => 'seasonal',
                 'salary_min' => 2800,
                 'salary_max' => 4000,
@@ -155,7 +166,7 @@ class HajjJobsSeeder extends Seeder
         
         foreach ($jobs as $jobData) {
             HajjJob::create(array_merge($jobData, [
-                'company_id' => $company->id,
+                'department_id' => $department->id,
                 'status' => 'active'
             ]));
         }
