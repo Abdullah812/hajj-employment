@@ -692,7 +692,7 @@
                         <div class="card h-100 shadow-sm border-0">
                             <div class="position-relative overflow-hidden" style="height: 200px;">
                                 @if($article->image)
-                                    <img src="{{ asset('storage/' . $article->image) }}" 
+                                    <img src="{{ $article->image_url }}" 
                                          alt="{{ $article->title }}" 
                                          class="w-100 h-100" 
                                          style="object-fit: cover;">

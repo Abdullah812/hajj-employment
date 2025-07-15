@@ -20,7 +20,7 @@
                         <!-- Article Image -->
                         <div class="position-relative overflow-hidden" style="height: 250px;">
                             @if($article->image)
-                                <img src="{{ $article->image }}" 
+                                <img src="{{ $article->image_url }}" 
                                      alt="{{ $article->title }}" 
                                      class="card-img-top h-100 w-100" 
                                      style="object-fit: cover; transition: transform 0.3s ease;">

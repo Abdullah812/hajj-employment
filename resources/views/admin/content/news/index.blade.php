@@ -113,7 +113,7 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             @if($article->image)
-                                                <img src="{{ asset('storage/' . $article->image) }}" 
+                                                <img src="{{ $article->image_url }}" 
                                                      alt="{{ $article->title }}" 
                                                      class="rounded me-3" 
                                                      style="width: 50px; height: 50px; object-fit: cover;">

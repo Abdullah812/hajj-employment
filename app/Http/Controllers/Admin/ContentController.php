@@ -51,7 +51,9 @@ class ContentController extends Controller
             $data['created_by'] = auth()->id();
             
             if ($request->hasFile('featured_image')) {
-                $data['image'] = $request->file('featured_image')->store('news', 'public');
+                $file = $request->file('featured_image');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $data['image'] = $file->storeAs('news', $filename, 'public');
             }
 
             if ($request->status === 'published' && !$request->published_at) {
@@ -96,7 +98,9 @@ class ContentController extends Controller
                 if ($news->image) {
                     Storage::disk('public')->delete($news->image);
                 }
-                $data['image'] = $request->file('featured_image')->store('news', 'public');
+                $file = $request->file('featured_image');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $data['image'] = $file->storeAs('news', $filename, 'public');
             }
 
             if ($request->status === 'published' && !$news->published_at && !$request->published_at) {
