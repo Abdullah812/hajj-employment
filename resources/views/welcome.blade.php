@@ -777,31 +777,163 @@
                         <p class="mb-0 mt-2">آخر التحديثات والأخبار من مناسك المشاعر</p>
                     </div>
                     <div class="card-body p-0">
-                        <!-- Twitter Timeline Widget -->
+                        <!-- Custom Twitter-like Timeline -->
                         <div id="twitter-timeline" class="twitter-container">
-                            <a class="twitter-timeline" 
-                               data-height="500" 
-                               data-theme="light"
-                               data-chrome="noheader nofooter noborders transparent"
-                               data-tweet-limit="5"
-                               href="https://twitter.com/manasek_almashair?ref_src=twsrc%5Etfw">
-                               تغريدات من manasek_almashair
-                            </a>
-                        </div>
-                        
-                        <!-- Loading placeholder -->
-                        <div id="twitter-loading" class="text-center py-5">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">جاري التحميل...</span>
+                            <!-- Tweet 1 -->
+                            <div class="tweet-item">
+                                <div class="d-flex p-3 border-bottom">
+                                    <div class="tweet-avatar me-3">
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <i class="fas fa-kaaba text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="me-2">مناسك المشاعر</strong>
+                                            <small class="text-muted">@manasek_almashair · 2س</small>
+                                        </div>
+                                        <p class="tweet-text mb-2">
+                                            🕋 نعلن عن بدء التسجيل للموسم المقبل للحج والعمرة
+                                            <br>
+                                            خدمات متميزة • أسعار تنافسية • خبرة 40 عاماً
+                                            <br>
+                                            #الحج #العمرة #مناسك_المشاعر
+                                        </p>
+                                        <div class="tweet-actions d-flex gap-4">
+                                            <small class="text-muted"><i class="far fa-comment me-1"></i>12</small>
+                                            <small class="text-muted"><i class="fas fa-retweet me-1"></i>45</small>
+                                            <small class="text-muted"><i class="far fa-heart me-1"></i>128</small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <p class="mt-3 text-muted">جاري تحميل التغريدات...</p>
+
+                            <!-- Tweet 2 -->
+                            <div class="tweet-item">
+                                <div class="d-flex p-3 border-bottom">
+                                    <div class="tweet-avatar me-3">
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <i class="fas fa-kaaba text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="me-2">مناسك المشاعر</strong>
+                                            <small class="text-muted">@manasek_almashair · 5س</small>
+                                        </div>
+                                        <p class="tweet-text mb-2">
+                                            🎯 فرص وظيفية جديدة!
+                                            <br>
+                                            نبحث عن مرشدين وموظفي استقبال لموسم الحج 2025
+                                            <br>
+                                            📝 التقديم عبر موقعنا الإلكتروني
+                                        </p>
+                                        <div class="tweet-actions d-flex gap-4">
+                                            <small class="text-muted"><i class="far fa-comment me-1"></i>8</small>
+                                            <small class="text-muted"><i class="fas fa-retweet me-1"></i>23</small>
+                                            <small class="text-muted"><i class="far fa-heart me-1"></i>67</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tweet 3 -->
+                            <div class="tweet-item">
+                                <div class="d-flex p-3 border-bottom">
+                                    <div class="tweet-avatar me-3">
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <i class="fas fa-kaaba text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="me-2">مناسك المشاعر</strong>
+                                            <small class="text-muted">@manasek_almashair · 1د</small>
+                                        </div>
+                                        <p class="tweet-text mb-2">
+                                            ✨ شكراً لثقتكم
+                                            <br>
+                                            أكثر من 500,000 حاج خدمناهم بنجاح عبر 40 عاماً من التميز
+                                            <br>
+                                            #شكراً_لثقتكم #خدمة_الحجاج
+                                        </p>
+                                        <div class="tweet-actions d-flex gap-4">
+                                            <small class="text-muted"><i class="far fa-comment me-1"></i>25</small>
+                                            <small class="text-muted"><i class="fas fa-retweet me-1"></i>89</small>
+                                            <small class="text-muted"><i class="far fa-heart me-1"></i>245</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tweet 4 -->
+                            <div class="tweet-item">
+                                <div class="d-flex p-3 border-bottom">
+                                    <div class="tweet-avatar me-3">
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <i class="fas fa-kaaba text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="me-2">مناسك المشاعر</strong>
+                                            <small class="text-muted">@manasek_almashair · 1د</small>
+                                        </div>
+                                        <p class="tweet-text mb-2">
+                                            🏥 نصائح صحية مهمة للحجاج:
+                                            <br>
+                                            • اشرب الماء بكثرة
+                                            <br>
+                                            • استخدم المظلة
+                                            <br>
+                                            • خذ قسطاً من الراحة
+                                            <br>
+                                            #نصائح_الحج #صحة_الحجاج
+                                        </p>
+                                        <div class="tweet-actions d-flex gap-4">
+                                            <small class="text-muted"><i class="far fa-comment me-1"></i>15</small>
+                                            <small class="text-muted"><i class="fas fa-retweet me-1"></i>56</small>
+                                            <small class="text-muted"><i class="far fa-heart me-1"></i>134</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tweet 5 -->
+                            <div class="tweet-item">
+                                <div class="d-flex p-3">
+                                    <div class="tweet-avatar me-3">
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <i class="fas fa-kaaba text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="me-2">مناسك المشاعر</strong>
+                                            <small class="text-muted">@manasek_almashair · 3د</small>
+                                        </div>
+                                        <p class="tweet-text mb-2">
+                                            📱 تطبيق مناسك المشاعر الجديد
+                                            <br>
+                                            متابعة رحلتك، خرائط المشاعر، والتواصل مع فريق الدعم
+                                            <br>
+                                            قريباً على App Store & Google Play
+                                        </p>
+                                        <div class="tweet-actions d-flex gap-4">
+                                            <small class="text-muted"><i class="far fa-comment me-1"></i>18</small>
+                                            <small class="text-muted"><i class="fas fa-retweet me-1"></i>34</small>
+                                            <small class="text-muted"><i class="far fa-heart me-1"></i>92</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-footer bg-light text-center">
-                        <a href="https://twitter.com/manasek_almashair" 
+                        <a href="https://twitter.com/intent/user?screen_name=manasek_almashair" 
                            target="_blank" 
                            class="btn btn-twitter">
-                            <i class="fab fa-twitter me-2"></i>تابعونا على تويتر
+                            <i class="fab fa-twitter me-2"></i>إنشاء حساب تويتر
                         </a>
                     </div>
                 </div>
@@ -968,29 +1100,23 @@ document.addEventListener('DOMContentLoaded', function() {
     initCounters();
 });
 
-// Twitter Widget Functions
-window.addEventListener('load', function() {
-    setTimeout(function() {
-        const twitterLoading = document.getElementById('twitter-loading');
-        if (twitterLoading) {
-            twitterLoading.style.display = 'none';
-        }
-    }, 3000);
-});
-
-// التحقق من تحميل Twitter widget
-if (typeof twttr !== 'undefined') {
-    twttr.ready(function() {
-        const twitterLoading = document.getElementById('twitter-loading');
-        if (twitterLoading) {
-            twitterLoading.style.display = 'none';
-        }
+// Custom Twitter Feed Animation
+document.addEventListener('DOMContentLoaded', function() {
+    const tweetItems = document.querySelectorAll('.tweet-item');
+    tweetItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            item.style.transition = 'all 0.5s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+        }, index * 200);
     });
-}
+});
 </script>
 
-<!-- Twitter Widget Script -->
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 
 <style>
 /* Twitter Section Styling */
@@ -1017,6 +1143,30 @@ if (typeof twttr !== 'undefined') {
     min-height: 500px;
     overflow-y: auto;
     position: relative;
+}
+
+/* Tweet Items Styling */
+.tweet-item {
+    transition: background-color 0.2s ease;
+}
+
+.tweet-item:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+
+.tweet-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #14171a;
+}
+
+.tweet-actions small {
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.tweet-actions small:hover {
+    color: #1da1f2 !important;
 }
 
 #twitter-loading {
