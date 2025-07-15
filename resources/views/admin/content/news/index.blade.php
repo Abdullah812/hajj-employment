@@ -80,7 +80,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="mb-0">مشاهدات اليوم</h6>
-                            <h3 class="mb-0">{{ $news->sum('views_count') ?? 0 }}</h3>
+                            <h3 class="mb-0">{{ $news->sum('views') ?? 0 }}</h3>
                         </div>
                     </div>
                 </div>
@@ -112,8 +112,8 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            @if($article->featured_image)
-                                                <img src="{{ asset('storage/' . $article->featured_image) }}" 
+                                            @if($article->image)
+                                                <img src="{{ asset('storage/' . $article->image) }}" 
                                                      alt="{{ $article->title }}" 
                                                      class="rounded me-3" 
                                                      style="width: 50px; height: 50px; object-fit: cover;">
@@ -141,7 +141,7 @@
                                     </td>
                                     <td>
                                         <span class="text-muted">
-                                            <i class="fas fa-eye me-1"></i>{{ number_format($article->views_count ?? 0) }}
+                                            <i class="fas fa-eye me-1"></i>{{ number_format($article->views ?? 0) }}
                                         </span>
                                     </td>
                                     <td>

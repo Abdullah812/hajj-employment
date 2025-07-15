@@ -48,9 +48,10 @@ class ContentController extends Controller
 
             $data = $request->only(['title', 'content', 'excerpt', 'category', 'status']);
             $data['slug'] = Str::slug($request->title);
+            $data['created_by'] = auth()->id();
             
             if ($request->hasFile('featured_image')) {
-                $data['featured_image'] = $request->file('featured_image')->store('news', 'public');
+                $data['image'] = $request->file('featured_image')->store('news', 'public');
             }
 
             if ($request->status === 'published' && !$request->published_at) {
@@ -92,10 +93,10 @@ class ContentController extends Controller
             $data['slug'] = Str::slug($request->title);
             
             if ($request->hasFile('featured_image')) {
-                if ($news->featured_image) {
-                    Storage::disk('public')->delete($news->featured_image);
+                if ($news->image) {
+                    Storage::disk('public')->delete($news->image);
                 }
-                $data['featured_image'] = $request->file('featured_image')->store('news', 'public');
+                $data['image'] = $request->file('featured_image')->store('news', 'public');
             }
 
             if ($request->status === 'published' && !$news->published_at && !$request->published_at) {
@@ -118,8 +119,8 @@ class ContentController extends Controller
     public function newsDestroy(News $news)
     {
         try {
-            if ($news->featured_image) {
-                Storage::disk('public')->delete($news->featured_image);
+            if ($news->image) {
+                Storage::disk('public')->delete($news->image);
             }
             
             $news->delete();
@@ -165,6 +166,7 @@ class ContentController extends Controller
 
             $data = $request->only(['title', 'description', 'category', 'order_sort']);
             $data['is_active'] = $request->has('is_active');
+            $data['created_by'] = auth()->id();
             
             if ($request->hasFile('image')) {
                 $data['image_path'] = $request->file('image')->store('gallery', 'public');
@@ -272,6 +274,7 @@ class ContentController extends Controller
             $data = $request->only(['client_name', 'client_country', 'client_city', 'testimonial_text', 'rating']);
             $data['is_featured'] = $request->has('is_featured');
             $data['is_active'] = $request->has('is_active');
+            $data['created_by'] = auth()->id();
             
             if ($request->hasFile('client_image')) {
                 $data['client_image'] = $request->file('client_image')->store('testimonials', 'public');
@@ -382,6 +385,7 @@ class ContentController extends Controller
             $data = $request->only(['title', 'description', 'video_url', 'duration', 'category']);
             $data['is_featured'] = $request->has('is_featured');
             $data['is_active'] = $request->has('is_active');
+            $data['created_by'] = auth()->id();
             
             if ($request->hasFile('thumbnail_image')) {
                 $data['thumbnail_image'] = $request->file('thumbnail_image')->store('videos', 'public');
