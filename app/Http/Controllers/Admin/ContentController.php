@@ -10,519 +10,449 @@ use App\Models\CompanyVideo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class ContentController extends Controller
 {
-    // ==================== إدارة الأخبار ====================
-    
+    // News Management
     public function newsIndex()
     {
-        $news = News::with('creator')
-            ->latest()
-            ->paginate(15);
-        
-        $stats = [
-            'total' => News::count(),
-            'published' => News::where('status', 'published')->count(),
-            'draft' => News::where('status', 'draft')->count(),
-            'featured' => News::where('featured', true)->count(),
-        ];
-        
-        return view('admin.content.news.index', compact('news', 'stats'));
+        try {
+            if (!Schema::hasTable('news')) {
+                return view('admin.content.news.index', ['news' => collect([])]);
+            }
+            $news = News::latest()->paginate(15);
+            return view('admin.content.news.index', compact('news'));
+        } catch (\Exception $e) {
+            return view('admin.content.news.index', ['news' => collect([])]);
+        }
     }
-    
+
     public function newsCreate()
     {
-        $categories = [
-            'news' => 'أخبار',
-            'achievements' => 'إنجازات',
-            'tips' => 'نصائح',
-            'training' => 'تدريب',
-            'success_stories' => 'قصص نجاح',
-            'development' => 'تطوير'
-        ];
-        
-        return view('admin.content.news.create', compact('categories'));
+        return view('admin.content.news.create');
     }
-    
+
     public function newsStore(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'excerpt' => 'nullable|string|max:500',
-            'category' => 'required|string',
-            'status' => 'required|in:draft,published,archived',
-            'featured' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'published_at' => 'nullable|date'
-        ]);
-        
-        $data = $request->all();
-        $data['created_by'] = auth()->id();
-        $data['featured'] = $request->has('featured');
-        
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('news', 'public');
+        try {
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string',
+                'excerpt' => 'nullable|string',
+                'category' => 'nullable|string',
+                'status' => 'required|in:draft,published',
+                'featured_image' => 'nullable|image|max:2048',
+                'published_at' => 'nullable|date',
+            ]);
+
+            $data = $request->only(['title', 'content', 'excerpt', 'category', 'status']);
+            $data['slug'] = Str::slug($request->title);
+            
+            if ($request->hasFile('featured_image')) {
+                $data['featured_image'] = $request->file('featured_image')->store('news', 'public');
+            }
+
+            if ($request->status === 'published' && !$request->published_at) {
+                $data['published_at'] = now();
+            } elseif ($request->published_at) {
+                $data['published_at'] = $request->published_at;
+            }
+
+            News::create($data);
+
+            return redirect()->route('admin.content.news.index')
+                ->with('success', 'تم إنشاء الخبر بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'حدث خطأ أثناء حفظ الخبر: ' . $e->getMessage());
         }
-        
-        if ($request->status === 'published' && !$request->published_at) {
-            $data['published_at'] = now();
-        }
-        
-        News::create($data);
-        
-        return redirect()->route('admin.content.news.index')
-            ->with('success', 'تم إنشاء الخبر بنجاح');
     }
-    
+
     public function newsEdit(News $news)
     {
-        $categories = [
-            'news' => 'أخبار',
-            'achievements' => 'إنجازات',
-            'tips' => 'نصائح',
-            'training' => 'تدريب',
-            'success_stories' => 'قصص نجاح',
-            'development' => 'تطوير'
-        ];
-        
-        return view('admin.content.news.edit', compact('news', 'categories'));
+        return view('admin.content.news.edit', compact('news'));
     }
-    
+
     public function newsUpdate(Request $request, News $news)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'excerpt' => 'nullable|string|max:500',
-            'category' => 'required|string',
-            'status' => 'required|in:draft,published,archived',
-            'featured' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'published_at' => 'nullable|date'
-        ]);
-        
-        $data = $request->all();
-        $data['featured'] = $request->has('featured');
-        
-        if ($request->hasFile('image')) {
-            if ($news->image) {
-                Storage::disk('public')->delete($news->image);
+        try {
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string',
+                'excerpt' => 'nullable|string',
+                'category' => 'nullable|string',
+                'status' => 'required|in:draft,published',
+                'featured_image' => 'nullable|image|max:2048',
+                'published_at' => 'nullable|date',
+            ]);
+
+            $data = $request->only(['title', 'content', 'excerpt', 'category', 'status']);
+            $data['slug'] = Str::slug($request->title);
+            
+            if ($request->hasFile('featured_image')) {
+                if ($news->featured_image) {
+                    Storage::disk('public')->delete($news->featured_image);
+                }
+                $data['featured_image'] = $request->file('featured_image')->store('news', 'public');
             }
-            $data['image'] = $request->file('image')->store('news', 'public');
+
+            if ($request->status === 'published' && !$news->published_at && !$request->published_at) {
+                $data['published_at'] = now();
+            } elseif ($request->published_at) {
+                $data['published_at'] = $request->published_at;
+            }
+
+            $news->update($data);
+
+            return redirect()->route('admin.content.news.index')
+                ->with('success', 'تم تحديث الخبر بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'حدث خطأ أثناء تحديث الخبر: ' . $e->getMessage());
         }
-        
-        if ($request->status === 'published' && !$news->published_at && !$request->published_at) {
-            $data['published_at'] = now();
-        }
-        
-        $news->update($data);
-        
-        return redirect()->route('admin.content.news.index')
-            ->with('success', 'تم تحديث الخبر بنجاح');
     }
-    
+
     public function newsDestroy(News $news)
     {
-        if ($news->image) {
-            Storage::disk('public')->delete($news->image);
+        try {
+            if ($news->featured_image) {
+                Storage::disk('public')->delete($news->featured_image);
+            }
+            
+            $news->delete();
+
+            return redirect()->route('admin.content.news.index')
+                ->with('success', 'تم حذف الخبر بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'حدث خطأ أثناء حذف الخبر: ' . $e->getMessage());
         }
-        
-        $news->delete();
-        
-        return redirect()->route('admin.content.news.index')
-            ->with('success', 'تم حذف الخبر بنجاح');
     }
-    
-    // ==================== إدارة المعرض ====================
-    
+
+    // Gallery Management
     public function galleryIndex()
     {
-        $gallery = Gallery::with('creator')
-            ->ordered()
-            ->paginate(15);
-        
-        $stats = [
-            'total' => Gallery::count(),
-            'active' => Gallery::where('status', 'active')->count(),
-            'featured' => Gallery::where('featured', true)->count(),
-        ];
-        
-        return view('admin.content.gallery.index', compact('gallery', 'stats'));
+        try {
+            if (!Schema::hasTable('galleries')) {
+                return view('admin.content.gallery.index', ['galleries' => collect([])]);
+            }
+            $galleries = Gallery::latest()->paginate(20);
+            return view('admin.content.gallery.index', compact('galleries'));
+        } catch (\Exception $e) {
+            return view('admin.content.gallery.index', ['galleries' => collect([])]);
+        }
     }
-    
+
     public function galleryCreate()
     {
-        $categories = [
-            'services' => 'الخدمات',
-            'food' => 'الإعاشة',
-            'accommodation' => 'الإقامة',
-            'transportation' => 'النقل',
-            'guidance' => 'الإرشاد',
-            'medical' => 'الرعاية الطبية',
-            'customer_service' => 'خدمة العملاء',
-            'general' => 'عام'
-        ];
-        
-        return view('admin.content.gallery.create', compact('categories'));
+        return view('admin.content.gallery.create');
     }
-    
+
     public function galleryStore(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category' => 'required|string',
-            'status' => 'required|in:active,inactive',
-            'featured' => 'boolean',
-            'sort_order' => 'nullable|integer',
-            'alt_text' => 'nullable|string|max:255',
-            'image' => 'required|image|mimes:jpeg,png,jpg|max:5120', // 5MB max
-        ]);
-        
-        $data = $request->all();
-        $data['created_by'] = auth()->id();
-        $data['featured'] = $request->has('featured');
-        $data['sort_order'] = $request->sort_order ?? 0;
-        
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('gallery', 'public');
+        try {
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'category' => 'required|string',
+                'image' => 'required|image|max:2048',
+                'order_sort' => 'nullable|integer',
+                'is_active' => 'boolean',
+            ]);
+
+            $data = $request->only(['title', 'description', 'category', 'order_sort']);
+            $data['is_active'] = $request->has('is_active');
+            
+            if ($request->hasFile('image')) {
+                $data['image_path'] = $request->file('image')->store('gallery', 'public');
+            }
+
+            Gallery::create($data);
+
+            return redirect()->route('admin.content.gallery.index')
+                ->with('success', 'تم إضافة الصورة بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'حدث خطأ أثناء حفظ الصورة: ' . $e->getMessage());
         }
-        
-        Gallery::create($data);
-        
-        return redirect()->route('admin.content.gallery.index')
-            ->with('success', 'تم إضافة الصورة بنجاح');
     }
-    
+
     public function galleryEdit(Gallery $gallery)
     {
-        $categories = [
-            'services' => 'الخدمات',
-            'food' => 'الإعاشة',
-            'accommodation' => 'الإقامة',
-            'transportation' => 'النقل',
-            'guidance' => 'الإرشاد',
-            'medical' => 'الرعاية الطبية',
-            'customer_service' => 'خدمة العملاء',
-            'general' => 'عام'
-        ];
-        
-        return view('admin.content.gallery.edit', compact('gallery', 'categories'));
+        return view('admin.content.gallery.edit', compact('gallery'));
     }
-    
+
     public function galleryUpdate(Request $request, Gallery $gallery)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category' => 'required|string',
-            'status' => 'required|in:active,inactive',
-            'featured' => 'boolean',
-            'sort_order' => 'nullable|integer',
-            'alt_text' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
-        ]);
-        
-        $data = $request->all();
-        $data['featured'] = $request->has('featured');
-        $data['sort_order'] = $request->sort_order ?? $gallery->sort_order;
-        
-        if ($request->hasFile('image')) {
-            if ($gallery->image) {
-                Storage::disk('public')->delete($gallery->image);
+        try {
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'category' => 'required|string',
+                'image' => 'nullable|image|max:2048',
+                'order_sort' => 'nullable|integer',
+                'is_active' => 'boolean',
+            ]);
+
+            $data = $request->only(['title', 'description', 'category', 'order_sort']);
+            $data['is_active'] = $request->has('is_active');
+            
+            if ($request->hasFile('image')) {
+                if ($gallery->image_path) {
+                    Storage::disk('public')->delete($gallery->image_path);
+                }
+                $data['image_path'] = $request->file('image')->store('gallery', 'public');
             }
-            $data['image'] = $request->file('image')->store('gallery', 'public');
+
+            $gallery->update($data);
+
+            return redirect()->route('admin.content.gallery.index')
+                ->with('success', 'تم تحديث الصورة بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'حدث خطأ أثناء تحديث الصورة: ' . $e->getMessage());
         }
-        
-        $gallery->update($data);
-        
-        return redirect()->route('admin.content.gallery.index')
-            ->with('success', 'تم تحديث الصورة بنجاح');
     }
-    
+
     public function galleryDestroy(Gallery $gallery)
     {
-        if ($gallery->image) {
-            Storage::disk('public')->delete($gallery->image);
+        try {
+            if ($gallery->image_path) {
+                Storage::disk('public')->delete($gallery->image_path);
+            }
+            
+            $gallery->delete();
+
+            return redirect()->route('admin.content.gallery.index')
+                ->with('success', 'تم حذف الصورة بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'حدث خطأ أثناء حذف الصورة: ' . $e->getMessage());
         }
-        
-        $gallery->delete();
-        
-        return redirect()->route('admin.content.gallery.index')
-            ->with('success', 'تم حذف الصورة بنجاح');
     }
-    
-    // ==================== إدارة الشهادات ====================
-    
+
+    // Testimonials Management
     public function testimonialsIndex()
     {
-        $testimonials = Testimonial::with('creator')
-            ->ordered()
-            ->paginate(15);
-        
-        $stats = [
-            'total' => Testimonial::count(),
-            'active' => Testimonial::where('status', 'active')->count(),
-            'featured' => Testimonial::where('featured', true)->count(),
-            'avg_rating' => Testimonial::avg('rating'),
-        ];
-        
-        return view('admin.content.testimonials.index', compact('testimonials', 'stats'));
+        try {
+            if (!Schema::hasTable('testimonials')) {
+                return view('admin.content.testimonials.index', ['testimonials' => collect([])]);
+            }
+            $testimonials = Testimonial::latest()->paginate(15);
+            return view('admin.content.testimonials.index', compact('testimonials'));
+        } catch (\Exception $e) {
+            return view('admin.content.testimonials.index', ['testimonials' => collect([])]);
+        }
     }
-    
+
     public function testimonialsCreate()
     {
-        $countries = [
-            'إيران' => 'إيران',
-            'السنغال' => 'السنغال',
-            'موريشيوس' => 'موريشيوس',
-            'المغرب' => 'المغرب',
-            'تونس' => 'تونس',
-            'الجزائر' => 'الجزائر',
-            'أخرى' => 'أخرى'
-        ];
-        
-        $years = [];
-        for ($i = date('Y'); $i >= 2020; $i--) {
-            $years[$i] = $i;
-        }
-        
-        return view('admin.content.testimonials.create', compact('countries', 'years'));
+        return view('admin.content.testimonials.create');
     }
-    
+
     public function testimonialsStore(Request $request)
     {
-        $request->validate([
-            'client_name' => 'required|string|max:255',
-            'client_country' => 'required|string|max:255',
-            'testimonial_text' => 'required|string',
-            'rating' => 'required|integer|min:1|max:5',
-            'hajj_year' => 'required|string',
-            'status' => 'required|in:active,inactive',
-            'featured' => 'boolean',
-            'sort_order' => 'nullable|integer',
-            'client_image' => 'nullable|image|mimes:jpeg,png,jpg|max:1024', // 1MB max
-        ]);
-        
-        $data = $request->all();
-        $data['created_by'] = auth()->id();
-        $data['featured'] = $request->has('featured');
-        $data['sort_order'] = $request->sort_order ?? 0;
-        
-        if ($request->hasFile('client_image')) {
-            $data['client_image'] = $request->file('client_image')->store('testimonials', 'public');
+        try {
+            $request->validate([
+                'client_name' => 'required|string|max:255',
+                'client_country' => 'required|string|max:255',
+                'client_city' => 'nullable|string|max:255',
+                'testimonial_text' => 'required|string',
+                'rating' => 'required|integer|min:1|max:5',
+                'client_image' => 'nullable|image|max:1024',
+                'is_featured' => 'boolean',
+                'is_active' => 'boolean',
+            ]);
+
+            $data = $request->only(['client_name', 'client_country', 'client_city', 'testimonial_text', 'rating']);
+            $data['is_featured'] = $request->has('is_featured');
+            $data['is_active'] = $request->has('is_active');
+            
+            if ($request->hasFile('client_image')) {
+                $data['client_image'] = $request->file('client_image')->store('testimonials', 'public');
+            }
+
+            Testimonial::create($data);
+
+            return redirect()->route('admin.content.testimonials.index')
+                ->with('success', 'تم إضافة الشهادة بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'حدث خطأ أثناء حفظ الشهادة: ' . $e->getMessage());
         }
-        
-        Testimonial::create($data);
-        
-        return redirect()->route('admin.content.testimonials.index')
-            ->with('success', 'تم إضافة الشهادة بنجاح');
     }
-    
+
     public function testimonialsEdit(Testimonial $testimonial)
     {
-        $countries = [
-            'إيران' => 'إيران',
-            'السنغال' => 'السنغال',
-            'موريشيوس' => 'موريشيوس',
-            'المغرب' => 'المغرب',
-            'تونس' => 'تونس',
-            'الجزائر' => 'الجزائر',
-            'أخرى' => 'أخرى'
-        ];
-        
-        $years = [];
-        for ($i = date('Y'); $i >= 2020; $i--) {
-            $years[$i] = $i;
-        }
-        
-        return view('admin.content.testimonials.edit', compact('testimonial', 'countries', 'years'));
+        return view('admin.content.testimonials.edit', compact('testimonial'));
     }
-    
+
     public function testimonialsUpdate(Request $request, Testimonial $testimonial)
     {
-        $request->validate([
-            'client_name' => 'required|string|max:255',
-            'client_country' => 'required|string|max:255',
-            'testimonial_text' => 'required|string',
-            'rating' => 'required|integer|min:1|max:5',
-            'hajj_year' => 'required|string',
-            'status' => 'required|in:active,inactive',
-            'featured' => 'boolean',
-            'sort_order' => 'nullable|integer',
-            'client_image' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
-        ]);
-        
-        $data = $request->all();
-        $data['featured'] = $request->has('featured');
-        $data['sort_order'] = $request->sort_order ?? $testimonial->sort_order;
-        
-        if ($request->hasFile('client_image')) {
+        try {
+            $request->validate([
+                'client_name' => 'required|string|max:255',
+                'client_country' => 'required|string|max:255',
+                'client_city' => 'nullable|string|max:255',
+                'testimonial_text' => 'required|string',
+                'rating' => 'required|integer|min:1|max:5',
+                'client_image' => 'nullable|image|max:1024',
+                'is_featured' => 'boolean',
+                'is_active' => 'boolean',
+            ]);
+
+            $data = $request->only(['client_name', 'client_country', 'client_city', 'testimonial_text', 'rating']);
+            $data['is_featured'] = $request->has('is_featured');
+            $data['is_active'] = $request->has('is_active');
+            
+            if ($request->hasFile('client_image')) {
+                if ($testimonial->client_image) {
+                    Storage::disk('public')->delete($testimonial->client_image);
+                }
+                $data['client_image'] = $request->file('client_image')->store('testimonials', 'public');
+            }
+
+            $testimonial->update($data);
+
+            return redirect()->route('admin.content.testimonials.index')
+                ->with('success', 'تم تحديث الشهادة بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'حدث خطأ أثناء تحديث الشهادة: ' . $e->getMessage());
+        }
+    }
+
+    public function testimonialsDestroy(Testimonial $testimonial)
+    {
+        try {
             if ($testimonial->client_image) {
                 Storage::disk('public')->delete($testimonial->client_image);
             }
-            $data['client_image'] = $request->file('client_image')->store('testimonials', 'public');
+            
+            $testimonial->delete();
+
+            return redirect()->route('admin.content.testimonials.index')
+                ->with('success', 'تم حذف الشهادة بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'حدث خطأ أثناء حذف الشهادة: ' . $e->getMessage());
         }
-        
-        $testimonial->update($data);
-        
-        return redirect()->route('admin.content.testimonials.index')
-            ->with('success', 'تم تحديث الشهادة بنجاح');
     }
-    
-    public function testimonialsDestroy(Testimonial $testimonial)
-    {
-        if ($testimonial->client_image) {
-            Storage::disk('public')->delete($testimonial->client_image);
-        }
-        
-        $testimonial->delete();
-        
-        return redirect()->route('admin.content.testimonials.index')
-            ->with('success', 'تم حذف الشهادة بنجاح');
-    }
-    
-    // ==================== إدارة الفيديوهات ====================
-    
+
+    // Videos Management
     public function videosIndex()
     {
-        $videos = CompanyVideo::with('creator')
-            ->latest()
-            ->paginate(15);
-        
-        $stats = [
-            'total' => CompanyVideo::count(),
-            'active' => CompanyVideo::where('status', 'active')->count(),
-            'featured' => CompanyVideo::where('featured', true)->count(),
-            'total_views' => CompanyVideo::sum('views'),
-        ];
-        
-        return view('admin.content.videos.index', compact('videos', 'stats'));
+        try {
+            if (!Schema::hasTable('company_videos')) {
+                return view('admin.content.videos.index', ['videos' => collect([])]);
+            }
+            $videos = CompanyVideo::latest()->paginate(15);
+            return view('admin.content.videos.index', compact('videos'));
+        } catch (\Exception $e) {
+            return view('admin.content.videos.index', ['videos' => collect([])]);
+        }
     }
-    
+
     public function videosCreate()
     {
-        $videoTypes = [
-            'youtube' => 'يوتيوب',
-            'vimeo' => 'فيميو',
-            'local' => 'محلي',
-            'other' => 'أخرى'
-        ];
-        
-        $qualities = [
-            'HD' => 'HD',
-            'Full HD' => 'Full HD',
-            '4K' => '4K'
-        ];
-        
-        $languages = [
-            'ar' => 'العربية',
-            'en' => 'الإنجليزية',
-            'fa' => 'الفارسية',
-            'fr' => 'الفرنسية'
-        ];
-        
-        return view('admin.content.videos.create', compact('videoTypes', 'qualities', 'languages'));
+        return view('admin.content.videos.create');
     }
-    
+
     public function videosStore(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'video_url' => 'required|url',
-            'video_type' => 'required|in:youtube,vimeo,local,other',
-            'duration' => 'nullable|string|max:10',
-            'quality' => 'required|in:HD,Full HD,4K',
-            'status' => 'required|in:active,inactive',
-            'featured' => 'boolean',
-            'languages' => 'nullable|array',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
-        
-        $data = $request->all();
-        $data['created_by'] = auth()->id();
-        $data['featured'] = $request->has('featured');
-        $data['languages'] = $request->languages ?? ['ar'];
-        
-        if ($request->hasFile('thumbnail')) {
-            $data['thumbnail'] = $request->file('thumbnail')->store('video-thumbnails', 'public');
+        try {
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'video_url' => 'required|url',
+                'thumbnail_image' => 'nullable|image|max:2048',
+                'duration' => 'nullable|string',
+                'category' => 'required|string',
+                'is_featured' => 'boolean',
+                'is_active' => 'boolean',
+            ]);
+
+            $data = $request->only(['title', 'description', 'video_url', 'duration', 'category']);
+            $data['is_featured'] = $request->has('is_featured');
+            $data['is_active'] = $request->has('is_active');
+            
+            if ($request->hasFile('thumbnail_image')) {
+                $data['thumbnail_image'] = $request->file('thumbnail_image')->store('videos', 'public');
+            }
+
+            CompanyVideo::create($data);
+
+            return redirect()->route('admin.content.videos.index')
+                ->with('success', 'تم إضافة الفيديو بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'حدث خطأ أثناء حفظ الفيديو: ' . $e->getMessage());
         }
-        
-        CompanyVideo::create($data);
-        
-        return redirect()->route('admin.content.videos.index')
-            ->with('success', 'تم إضافة الفيديو بنجاح');
     }
-    
+
     public function videosEdit(CompanyVideo $video)
     {
-        $videoTypes = [
-            'youtube' => 'يوتيوب',
-            'vimeo' => 'فيميو',
-            'local' => 'محلي',
-            'other' => 'أخرى'
-        ];
-        
-        $qualities = [
-            'HD' => 'HD',
-            'Full HD' => 'Full HD',
-            '4K' => '4K'
-        ];
-        
-        $languages = [
-            'ar' => 'العربية',
-            'en' => 'الإنجليزية',
-            'fa' => 'الفارسية',
-            'fr' => 'الفرنسية'
-        ];
-        
-        return view('admin.content.videos.edit', compact('video', 'videoTypes', 'qualities', 'languages'));
+        return view('admin.content.videos.edit', compact('video'));
     }
-    
+
     public function videosUpdate(Request $request, CompanyVideo $video)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'video_url' => 'required|url',
-            'video_type' => 'required|in:youtube,vimeo,local,other',
-            'duration' => 'nullable|string|max:10',
-            'quality' => 'required|in:HD,Full HD,4K',
-            'status' => 'required|in:active,inactive',
-            'featured' => 'boolean',
-            'languages' => 'nullable|array',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
-        
-        $data = $request->all();
-        $data['featured'] = $request->has('featured');
-        $data['languages'] = $request->languages ?? $video->languages ?? ['ar'];
-        
-        if ($request->hasFile('thumbnail')) {
-            if ($video->thumbnail) {
-                Storage::disk('public')->delete($video->thumbnail);
+        try {
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'video_url' => 'required|url',
+                'thumbnail_image' => 'nullable|image|max:2048',
+                'duration' => 'nullable|string',
+                'category' => 'required|string',
+                'is_featured' => 'boolean',
+                'is_active' => 'boolean',
+            ]);
+
+            $data = $request->only(['title', 'description', 'video_url', 'duration', 'category']);
+            $data['is_featured'] = $request->has('is_featured');
+            $data['is_active'] = $request->has('is_active');
+            
+            if ($request->hasFile('thumbnail_image')) {
+                if ($video->thumbnail_image) {
+                    Storage::disk('public')->delete($video->thumbnail_image);
+                }
+                $data['thumbnail_image'] = $request->file('thumbnail_image')->store('videos', 'public');
             }
-            $data['thumbnail'] = $request->file('thumbnail')->store('video-thumbnails', 'public');
+
+            $video->update($data);
+
+            return redirect()->route('admin.content.videos.index')
+                ->with('success', 'تم تحديث الفيديو بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'حدث خطأ أثناء تحديث الفيديو: ' . $e->getMessage());
         }
-        
-        $video->update($data);
-        
-        return redirect()->route('admin.content.videos.index')
-            ->with('success', 'تم تحديث الفيديو بنجاح');
     }
-    
+
     public function videosDestroy(CompanyVideo $video)
     {
-        if ($video->thumbnail) {
-            Storage::disk('public')->delete($video->thumbnail);
+        try {
+            if ($video->thumbnail_image) {
+                Storage::disk('public')->delete($video->thumbnail_image);
+            }
+            
+            $video->delete();
+
+            return redirect()->route('admin.content.videos.index')
+                ->with('success', 'تم حذف الفيديو بنجاح');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'حدث خطأ أثناء حذف الفيديو: ' . $e->getMessage());
         }
-        
-        $video->delete();
-        
-        return redirect()->route('admin.content.videos.index')
-            ->with('success', 'تم حذف الفيديو بنجاح');
     }
 }
