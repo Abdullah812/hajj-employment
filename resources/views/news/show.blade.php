@@ -59,26 +59,37 @@
 
                 <!-- Article Footer -->
                 <div class="card-footer bg-light border-0 p-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="mb-2 mb-md-0">
                             <strong class="text-primary">شارك هذا الخبر:</strong>
                         </div>
-                        <div>
+                        <div class="social-share">
+                            <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->fullUrl()) }}&text={{ urlencode($news->title) }}&via=manasek_almashair&hashtags=مناسك_المشاعر,الحج,العمرة" 
+                               target="_blank" 
+                               class="btn btn-twitter btn-sm me-2">
+                                <i class="fab fa-twitter me-1"></i>تويتر
+                            </a>
                             <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->fullUrl()) }}" 
                                target="_blank" 
-                               class="btn btn-outline-primary btn-sm me-2">
+                               class="btn btn-facebook btn-sm me-2">
                                 <i class="fab fa-facebook-f me-1"></i>فيسبوك
                             </a>
-                            <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->fullUrl()) }}&text={{ urlencode($news->title) }}" 
+                            <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(request()->fullUrl()) }}" 
                                target="_blank" 
-                               class="btn btn-outline-info btn-sm me-2">
-                                <i class="fab fa-twitter me-1"></i>تويتر
+                               class="btn btn-linkedin btn-sm me-2">
+                                <i class="fab fa-linkedin-in me-1"></i>لينكد إن
                             </a>
                             <a href="https://wa.me/?text={{ urlencode($news->title . ' - ' . request()->fullUrl()) }}" 
                                target="_blank" 
-                               class="btn btn-outline-success btn-sm">
+                               class="btn btn-whatsapp btn-sm me-2">
                                 <i class="fab fa-whatsapp me-1"></i>واتساب
                             </a>
+                            <button type="button" 
+                                    class="btn btn-outline-secondary btn-sm" 
+                                    onclick="copyToClipboard('{{ request()->fullUrl() }}')"
+                                    title="نسخ الرابط">
+                                <i class="fas fa-copy me-1"></i>نسخ الرابط
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -183,6 +194,66 @@
     font-size: 0.9rem !important;
 }
 
+/* Social Share Buttons */
+.social-share .btn {
+    border-radius: 25px;
+    font-weight: 500;
+    padding: 0.375rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-twitter {
+    background-color: #1da1f2;
+    border-color: #1da1f2;
+    color: white;
+}
+
+.btn-twitter:hover {
+    background-color: #0d8bd9;
+    border-color: #0d8bd9;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-facebook {
+    background-color: #4267b2;
+    border-color: #4267b2;
+    color: white;
+}
+
+.btn-facebook:hover {
+    background-color: #365899;
+    border-color: #365899;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-linkedin {
+    background-color: #0077b5;
+    border-color: #0077b5;
+    color: white;
+}
+
+.btn-linkedin:hover {
+    background-color: #005885;
+    border-color: #005885;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-whatsapp {
+    background-color: #25d366;
+    border-color: #25d366;
+    color: white;
+}
+
+.btn-whatsapp:hover {
+    background-color: #1ebe57;
+    border-color: #1ebe57;
+    color: white;
+    transform: translateY(-2px);
+}
+
 @media (max-width: 768px) {
     .display-6 {
         font-size: 1.8rem;
@@ -191,6 +262,39 @@
     .content {
         font-size: 1rem;
     }
+    
+    .social-share {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .social-share .btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+    }
 }
 </style>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // إظهار رسالة نجاح
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check me-1"></i>تم النسخ!';
+        button.classList.add('btn-success');
+        button.classList.remove('btn-outline-secondary');
+        
+        setTimeout(function() {
+            button.innerHTML = originalText;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+    }).catch(function(err) {
+        console.error('خطأ في نسخ الرابط: ', err);
+        alert('عذراً، حدث خطأ في نسخ الرابط');
+    });
+}
+</script>
 @endsection 

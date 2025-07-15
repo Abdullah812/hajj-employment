@@ -321,8 +321,90 @@
         
         /* Footer styling */
         footer.bg-dark {
-            background-color: var(--almost-black) !important;
-            margin-top: auto;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+        }
+        
+        /* Social Media Links */
+        .social-links .social-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 50%;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+        
+        .social-links .social-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .social-links .social-link[title="تويتر"]:hover {
+            background: #1da1f2;
+            color: white;
+        }
+        
+        .social-links .social-link[title="فيسبوك"]:hover {
+            background: #4267b2;
+            color: white;
+        }
+        
+        .social-links .social-link[title="إنستغرام"]:hover {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+        }
+        
+        .social-links .social-link[title="لينكد إن"]:hover {
+            background: #0077b5;
+            color: white;
+        }
+        
+        .social-links .social-link[title="يوتيوب"]:hover {
+            background: #ff0000;
+            color: white;
+        }
+        
+        .social-links .social-link[title="واتساب"]:hover {
+            background: #25d366;
+            color: white;
+        }
+        
+        footer h6 {
+            color: #ffd700;
+            font-weight: 600;
+        }
+        
+        footer ul li {
+            margin-bottom: 0.5rem;
+        }
+        
+        footer ul li a:hover {
+            color: #ffd700 !important;
+        }
+        
+        footer ul li i {
+            color: #ffd700;
+        }
+
+        /* Loading animation */
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--primary-gold);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         /* Performance optimizations */
@@ -549,12 +631,66 @@
     <footer class="bg-dark text-white py-4">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <h5>شركة مناسك المشاعر</h5>
-                    <p class="mb-0">شركة سعودية مرخصة من وزارة الحج والعمرة منذ 1984م</p>
+                    <p class="mb-3">شركة سعودية مرخصة من وزارة الحج والعمرة منذ 1984م</p>
+                    
+                    <!-- Social Media Links -->
+                    <div class="social-links">
+                        <h6 class="mb-3">تابعونا على:</h6>
+                        <div class="d-flex gap-3">
+                            <a href="https://twitter.com/manasek_almashair" target="_blank" class="social-link" title="تويتر">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="https://facebook.com/manasekalmashair" target="_blank" class="social-link" title="فيسبوك">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="https://instagram.com/manasek_almashair" target="_blank" class="social-link" title="إنستغرام">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="https://linkedin.com/company/manasek-almashair" target="_blank" class="social-link" title="لينكد إن">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a href="https://youtube.com/@manasekalmashair" target="_blank" class="social-link" title="يوتيوب">
+                                <i class="fab fa-youtube"></i>
+                            </a>
+                            <a href="https://wa.me/966501234567" target="_blank" class="social-link" title="واتساب">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <h6>روابط مفيدة</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ route('home') }}" class="text-light text-decoration-none">الرئيسية</a></li>
+                        <li><a href="{{ route('jobs.index') }}" class="text-light text-decoration-none">الوظائف</a></li>
+                        <li><a href="{{ route('news.index') }}" class="text-light text-decoration-none">الأخبار</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">خدماتنا</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">اتصل بنا</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-4">
+                    <h6>معلومات التواصل</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-map-marker-alt me-2"></i>مكة المكرمة، المملكة العربية السعودية</li>
+                        <li><i class="fas fa-phone me-2"></i>+966 12 123 4567</li>
+                        <li><i class="fas fa-envelope me-2"></i>info@manasekalmashair.com</li>
+                        <li><i class="fas fa-globe me-2"></i>www.manasekalmashair.com</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; {{ date('Y') }} شركة مناسك المشاعر - جميع الحقوق محفوظة</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="mb-0">&copy; {{ date('Y') }} شركة مناسك المشاعر - جميع الحقوق محفوظة</p>
+                    <small class="text-muted">مرخصة من وزارة الحج والعمرة برقم (HAJ-123456)</small>
                 </div>
             </div>
         </div>

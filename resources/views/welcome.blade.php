@@ -756,9 +756,127 @@
         
         <!-- View All News Button -->
         <div class="text-center mt-5">
-            <a href="{{ route('news.index') }}" class="btn btn-primary btn-lg px-5">
+            <a href="{{ route('news.index') }}" class="btn btn-primary btn-lg">
                 <i class="fas fa-newspaper me-2"></i>عرض جميع الأخبار
             </a>
+        </div>
+    </div>
+</div>
+
+<!-- Twitter Feed Section -->
+<div class="py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Twitter Feed -->
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0 h-100">
+                    <div class="card-header bg-twitter text-white text-center py-3">
+                        <h3 class="mb-0">
+                            <i class="fab fa-twitter me-2"></i>تابعونا على تويتر
+                        </h3>
+                        <p class="mb-0 mt-2">آخر التحديثات والأخبار من مناسك المشاعر</p>
+                    </div>
+                    <div class="card-body p-0">
+                        <!-- Twitter Timeline Widget -->
+                        <div id="twitter-timeline" class="twitter-container">
+                            <a class="twitter-timeline" 
+                               data-height="500" 
+                               data-theme="light"
+                               data-chrome="noheader nofooter noborders transparent"
+                               data-tweet-limit="5"
+                               href="https://twitter.com/manasek_almashair?ref_src=twsrc%5Etfw">
+                               تغريدات من manasek_almashair
+                            </a>
+                        </div>
+                        
+                        <!-- Loading placeholder -->
+                        <div id="twitter-loading" class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">جاري التحميل...</span>
+                            </div>
+                            <p class="mt-3 text-muted">جاري تحميل التغريدات...</p>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light text-center">
+                        <a href="https://twitter.com/manasek_almashair" 
+                           target="_blank" 
+                           class="btn btn-twitter">
+                            <i class="fab fa-twitter me-2"></i>تابعونا على تويتر
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Company Stats & Quick Links -->
+            <div class="col-lg-6">
+                <div class="row g-4">
+                    <!-- Company Stats -->
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-success text-white text-center">
+                                <h4 class="mb-0">
+                                    <i class="fas fa-chart-line me-2"></i>إحصائيات الشركة
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-6 mb-3">
+                                        <div class="stat-item">
+                                            <div class="stat-number text-primary">40+</div>
+                                            <div class="stat-label">سنة خبرة</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <div class="stat-item">
+                                            <div class="stat-number text-success">500K+</div>
+                                            <div class="stat-label">حاج خدمناهم</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="stat-item">
+                                            <div class="stat-number text-info">1000+</div>
+                                            <div class="stat-label">موظف مدرب</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="stat-item">
+                                            <div class="stat-number text-warning">50+</div>
+                                            <div class="stat-label">دولة نخدمها</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-primary text-white text-center">
+                                <h4 class="mb-0">
+                                    <i class="fas fa-rocket me-2"></i>روابط سريعة
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-3">
+                                    <a href="{{ route('jobs.index') }}" class="btn btn-outline-success">
+                                        <i class="fas fa-briefcase me-2"></i>الوظائف المتاحة
+                                    </a>
+                                    <a href="{{ route('news.index') }}" class="btn btn-outline-info">
+                                        <i class="fas fa-newspaper me-2"></i>جميع الأخبار
+                                    </a>
+                                    <a href="#contact" class="btn btn-outline-warning">
+                                        <i class="fas fa-phone me-2"></i>تواصل معنا
+                                    </a>
+                                    <a href="#services" class="btn btn-outline-primary">
+                                        <i class="fas fa-star me-2"></i>خدماتنا
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -849,5 +967,106 @@ function playVideo() {
 document.addEventListener('DOMContentLoaded', function() {
     initCounters();
 });
+
+// Twitter Widget Functions
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        const twitterLoading = document.getElementById('twitter-loading');
+        if (twitterLoading) {
+            twitterLoading.style.display = 'none';
+        }
+    }, 3000);
+});
+
+// التحقق من تحميل Twitter widget
+if (typeof twttr !== 'undefined') {
+    twttr.ready(function() {
+        const twitterLoading = document.getElementById('twitter-loading');
+        if (twitterLoading) {
+            twitterLoading.style.display = 'none';
+        }
+    });
+}
 </script>
+
+<!-- Twitter Widget Script -->
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<style>
+/* Twitter Section Styling */
+.bg-twitter {
+    background: linear-gradient(45deg, #1da1f2, #0d8bd9);
+}
+
+.btn-twitter {
+    background-color: #1da1f2;
+    border-color: #1da1f2;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-twitter:hover {
+    background-color: #0d8bd9;
+    border-color: #0d8bd9;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(29, 161, 242, 0.4);
+}
+
+.twitter-container {
+    min-height: 500px;
+    overflow-y: auto;
+    position: relative;
+}
+
+#twitter-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Stats Section */
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.stat-item {
+    padding: 1rem;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.02);
+    transition: transform 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+    background: rgba(0,0,0,0.05);
+}
+
+/* Responsive Twitter Widget */
+@media (max-width: 768px) {
+    .twitter-container {
+        min-height: 400px;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+}
+</style>
 @endsection 
