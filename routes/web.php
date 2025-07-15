@@ -199,6 +199,41 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.users.approvals.reject');
 });
 
+// Content Management Routes (Admin Only)
+Route::middleware(['auth', 'role:admin'])->prefix('admin/content')->name('admin.content.')->group(function () {
+    // News Management
+    Route::get('/news', [App\Http\Controllers\Admin\ContentController::class, 'newsIndex'])->name('news.index');
+    Route::get('/news/create', [App\Http\Controllers\Admin\ContentController::class, 'newsCreate'])->name('news.create');
+    Route::post('/news', [App\Http\Controllers\Admin\ContentController::class, 'newsStore'])->name('news.store');
+    Route::get('/news/{news}/edit', [App\Http\Controllers\Admin\ContentController::class, 'newsEdit'])->name('news.edit');
+    Route::put('/news/{news}', [App\Http\Controllers\Admin\ContentController::class, 'newsUpdate'])->name('news.update');
+    Route::delete('/news/{news}', [App\Http\Controllers\Admin\ContentController::class, 'newsDestroy'])->name('news.destroy');
+    
+    // Gallery Management
+    Route::get('/gallery', [App\Http\Controllers\Admin\ContentController::class, 'galleryIndex'])->name('gallery.index');
+    Route::get('/gallery/create', [App\Http\Controllers\Admin\ContentController::class, 'galleryCreate'])->name('gallery.create');
+    Route::post('/gallery', [App\Http\Controllers\Admin\ContentController::class, 'galleryStore'])->name('gallery.store');
+    Route::get('/gallery/{gallery}/edit', [App\Http\Controllers\Admin\ContentController::class, 'galleryEdit'])->name('gallery.edit');
+    Route::put('/gallery/{gallery}', [App\Http\Controllers\Admin\ContentController::class, 'galleryUpdate'])->name('gallery.update');
+    Route::delete('/gallery/{gallery}', [App\Http\Controllers\Admin\ContentController::class, 'galleryDestroy'])->name('gallery.destroy');
+    
+    // Testimonials Management
+    Route::get('/testimonials', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsIndex'])->name('testimonials.index');
+    Route::get('/testimonials/create', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsCreate'])->name('testimonials.create');
+    Route::post('/testimonials', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsStore'])->name('testimonials.store');
+    Route::get('/testimonials/{testimonial}/edit', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsEdit'])->name('testimonials.edit');
+    Route::put('/testimonials/{testimonial}', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsUpdate'])->name('testimonials.update');
+    Route::delete('/testimonials/{testimonial}', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsDestroy'])->name('testimonials.destroy');
+    
+    // Videos Management
+    Route::get('/videos', [App\Http\Controllers\Admin\ContentController::class, 'videosIndex'])->name('videos.index');
+    Route::get('/videos/create', [App\Http\Controllers\Admin\ContentController::class, 'videosCreate'])->name('videos.create');
+    Route::post('/videos', [App\Http\Controllers\Admin\ContentController::class, 'videosStore'])->name('videos.store');
+    Route::get('/videos/{video}/edit', [App\Http\Controllers\Admin\ContentController::class, 'videosEdit'])->name('videos.edit');
+    Route::put('/videos/{video}', [App\Http\Controllers\Admin\ContentController::class, 'videosUpdate'])->name('videos.update');
+    Route::delete('/videos/{video}', [App\Http\Controllers\Admin\ContentController::class, 'videosDestroy'])->name('videos.destroy');
+});
+
 // Test PDF route removed - using Word documents only
 
 // Test HTML route

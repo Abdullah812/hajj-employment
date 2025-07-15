@@ -37,60 +37,57 @@
             </a>
         </li>
 
-        <!-- إضافة رابط للموظفين المقبولين -->
-        <li class="nav-item">
-            <a href="{{ route('applications.approved') }}" 
-               class="nav-link {{ request()->routeIs('applications.approved') ? 'active' : '' }}"
-               title="عرض جميع المستخدمين المعتمدين ومعلوماتهم وطلباتهم">
-                <i class="nav-icon fas fa-user-check"></i>
-                <span>المستخدمين المعتمدين</span>
-                @php
-                    $approvedCount = \App\Models\User::where('approval_status', 'approved')->count();
-                @endphp
-                @if($approvedCount > 0)
-                    <span class="badge bg-success ms-auto">{{ $approvedCount }}</span>
-                @endif
-            </a>
-        </li>
-
-        <!-- إدارة المستخدمين -->
         <li class="nav-item">
             <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                 <i class="nav-icon fas fa-users"></i>
-                <p>إدارة المستخدمين</p>
-            </a>
-        </li>
-
-        <!-- طلبات الموافقة -->
-        <li class="nav-item">
-            <a href="{{ route('admin.users.approvals.index') }}" 
-               class="nav-link {{ request()->routeIs('admin.users.approvals.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-user-check"></i>
-                <p>
-                    طلبات الموافقة
-                    @php
-                        $pendingCount = \App\Models\User::where('approval_status', 'pending')->count();
-                    @endphp
-                    @if($pendingCount > 0)
-                        <span class="badge badge-warning right">{{ $pendingCount }}</span>
-                    @endif
-                </p>
+                <span>المستخدمين</span>
             </a>
         </li>
 
         <li class="nav-item">
-            <a href="{{ route('contracts.index') }}" class="nav-link {{ request()->routeIs('contracts.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-file-contract"></i>
-                <span>إدارة العقود</span>
-                @php
-                    $contractsCount = \App\Models\Contract::count();
-                @endphp
-                @if($contractsCount > 0)
-                    <span class="badge bg-info ms-auto">{{ $contractsCount }}</span>
-                @endif
+            <a href="{{ route('admin.employees.index') }}" class="nav-link {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}">
+                <i class="nav-icon fas fa-user-tie"></i>
+                <span>الموظفين</span>
             </a>
         </li>
-        
+
+        <!-- إدارة المحتوى -->
+        <li class="nav-header">
+            <i class="fas fa-edit me-2"></i>إدارة المحتوى
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ route('admin.content.news.index') }}" class="nav-link {{ request()->routeIs('admin.content.news.*') ? 'active' : '' }}">
+                <i class="nav-icon fas fa-newspaper"></i>
+                <span>الأخبار والمقالات</span>
+                <span class="badge bg-primary ms-auto">جديد</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ route('admin.content.gallery.index') }}" class="nav-link {{ request()->routeIs('admin.content.gallery.*') ? 'active' : '' }}">
+                <i class="nav-icon fas fa-images"></i>
+                <span>معرض الصور</span>
+                <span class="badge bg-success ms-auto">جديد</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ route('admin.content.testimonials.index') }}" class="nav-link {{ request()->routeIs('admin.content.testimonials.*') ? 'active' : '' }}">
+                <i class="nav-icon fas fa-quote-left"></i>
+                <span>شهادات العملاء</span>
+                <span class="badge bg-warning ms-auto">جديد</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ route('admin.content.videos.index') }}" class="nav-link {{ request()->routeIs('admin.content.videos.*') ? 'active' : '' }}">
+                <i class="nav-icon fas fa-video"></i>
+                <span>الفيديوهات التعريفية</span>
+                <span class="badge bg-info ms-auto">جديد</span>
+            </a>
+        </li>
+
         <li class="nav-item">
             <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                 <i class="nav-icon fas fa-chart-bar"></i>

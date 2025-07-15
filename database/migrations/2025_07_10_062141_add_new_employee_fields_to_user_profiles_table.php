@@ -10,31 +10,55 @@ return new class extends Migration
     {
         Schema::table('user_profiles', function (Blueprint $table) {
             // المعلومات الشخصية
-            $table->string('national_id', 10)->nullable()->after('user_id');
-            $table->string('phone', 10)->nullable()->after('national_id');
-            $table->text('address')->nullable()->after('phone');
-            $table->date('date_of_birth')->nullable()->after('address');
+            if (!Schema::hasColumn('user_profiles', 'national_id')) {
+                $table->string('national_id', 10)->nullable()->after('user_id');
+            }
+            if (!Schema::hasColumn('user_profiles', 'phone')) {
+                $table->string('phone', 10)->nullable()->after('national_id');
+            }
+            if (!Schema::hasColumn('user_profiles', 'address')) {
+                $table->text('address')->nullable()->after('phone');
+            }
+            if (!Schema::hasColumn('user_profiles', 'date_of_birth')) {
+                $table->date('date_of_birth')->nullable()->after('address');
+            }
             
             // المؤهلات والخبرات
-            $table->string('qualification')->nullable()->after('date_of_birth');
-            $table->text('academic_experience')->nullable()->after('qualification');
+            if (!Schema::hasColumn('user_profiles', 'qualification')) {
+                $table->string('qualification')->nullable()->after('date_of_birth');
+            }
+            if (!Schema::hasColumn('user_profiles', 'academic_experience')) {
+                $table->text('academic_experience')->nullable()->after('qualification');
+            }
             
             // المعلومات البنكية
-            $table->string('iban_number', 24)->nullable()->after('academic_experience');
+            if (!Schema::hasColumn('user_profiles', 'iban_number')) {
+                $table->string('iban_number', 24)->nullable()->after('academic_experience');
+            }
             
             // المرفقات
-            $table->string('cv_path')->nullable()->after('iban_number');
-            $table->string('iban_attachment')->nullable()->after('cv_path');
-            $table->string('national_id_attachment')->nullable()->after('iban_attachment');
-            $table->string('national_address_attachment')->nullable()->after('national_id_attachment');
-            $table->string('experience_certificate')->nullable()->after('national_address_attachment');
+            if (!Schema::hasColumn('user_profiles', 'cv_path')) {
+                $table->string('cv_path')->nullable()->after('iban_number');
+            }
+            if (!Schema::hasColumn('user_profiles', 'iban_attachment')) {
+                $table->string('iban_attachment')->nullable()->after('cv_path');
+            }
+            if (!Schema::hasColumn('user_profiles', 'national_id_attachment')) {
+                $table->string('national_id_attachment')->nullable()->after('iban_attachment');
+            }
+            if (!Schema::hasColumn('user_profiles', 'national_address_attachment')) {
+                $table->string('national_address_attachment')->nullable()->after('national_id_attachment');
+            }
+            if (!Schema::hasColumn('user_profiles', 'experience_certificate')) {
+                $table->string('experience_certificate')->nullable()->after('national_address_attachment');
+            }
         });
     }
 
     public function down()
     {
         Schema::table('user_profiles', function (Blueprint $table) {
-            $table->dropColumn([
+            $columns = [
                 'national_id',
                 'phone',
                 'address',
@@ -47,7 +71,13 @@ return new class extends Migration
                 'national_id_attachment',
                 'national_address_attachment',
                 'experience_certificate'
-            ]);
+            ];
+            
+            foreach ($columns as $column) {
+                if (Schema::hasColumn('user_profiles', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
         });
     }
 }; 
