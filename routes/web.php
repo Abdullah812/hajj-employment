@@ -231,6 +231,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/applications', [ReportsController::class, 'applications'])->name('applications');
         Route::get('/jobs/export', [ReportsController::class, 'exportJobs'])->name('jobs.export');
         Route::get('/applications/export', [ReportsController::class, 'exportApplications'])->name('applications.export');
+        
+        // API endpoints للتقارير المتقدمة
+        Route::get('/api/filtered-data', [ReportsController::class, 'getFilteredData'])->name('api.filtered-data');
+        Route::get('/api/additional-stats', [ReportsController::class, 'getAdditionalStats'])->name('api.additional-stats');
+        Route::get('/api/analysis/{type}', [ReportsController::class, 'getAdvancedAnalysis'])->name('api.analysis');
+    });
+    
+    // API endpoints عامة للإدارة
+    Route::middleware(['auth', 'role:admin'])->prefix('admin/api')->name('admin.api.')->group(function () {
+        Route::get('/departments', [AdminController::class, 'getDepartments'])->name('departments');
     });
 });
 
