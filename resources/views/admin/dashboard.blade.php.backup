@@ -724,12 +724,110 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         window.scrollTo(0, currentScrollY);
     }, 100);
+});
+
+// JavaScript للسايد بار المدمج
+document.addEventListener('DOMContentLoaded', function() {
+    // التعامل مع النقر على عناصر السايد بار
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    const contentSections = document.querySelectorAll('.content-section');
+    
+    sidebarItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const sectionId = this.getAttribute('data-section');
+            
+            // إزالة الفئة النشطة من جميع العناصر
+            sidebarItems.forEach(si => si.classList.remove('active'));
+            contentSections.forEach(cs => cs.classList.remove('active'));
+            
+            // إضافة الفئة النشطة للعنصر المحدد
+            this.classList.add('active');
+            const targetSection = document.getElementById(sectionId + '-section');
+            if (targetSection) {
+                targetSection.classList.add('active');
+                
+                // تحميل المحتوى حسب القسم
+                loadSectionContent(sectionId);
+            }
+        });
     });
     
-    // إعادة الـ scroll لمكانه الأصلي
-    setTimeout(() => {
-        window.scrollTo(0, currentScrollY);
-    }, 100);
+    // تحميل محتوى الأقسام
+    function loadSectionContent(sectionId) {
+        const section = document.getElementById(sectionId + '-section');
+        const loadingContent = section.querySelector('.loading-content');
+        
+        if (!loadingContent) return;
+        
+        // URLs للأقسام المختلفة
+        const sectionUrls = {
+            'users': '/admin/users',
+            'jobs': '/admin/jobs',
+            'applications': '/admin/applications',
+            'departments': '/admin/departments',
+            'news': '/admin/content/news',
+            'gallery': '/admin/content/gallery',
+            'reports': '/admin/reports'
+        };
+        
+        if (sectionUrls[sectionId]) {
+            // إظهار مؤشر التحميل
+            loadingContent.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-spinner fa-spin fa-2x text-primary mb-3"></i>
+                    <p>جاري تحميل البيانات...</p>
+                </div>
+            `;
+            
+            // محاكاة تحميل البيانات (يمكن استبدالها بـ fetch حقيقي)
+            setTimeout(() => {
+                loadingContent.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>قسم ${getSectionTitle(sectionId)}</strong>
+                        <br>للحصول على الوظائف الكاملة، يرجى الانتقال إلى الصفحة المخصصة.
+                        <br>
+                        <a href="${sectionUrls[sectionId]}" class="btn btn-primary mt-2">
+                            <i class="fas fa-external-link-alt me-2"></i>فتح ${getSectionTitle(sectionId)}
+                        </a>
+                    </div>
+                    <div class="quick-stats">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
+                                        <h5>ملخص سريع</h5>
+                                        <p class="text-muted">إحصائيات أساسية لقسم ${getSectionTitle(sectionId)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-tools fa-2x text-success mb-2"></i>
+                                        <h5>أدوات سريعة</h5>
+                                        <p class="text-muted">اختصارات للعمليات الشائعة</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }, 1000);
+        }
+    }
+    
+    function getSectionTitle(sectionId) {
+        const titles = {
+            'users': 'إدارة المستخدمين',
+            'jobs': 'إدارة الوظائف',
+            'applications': 'إدارة الطلبات',
+            'departments': 'إدارة الأقسام',
+            'news': 'إدارة الأخبار',
+            'gallery': 'معرض الصور',
+            'reports': 'التقارير'
+        };
 });
 </script>
 @endsection 
