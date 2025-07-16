@@ -509,3 +509,10 @@ Route::get('/contract-status', function () {
 Route::get('/contracts/{contract}/download-word', [App\Http\Controllers\ContractController::class, 'downloadWordContract'])
     ->name('contracts.download.word')
     ->middleware('auth');
+
+// Analytics Routes - لوحة الإحصائيات المتقدمة
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/analytics/live-data', [App\Http\Controllers\Admin\AnalyticsController::class, 'liveData'])->name('analytics.live-data');
+    Route::get('/analytics/export', [App\Http\Controllers\Admin\AnalyticsController::class, 'export'])->name('analytics.export');
+});

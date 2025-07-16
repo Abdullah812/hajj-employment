@@ -88,10 +88,23 @@
             </a>
         </li>
 
+        <!-- إدارة الإحصائيات والتقارير -->
+        <li class="nav-header">
+            <i class="fas fa-chart-line me-2"></i>الإحصائيات والتحليلات
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ route('admin.analytics.index') }}" class="nav-link {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}">
+                <i class="nav-icon fas fa-chart-bar"></i>
+                <span>لوحة الإحصائيات المتقدمة</span>
+                <span class="badge bg-gradient bg-primary ms-auto">متقدم</span>
+            </a>
+        </li>
+
         <li class="nav-item">
             <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-chart-bar"></i>
-                <span>التقارير</span>
+                <i class="nav-icon fas fa-file-chart-line"></i>
+                <span>التقارير التقليدية</span>
             </a>
         </li>
     </ul>
@@ -135,5 +148,21 @@
 
 .sidebar .nav-link:hover .badge {
     background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.sidebar .nav-header {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 1rem 1rem 0.5rem;
+    margin-top: 1rem;
+    border-top: 1px solid #eee;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar .nav-header:first-child {
+    margin-top: 0;
+    border-top: none;
 }
 </style> 
