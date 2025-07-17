@@ -1347,8 +1347,18 @@ window.approveUser = function(userId) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return response.json();
+        })
         .then(data => {
+            console.log('Response data:', data);
             if (data.success) {
                 alert('تم قبول المستخدم بنجاح');
                 // إعادة تحميل القائمة
@@ -1362,8 +1372,8 @@ window.approveUser = function(userId) {
             }
         })
         .catch(error => {
-            console.error('خطأ:', error);
-            alert('حدث خطأ في العملية');
+            console.error('خطأ تفصيلي:', error);
+            alert('حدث خطأ في العملية: ' + error.message);
         });
     }
 };
@@ -1377,7 +1387,15 @@ window.rejectUser = function(userId) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Reject Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 alert('تم رفض المستخدم بنجاح');

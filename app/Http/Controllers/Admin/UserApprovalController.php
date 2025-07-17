@@ -38,24 +38,47 @@ class UserApprovalController extends Controller
         // إرسال إشعار للمستخدم
         $this->notificationService->notifyAccountStatusChange($user);
 
+        // التحقق من نوع الطلب
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم اعتماد المستخدم بنجاح'
+            ]);
+        }
+
         return redirect()->back()->with('success', 'تم اعتماد المستخدم بنجاح');
     }
 
     public function reject(Request $request, User $user)
     {
-        $request->validate([
-            'rejection_reason' => 'required|string|max:500'
-        ]);
+        // للطلبات AJAX، نجعل rejection_reason اختياري
+        if ($request->expectsJson() || $request->ajax()) {
+            $request->validate([
+                'rejection_reason' => 'nullable|string|max:500'
+            ]);
+        } else {
+            $request->validate([
+                'rejection_reason' => 'required|string|max:500'
+            ]);
+        }
 
         $user->update([
             'approval_status' => 'rejected',
             'approved_at' => now(),
             'approved_by' => Auth::id(),
-            'rejection_reason' => $request->rejection_reason
+            'rejection_reason' => $request->rejection_reason ?? 'تم الرفض من قبل المدير'
         ]);
 
         // إرسال إشعار للمستخدم
         $this->notificationService->notifyAccountStatusChange($user);
+
+        // التحقق من نوع الطلب
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم رفض المستخدم بنجاح'
+            ]);
+        }
 
         return redirect()->back()->with('success', 'تم رفض المستخدم بنجاح');
     }
