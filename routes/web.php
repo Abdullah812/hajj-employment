@@ -526,3 +526,29 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/analytics/live-data', [App\Http\Controllers\Admin\AnalyticsController::class, 'liveData'])->name('analytics.live-data');
     Route::get('/analytics/export', [App\Http\Controllers\Admin\AnalyticsController::class, 'export'])->name('analytics.export');
 });
+
+// ================================================
+// مسارات طلبات مكة المفتوحة (بدون تسجيل دخول)
+// ================================================
+
+Route::prefix('mecca')->name('mecca.')->group(function () {
+    // عرض نموذج التقديم لوظيفة معينة
+    Route::get('/jobs/{job}/apply', [App\Http\Controllers\MeccaApplicationController::class, 'showApplicationForm'])
+        ->name('apply');
+    
+    // تقديم الطلب
+    Route::post('/jobs/{job}/submit', [App\Http\Controllers\MeccaApplicationController::class, 'submitApplication'])
+        ->name('submit');
+    
+    // صفحة تتبع الطلبات
+    Route::get('/track', [App\Http\Controllers\MeccaApplicationController::class, 'trackApplication'])
+        ->name('track');
+    
+    // تتبع طلب معين
+    Route::get('/track/{referenceNumber}', [App\Http\Controllers\MeccaApplicationController::class, 'trackApplication'])
+        ->name('track.show');
+    
+    // البحث في الطلبات (POST)
+    Route::post('/track', [App\Http\Controllers\MeccaApplicationController::class, 'trackApplication'])
+        ->name('track.search');
+});

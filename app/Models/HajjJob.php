@@ -8,6 +8,9 @@ class HajjJob extends Model
 {
     protected $fillable = [
         'department_id',
+        'region',
+        'application_type',
+        'requires_registration',
         'title',
         'description',
         'location',
@@ -36,6 +39,14 @@ class HajjJob extends Model
     public function applications()
     {
         return $this->hasMany(JobApplication::class, 'job_id');
+    }
+    
+    /**
+     * العلاقة مع طلبات مكة المفتوحة
+     */
+    public function meccaApplications()
+    {
+        return $this->hasMany(MeccaApplication::class, 'job_id');
     }
     
     // Accessors
@@ -83,5 +94,51 @@ class HajjJob extends Model
     public function getDepartmentTextAttribute()
     {
         return optional($this->department)->name ?? 'عام';
+    }
+    
+    /**
+     * الحصول على نص المنطقة بالعربية
+     */
+    public function getRegionTextAttribute()
+    {
+        $regions = [
+            'mecca' => 'مكة المكرمة',
+            'medina' => 'المدينة المنورة',
+            'jeddah' => 'جدة',
+            'taif' => 'الطائف',
+            'other' => 'أخرى',
+        ];
+        
+        return $regions[$this->region] ?? $this->region;
+    }
+    
+    /**
+     * الحصول على نص نوع التقديم
+     */
+    public function getApplicationTypeTextAttribute()
+    {
+        $types = [
+            'registered' => 'يتطلب تسجيل دخول',
+            'open' => 'تقديم مفتوح',
+            'both' => 'كلا النوعين',
+        ];
+        
+        return $types[$this->application_type] ?? $this->application_type;
+    }
+    
+    /**
+     * التحقق من كون الوظيفة في مكة
+     */
+    public function isMeccaJob()
+    {
+        return $this->region === 'mecca';
+    }
+    
+    /**
+     * التحقق من كون الوظيفة تتطلب تسجيل دخول
+     */
+    public function requiresLogin()
+    {
+        return $this->requires_registration || $this->region !== 'mecca';
     }
 }

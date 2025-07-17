@@ -35,8 +35,21 @@
                         </select>
                     </div>
                     
+                    <!-- المنطقة -->
+                    <div class="col-md-2">
+                        <label for="region" class="form-label">المنطقة</label>
+                        <select class="form-select" id="region" name="region">
+                            <option value="">جميع المناطق</option>
+                            <option value="mecca" {{ request('region') == 'mecca' ? 'selected' : '' }}>مكة المكرمة</option>
+                            <option value="medina" {{ request('region') == 'medina' ? 'selected' : '' }}>المدينة المنورة</option>
+                            <option value="jeddah" {{ request('region') == 'jeddah' ? 'selected' : '' }}>جدة</option>
+                            <option value="taif" {{ request('region') == 'taif' ? 'selected' : '' }}>الطائف</option>
+                            <option value="other" {{ request('region') == 'other' ? 'selected' : '' }}>أخرى</option>
+                        </select>
+                    </div>
+                    
                     <!-- القسم -->
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label for="department" class="form-label">القسم</label>
                         <select class="form-select" id="department" name="department">
                             <option value="">جميع الأقسام</option>
@@ -86,11 +99,41 @@
                     </div>
                 </div>
                 
-                @if(request()->hasAny(['search', 'location', 'department', 'employment_type', 'salary_min']))
+                @if(request()->hasAny(['search', 'location', 'region', 'department', 'employment_type', 'salary_min']))
                     <div class="mt-3">
                         <a href="{{ route('jobs.index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-times"></i> مسح الفلاتر
                         </a>
+                        
+                        <!-- عرض الفلاتر النشطة -->
+                        <div class="mt-2">
+                            @if(request('region'))
+                                <span class="badge bg-primary me-1">
+                                    المنطقة: 
+                                    @switch(request('region'))
+                                        @case('mecca') مكة المكرمة @break
+                                        @case('medina') المدينة المنورة @break
+                                        @case('jeddah') جدة @break
+                                        @case('taif') الطائف @break
+                                        @case('other') أخرى @break
+                                    @endswitch
+                                </span>
+                            @endif
+                            @if(request('search'))
+                                <span class="badge bg-primary me-1">البحث: {{ request('search') }}</span>
+                            @endif
+                            @if(request('location'))
+                                <span class="badge bg-primary me-1">الموقع: {{ request('location') }}</span>
+                            @endif
+                            @if(request('department'))
+                                @php
+                                    $selectedDept = $departments->find(request('department'));
+                                @endphp
+                                @if($selectedDept)
+                                    <span class="badge bg-primary me-1">القسم: {{ $selectedDept->name }}</span>
+                                @endif
+                            @endif
+                        </div>
                     </div>
                 @endif
             </form>
@@ -133,15 +176,26 @@
                             <span class="text-muted">{{ $job->department_text }}</span>
                         </div>
                         
-                        <!-- الموقع -->
+                        <!-- المنطقة -->
                         <div class="d-flex align-items-center mb-2">
                             <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                            <span class="text-muted">{{ $job->region_text }}</span>
+                            @if($job->isMeccaJob() && !$job->requires_registration)
+                                <span class="badge bg-success ms-2">تقديم مفتوح</span>
+                            @else
+                                <span class="badge bg-primary ms-2">يتطلب تسجيل</span>
+                            @endif
+                        </div>
+                        
+                        <!-- الموقع -->
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-location-dot text-muted me-2"></i>
                             <span class="text-muted">{{ $job->location }}</span>
                         </div>
                         
                         <!-- القسم -->
                         <div class="d-flex align-items-center mb-3">
-                            <i class="fas fa-tags text-muted me-2"></i>
+                            <i class="fas fa-building text-muted me-2"></i>
                             <span class="text-muted">{{ $job->department_text }}</span>
                         </div>
                         
@@ -180,30 +234,38 @@
                                 <i class="fas fa-eye me-1"></i> عرض التفاصيل
                             </a>
                             
-                            @auth
-                                @if(auth()->user()->hasRole('employee'))
-                                    @php
-                                        $hasApplied = \App\Models\JobApplication::where('user_id', auth()->id())
-                                            ->where('job_id', $job->id)
-                                            ->exists();
-                                    @endphp
-                                    
-                                    @if($hasApplied)
-                                        <span class="badge bg-success">تم التقديم</span>
-                                    @else
-                                        <form method="POST" action="{{ route('employee.jobs.apply', $job) }}" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="fas fa-paper-plane me-1"></i> قدم الآن
-                                            </button>
-                                        </form>
-                                    @endif
-                                @endif
-                            @else
-                                <a href="{{ route('login') }}" class="btn btn-primary">
-                                    <i class="fas fa-sign-in-alt me-1"></i> تسجيل الدخول للتقديم
+                            @if($job->isMeccaJob() && !$job->requires_registration)
+                                <!-- وظائف مكة المفتوحة - بدون تسجيل دخول -->
+                                <a href="{{ route('mecca.apply', $job) }}" class="btn btn-success">
+                                    <i class="fas fa-paper-plane me-1"></i> قدم بدون تسجيل
                                 </a>
-                            @endauth
+                            @else
+                                <!-- الوظائف العادية - تتطلب تسجيل دخول -->
+                                @auth
+                                    @if(auth()->user()->hasRole('employee'))
+                                        @php
+                                            $hasApplied = \App\Models\JobApplication::where('user_id', auth()->id())
+                                                ->where('job_id', $job->id)
+                                                ->exists();
+                                        @endphp
+                                        
+                                        @if($hasApplied)
+                                            <span class="badge bg-success">تم التقديم</span>
+                                        @else
+                                            <form method="POST" action="{{ route('employee.jobs.apply', $job) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-paper-plane me-1"></i> قدم الآن
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endif
+                                @else
+                                    <a href="{{ route('login') }}" class="btn btn-primary">
+                                        <i class="fas fa-sign-in-alt me-1"></i> تسجيل الدخول للتقديم
+                                    </a>
+                                @endauth
+                            @endif
                         </div>
                     </div>
                 </div>

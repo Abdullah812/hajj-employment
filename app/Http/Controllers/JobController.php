@@ -31,6 +31,11 @@ class JobController extends Controller
             $query->where('location', 'like', "%{$request->location}%");
         }
         
+        // فلترة حسب المنطقة
+        if ($request->filled('region')) {
+            $query->where('region', $request->region);
+        }
+        
         // فلترة حسب القسم
         if ($request->filled('department')) {
             $query->where('department_id', $request->department);
