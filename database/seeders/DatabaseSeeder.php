@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             AdminUserSeeder::class,
             HajjJobsSeeder::class,
+            MeccaJobsSeeder::class,
         ]);
     }
 }
