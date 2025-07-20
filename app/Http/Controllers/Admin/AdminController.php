@@ -859,17 +859,8 @@ class AdminController extends Controller
                 ], 404);
             }
             
-            // إضافة URLs للمرفقات
-            if ($user->profile) {
-                $profile = $user->profile;
-                
-                // إضافة روابط المرفقات
-                $profile->cv_url = $profile->cv_path ? Storage::url($profile->cv_path) : null;
-                $profile->national_id_attachment_url = $profile->national_id_attachment ? Storage::url($profile->national_id_attachment) : null;
-                $profile->iban_attachment_url = $profile->iban_attachment ? Storage::url($profile->iban_attachment) : null;
-                $profile->national_address_attachment_url = $profile->national_address_attachment ? Storage::url($profile->national_address_attachment) : null;
-                $profile->experience_certificate_url = $profile->experience_certificate ? Storage::url($profile->experience_certificate) : null;
-            }
+            // الـ Accessors في UserProfile ستنشئ URLs تلقائياً
+            // لا نحتاج لإضافة URLs يدوياً لأنها ستكون متاحة تلقائياً
             
             return response()->json([
                 'success' => true,
