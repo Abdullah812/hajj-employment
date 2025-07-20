@@ -600,6 +600,11 @@ Route::get('/contracts/{contract}/download-word', [App\Http\Controllers\Contract
     ->name('contracts.download.word')
     ->middleware('auth');
 
+// File download route for private/local disk files (signed URLs)
+Route::get('/files/download/{file}', [App\Http\Controllers\FileController::class, 'download'])
+    ->name('files.download')
+    ->middleware(['auth', 'signed']);
+
 // Analytics Routes - لوحة الإحصائيات المتقدمة
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
