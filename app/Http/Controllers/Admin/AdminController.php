@@ -848,29 +848,50 @@ class AdminController extends Controller
     public function getUserDetails($userId)
     {
         try {
+            \Log::info('getUserDetails called', ['userId' => $userId]);
+            
             $user = User::with(['profile'])
                 ->where('id', $userId)
                 ->first();
             
             if (!$user) {
+                \Log::warning('User not found', ['userId' => $userId]);
                 return response()->json([
                     'success' => false,
                     'message' => 'المستخدم غير موجود'
                 ], 404);
             }
             
+            \Log::info('User found', ['user' => $user->name]);
+            
             // الـ Accessors في UserProfile ستنشئ URLs تلقائياً
             // لا نحتاج لإضافة URLs يدوياً لأنها ستكون متاحة تلقائياً
             
             return response()->json([
                 'success' => true,
-                'user' => $user
-            ]);
+                'user' => $user,
+                'debug' => [
+                    'method_called' => true,
+                    'userId_received' => $userId,
+                    'user_found' => $user ? true : false,
+                    'profile_exists' => $user && $user->profile ? true : false
+                ]
+            ])->header('Access-Control-Allow-Origin', '*')
+              ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+              ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
         } catch (\Exception $e) {
+            \Log::error('getUserDetails error', ['error' => $e->getMessage(), 'userId' => $userId]);
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ في جلب البيانات: ' . $e->getMessage()
-            ], 500);
+                'message' => 'حدث خطأ في جلب البيانات: ' . $e->getMessage(),
+                'debug' => [
+                    'exception' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile()
+                ]
+            ], 500)->header('Access-Control-Allow-Origin', '*')
+                   ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+                   ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
         }
     }
 }

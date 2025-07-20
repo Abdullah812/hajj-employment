@@ -138,7 +138,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/applications/approved', [AdminController::class, 'approvedApplications'])->name('applications.approved');
         
         // API routes للوحة التحكم الموحدة
-        Route::prefix('api')->group(function () {
+        Route::prefix('api')->middleware(['web'])->group(function () {
+            // إضافة headers للـ CORS
+            Route::options('{any}', function() {
+                return response('', 200)
+                    ->header('Access-Control-Allow-Origin', '*')
+                    ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+                    ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+            })->where('any', '.*');
+            
             Route::get('/dashboard', [AdminController::class, 'getDashboardData'])->name('admin.api.dashboard');
             Route::get('/users', [AdminController::class, 'getUsers'])->name('admin.api.users');
             Route::get('/approvals', [AdminController::class, 'getPendingApprovals'])->name('admin.api.approvals');
@@ -148,6 +156,18 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/applications', [AdminController::class, 'getApplications'])->name('admin.api.applications');
             Route::get('/contracts', [AdminController::class, 'getContracts'])->name('admin.api.contracts');
             Route::get('/user-details/{userId}', [AdminController::class, 'getUserDetails'])->name('admin.api.user-details');
+            
+            // Route تشخيص مؤقت
+            Route::get('/test-debug/{userId}', function($userId) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Route يعمل',
+                    'userId' => $userId,
+                    'auth' => auth()->check(),
+                    'user' => auth()->user() ? auth()->user()->name : 'غير مسجل',
+                    'roles' => auth()->user() ? auth()->user()->getRoleNames() : 'لا توجد أدوار'
+                ]);
+            })->name('admin.api.debug');
         });
         Route::get('/applications/export', [AdminController::class, 'exportApplications'])->name('applications.export');
     });
