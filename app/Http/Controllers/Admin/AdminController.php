@@ -16,6 +16,7 @@ use App\Exports\JobsExport;
 use App\Exports\ApplicationsExport;
 use Maatwebsite\Excel\Facades\Excel;
 // PDF import removed - using Word only
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -837,6 +838,47 @@ class AdminController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'حدث خطأ في العملية'
+            ], 500);
+        }
+    }
+
+    /**
+     * جلب تفاصيل المستخدم للعرض في النافذة المنبثقة
+     */
+    public function getUserDetails($userId)
+    {
+        try {
+            $user = User::with(['profile'])
+                ->where('id', $userId)
+                ->first();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'المستخدم غير موجود'
+                ], 404);
+            }
+            
+            // إضافة URLs للمرفقات
+            if ($user->profile) {
+                $profile = $user->profile;
+                
+                // إضافة روابط المرفقات
+                $profile->cv_url = $profile->cv_path ? Storage::url($profile->cv_path) : null;
+                $profile->national_id_attachment_url = $profile->national_id_attachment ? Storage::url($profile->national_id_attachment) : null;
+                $profile->iban_attachment_url = $profile->iban_attachment ? Storage::url($profile->iban_attachment) : null;
+                $profile->national_address_attachment_url = $profile->national_address_attachment ? Storage::url($profile->national_address_attachment) : null;
+                $profile->experience_certificate_url = $profile->experience_certificate ? Storage::url($profile->experience_certificate) : null;
+            }
+            
+            return response()->json([
+                'success' => true,
+                'user' => $user
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ في جلب البيانات: ' . $e->getMessage()
             ], 500);
         }
     }

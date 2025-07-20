@@ -45,6 +45,19 @@
         </li>
 
         <li class="nav-item">
+            <a href="{{ route('admin.users.approvals.index') }}" class="nav-link {{ request()->routeIs('admin.users.approvals.*') ? 'active' : '' }}">
+                <i class="nav-icon fas fa-user-check"></i>
+                <span>طلبات الموافقة</span>
+                @php
+                    $pendingCount = \App\Models\User::where('approval_status', 'pending')->count();
+                @endphp
+                @if($pendingCount > 0)
+                    <span class="badge bg-warning ms-auto">{{ $pendingCount }}</span>
+                @endif
+            </a>
+        </li>
+
+        <li class="nav-item">
             <a href="{{ route('admin.employees.index') }}" class="nav-link {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}">
                 <i class="nav-icon fas fa-user-tie"></i>
                 <span>الموظفين</span>
