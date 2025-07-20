@@ -13,58 +13,58 @@ return new class extends Migration
     {
         // جدول الأخبار - إضافة حقول الصورة المميزة
         Schema::table('news', function (Blueprint $table) {
-            $table->longText('image_file_data')->nullable()->after('image');
-            $table->string('image_file_name')->nullable()->after('image_file_data');
-            $table->string('image_file_type')->nullable()->after('image_file_name');
+            $table->longText('image_file_data')->nullable();
+            $table->string('image_file_name')->nullable();
+            $table->string('image_file_type')->nullable();
         });
 
         // جدول المعرض - إضافة حقول الصورة
         Schema::table('galleries', function (Blueprint $table) {
-            $table->longText('image_file_data')->nullable()->after('image_path');
-            $table->string('image_file_name')->nullable()->after('image_file_data');
-            $table->string('image_file_type')->nullable()->after('image_file_name');
+            $table->longText('image_file_data')->nullable();
+            $table->string('image_file_name')->nullable();
+            $table->string('image_file_type')->nullable();
         });
 
         // جدول التوصيات - إضافة حقول صورة العميل
         Schema::table('testimonials', function (Blueprint $table) {
-            $table->longText('client_image_file_data')->nullable()->after('client_image');
-            $table->string('client_image_file_name')->nullable()->after('client_image_file_data');
-            $table->string('client_image_file_type')->nullable()->after('client_image_file_name');
+            $table->longText('client_image_file_data')->nullable();
+            $table->string('client_image_file_name')->nullable();
+            $table->string('client_image_file_type')->nullable();
         });
 
         // جدول الفيديوهات - إضافة حقول الصورة المصغرة
         Schema::table('company_videos', function (Blueprint $table) {
-            $table->longText('thumbnail_file_data')->nullable()->after('thumbnail_image');
-            $table->string('thumbnail_file_name')->nullable()->after('thumbnail_file_data');
-            $table->string('thumbnail_file_type')->nullable()->after('thumbnail_file_name');
+            $table->longText('thumbnail_file_data')->nullable();
+            $table->string('thumbnail_file_name')->nullable();
+            $table->string('thumbnail_file_type')->nullable();
         });
 
         // جدول طلبات مكة - إضافة حقول الملفات
         Schema::table('mecca_applications', function (Blueprint $table) {
             // السيرة الذاتية
-            $table->longText('cv_file_data')->nullable()->after('cv_file');
-            $table->string('cv_file_name')->nullable()->after('cv_file_data');
-            $table->string('cv_file_type')->nullable()->after('cv_file_name');
+            $table->longText('cv_file_data')->nullable();
+            $table->string('cv_file_name')->nullable();
+            $table->string('cv_file_type')->nullable();
             
             // الهوية الوطنية
-            $table->longText('national_id_file_data')->nullable()->after('national_id_file');
-            $table->string('national_id_file_name')->nullable()->after('national_id_file_data');
-            $table->string('national_id_file_type')->nullable()->after('national_id_file_name');
+            $table->longText('national_id_file_data')->nullable();
+            $table->string('national_id_file_name')->nullable();
+            $table->string('national_id_file_type')->nullable();
             
             // الآيبان
-            $table->longText('iban_file_data')->nullable()->after('iban_file');
-            $table->string('iban_file_name')->nullable()->after('iban_file_data');
-            $table->string('iban_file_type')->nullable()->after('iban_file_name');
+            $table->longText('iban_file_data')->nullable();
+            $table->string('iban_file_name')->nullable();
+            $table->string('iban_file_type')->nullable();
             
             // ملفات الخبرة
-            $table->longText('experience_files_data')->nullable()->after('experience_files');
-            $table->text('experience_files_names')->nullable()->after('experience_files_data');
-            $table->text('experience_files_types')->nullable()->after('experience_files_names');
+            $table->longText('experience_files_data')->nullable();
+            $table->text('experience_files_names')->nullable();
+            $table->text('experience_files_types')->nullable();
             
             // ملفات أخرى
-            $table->longText('other_files_data')->nullable()->after('other_files');
-            $table->text('other_files_names')->nullable()->after('other_files_data');
-            $table->text('other_files_types')->nullable()->after('other_files_names');
+            $table->longText('other_files_data')->nullable();
+            $table->text('other_files_names')->nullable();
+            $table->text('other_files_types')->nullable();
         });
     }
 
