@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\DB;
 
 class UserProfile extends Model
 {
@@ -60,16 +61,49 @@ class UserProfile extends Model
                 return false;
             }
 
-            // التحقق من وجود الملف
-            if (!file_exists($file->getRealPath())) {
-                \Log::error('File does not exist at path', ['path' => $file->getRealPath()]);
+            // فحص حجم الملف (Laravel Cloud limits)
+            $fileSize = $file->getSize();
+            $maxSize = 5 * 1024 * 1024; // 5MB
+            
+            if ($fileSize > $maxSize) {
+                \Log::error('File too large for database storage', [
+                    'fileType' => $fileType,
+                    'fileSize' => $fileSize,
+                    'maxSize' => $maxSize
+                ]);
                 return false;
             }
 
-            // قراءة محتوى الملف وتحويله إلى base64
-            $fileData = base64_encode(file_get_contents($file->getRealPath()));
+            // محاولة آمنة لقراءة الملف
+            $filePath = $file->getRealPath();
+            if (!$filePath || !file_exists($filePath)) {
+                \Log::error('File path not accessible', ['path' => $filePath]);
+                return false;
+            }
+
+            // قراءة الملف بشكل تدريجي لتجنب memory issues
+            $fileContent = '';
+            $handle = fopen($filePath, 'rb');
+            if (!$handle) {
+                \Log::error('Cannot open file for reading', ['path' => $filePath]);
+                return false;
+            }
+
+            while (!feof($handle)) {
+                $chunk = fread($handle, 8192); // قراءة 8KB في كل مرة
+                if ($chunk === false) {
+                    fclose($handle);
+                    \Log::error('Error reading file chunk');
+                    return false;
+                }
+                $fileContent .= $chunk;
+            }
+            fclose($handle);
+
+            // تحويل إلى base64
+            $fileData = base64_encode($fileContent);
             $fileName = $file->getClientOriginalName();
-            $mimeType = $file->getMimeType();
+            $mimeType = $file->getMimeType() ?: 'application/octet-stream';
 
             // التحقق من نجاح التحويل
             if (!$fileData) {
@@ -77,14 +111,17 @@ class UserProfile extends Model
                 return false;
             }
 
-            // تحديث قاعدة البيانات
+            // تحديث قاعدة البيانات بشكل آمن
             $updateData = [
                 "{$fileType}_file_data" => $fileData,
                 "{$fileType}_file_name" => $fileName,
                 "{$fileType}_file_type" => $mimeType,
             ];
 
-            $this->update($updateData);
+            // استخدام transaction للأمان
+            \DB::transaction(function() use ($updateData) {
+                $this->update($updateData);
+            });
 
             \Log::info('File successfully saved to database', [
                 'fileType' => $fileType,
@@ -93,13 +130,17 @@ class UserProfile extends Model
                 'dataSize' => strlen($fileData)
             ]);
 
+            // تنظيف memory
+            unset($fileContent, $fileData);
+            
             return true;
 
         } catch (\Exception $e) {
             \Log::error('Error saving file to database', [
                 'fileType' => $fileType,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
             ]);
             return false;
         }

@@ -194,11 +194,25 @@ class EmployeeController extends Controller
             } catch (\Exception $e) {
                 \Log::error('Error updating profile', [
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile(),
+                    'user_id' => $user->id,
+                    'form_type' => $formType
                 ]);
                 
+                // رسائل خطأ محسنة للـ Laravel Cloud
+                $errorMessage = 'حدث خطأ في تحديث الملف الشخصي.';
+                
+                if (str_contains($e->getMessage(), 'memory')) {
+                    $errorMessage = 'الملف كبير جداً. يرجى استخدام ملف أصغر (أقل من 5MB).';
+                } elseif (str_contains($e->getMessage(), 'upload')) {
+                    $errorMessage = 'خطأ في رفع الملف. يرجى المحاولة مرة أخرى.';
+                } elseif (str_contains($e->getMessage(), 'database')) {
+                    $errorMessage = 'خطأ في حفظ البيانات. يرجى المحاولة مرة أخرى.';
+                }
+                
                 return redirect()->back()
-                    ->with('error', 'حدث خطأ في تحديث الملف الشخصي: ' . $e->getMessage())
+                    ->with('error', $errorMessage)
                     ->withInput();
             }
         }
@@ -244,10 +258,21 @@ class EmployeeController extends Controller
             } catch (\Exception $e) {
                 \Log::error('Error uploading CV', [
                     'user_id' => $user->id,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile()
                 ]);
                 
-                return redirect()->route('employee.profile')->with('error', 'حدث خطأ في رفع السيرة الذاتية');
+                // رسائل خطأ محسنة للـ Laravel Cloud
+                $errorMessage = 'حدث خطأ في رفع السيرة الذاتية.';
+                
+                if (str_contains($e->getMessage(), 'memory')) {
+                    $errorMessage = 'الملف كبير جداً. يرجى استخدام ملف أصغر (أقل من 5MB).';
+                } elseif (str_contains($e->getMessage(), 'upload')) {
+                    $errorMessage = 'خطأ في رفع الملف. يرجى المحاولة مرة أخرى.';
+                }
+                
+                return redirect()->route('employee.profile')->with('error', $errorMessage);
             }
         }
         
