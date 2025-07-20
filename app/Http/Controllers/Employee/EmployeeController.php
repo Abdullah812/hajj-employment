@@ -137,48 +137,44 @@ class EmployeeController extends Controller
             
             \Log::info('Profile data before files', ['profile_data' => $profileData]);
             
-            // رفع الملفات الجديدة - حفظ في قاعدة البيانات بدلاً من filesystem
-            $fileFields = [
-                'iban_attachment' => 'iban',
-                'national_address_attachment' => 'national_address', 
-                'national_id_attachment' => 'national_id',
-                'experience_certificate' => 'experience'
-            ];
-            
-            // إنشاء أو الحصول على profile
-            $profile = $user->profile ?: $user->profile()->create(['user_id' => $user->id]);
-            
-            foreach ($fileFields as $inputField => $dbField) {
-                if ($request->hasFile($inputField)) {
-                    \Log::info('Processing file for database storage', ['field' => $inputField]);
-                    
-                    $file = $request->file($inputField);
-                    
-                    // حفظ الملف في قاعدة البيانات
-                    if ($profile->saveFileToDatabase($file, $dbField)) {
-                        \Log::info('File saved to database', [
-                            'field' => $inputField,
-                            'db_field' => $dbField,
-                            'file_name' => $file->getClientOriginalName()
-                        ]);
-                    } else {
-                        \Log::error('Failed to save file to database', ['field' => $inputField]);
-                    }
-                }
-            }
-            
-            \Log::info('Final profile data', ['profile_data' => $profileData]);
-            
             try {
-                // تحديث أو إنشاء الملف الشخصي
+                // إنشاء أو الحصول على profile
                 $profile = $user->profile()->updateOrCreate(
                     ['user_id' => $user->id],
                     $profileData
                 );
                 
-                \Log::info('Profile updated', ['profile' => $profile]);
+                // رفع الملفات الجديدة - حفظ في قاعدة البيانات بدلاً من filesystem
+                $fileFields = [
+                    'iban_attachment' => 'iban',
+                    'national_address_attachment' => 'national_address', 
+                    'national_id_attachment' => 'national_id',
+                    'experience_certificate' => 'experience'
+                ];
+                
+                foreach ($fileFields as $inputField => $dbField) {
+                    if ($request->hasFile($inputField)) {
+                        \Log::info('Processing file for database storage', ['field' => $inputField]);
+                        
+                        $file = $request->file($inputField);
+                        
+                        // حفظ الملف في قاعدة البيانات
+                        if ($profile->saveFileToDatabase($file, $dbField)) {
+                            \Log::info('File saved to database', [
+                                'field' => $inputField,
+                                'db_field' => $dbField,
+                                'file_name' => $file->getClientOriginalName()
+                            ]);
+                        } else {
+                            \Log::error('Failed to save file to database', ['field' => $inputField]);
+                        }
+                    }
+                }
+                
+                \Log::info('Profile updated successfully', ['profile' => $profile]);
                 
                 return redirect()->back()->with('success', 'تم تحديث المعلومات الإضافية بنجاح');
+                
             } catch (\Exception $e) {
                 \Log::error('Error updating profile', [
                     'error' => $e->getMessage(),
@@ -191,7 +187,7 @@ class EmployeeController extends Controller
             }
         }
         
-        return redirect()->back()->with('error', 'حدث خطأ في تحديث الملف الشخصي');
+        return redirect()->back()->with('error', 'نوع النموذج غير صحيح');
     }
 
     public function uploadCV(Request $request)
@@ -203,23 +199,36 @@ class EmployeeController extends Controller
         $user = Auth::user();
         
         if ($request->hasFile('cv')) {
-            // حذف السيرة الذاتية القديمة
-            if ($user->profile && $user->profile->cv_path) {
-                Storage::delete($user->profile->cv_path);
+            try {
+                // إنشاء أو الحصول على profile
+                $profile = $user->profile()->firstOrCreate(['user_id' => $user->id]);
+                
+                $file = $request->file('cv');
+                
+                // حفظ السيرة الذاتية في قاعدة البيانات
+                if ($profile->saveFileToDatabase($file, 'cv')) {
+                    \Log::info('CV uploaded successfully to database', [
+                        'user_id' => $user->id,
+                        'file_name' => $file->getClientOriginalName()
+                    ]);
+                    
+                    return redirect()->route('employee.profile')->with('success', 'تم رفع السيرة الذاتية بنجاح');
+                } else {
+                    \Log::error('Failed to save CV to database', ['user_id' => $user->id]);
+                    return redirect()->route('employee.profile')->with('error', 'فشل في حفظ السيرة الذاتية');
+                }
+                
+            } catch (\Exception $e) {
+                \Log::error('Error uploading CV', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage()
+                ]);
+                
+                return redirect()->route('employee.profile')->with('error', 'حدث خطأ في رفع السيرة الذاتية');
             }
-            
-            // رفع السيرة الذاتية الجديدة
-            $path = $request->file('cv')->store('cvs', 'public');
-            
-            $user->profile()->updateOrCreate(
-                ['user_id' => $user->id],
-                ['cv_path' => $path]
-            );
-            
-            return redirect()->route('employee.profile')->with('success', 'تم رفع السيرة الذاتية بنجاح');
         }
         
-        return redirect()->route('employee.profile')->with('error', 'فشل في رفع السيرة الذاتية');
+        return redirect()->route('employee.profile')->with('error', 'لم يتم اختيار ملف');
     }
     
     // إدارة طلبات التوظيف

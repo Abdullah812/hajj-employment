@@ -54,19 +54,55 @@ class UserProfile extends Model
      */
     public function saveFileToDatabase($file, $fileType)
     {
-        if (!$file) return false;
+        try {
+            if (!$file || !$file->isValid()) {
+                \Log::error('Invalid file provided to saveFileToDatabase', ['fileType' => $fileType]);
+                return false;
+            }
 
-        $fileData = base64_encode(file_get_contents($file->getRealPath()));
-        $fileName = $file->getClientOriginalName();
-        $mimeType = $file->getMimeType();
+            // التحقق من وجود الملف
+            if (!file_exists($file->getRealPath())) {
+                \Log::error('File does not exist at path', ['path' => $file->getRealPath()]);
+                return false;
+            }
 
-        $this->update([
-            "{$fileType}_file_data" => $fileData,
-            "{$fileType}_file_name" => $fileName,
-            "{$fileType}_file_type" => $mimeType,
-        ]);
+            // قراءة محتوى الملف وتحويله إلى base64
+            $fileData = base64_encode(file_get_contents($file->getRealPath()));
+            $fileName = $file->getClientOriginalName();
+            $mimeType = $file->getMimeType();
 
-        return true;
+            // التحقق من نجاح التحويل
+            if (!$fileData) {
+                \Log::error('Failed to encode file to base64', ['fileType' => $fileType]);
+                return false;
+            }
+
+            // تحديث قاعدة البيانات
+            $updateData = [
+                "{$fileType}_file_data" => $fileData,
+                "{$fileType}_file_name" => $fileName,
+                "{$fileType}_file_type" => $mimeType,
+            ];
+
+            $this->update($updateData);
+
+            \Log::info('File successfully saved to database', [
+                'fileType' => $fileType,
+                'fileName' => $fileName,
+                'mimeType' => $mimeType,
+                'dataSize' => strlen($fileData)
+            ]);
+
+            return true;
+
+        } catch (\Exception $e) {
+            \Log::error('Error saving file to database', [
+                'fileType' => $fileType,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return false;
+        }
     }
 
     /**
