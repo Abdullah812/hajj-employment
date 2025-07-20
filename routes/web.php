@@ -91,6 +91,62 @@ Route::get('/csrf-token', function() {
     return response()->json(['token' => csrf_token()]);
 })->name('csrf-token');
 
+// 🧪 Routes اختبار خارج أي middleware (للتشخيص فقط)
+Route::get('/test-simple/{id}', function($id) {
+    return response()->json([
+        'success' => true,
+        'message' => 'Route بسيط يعمل بدون middleware',
+        'id' => $id,
+        'timestamp' => now(),
+        'request_method' => request()->method(),
+        'url' => request()->url()
+    ]);
+});
+
+Route::get('/test-user-api/{userId}', function($userId) {
+    try {
+        $user = \App\Models\User::with('profile')->find($userId);
+        return response()->json([
+            'success' => true,
+            'message' => 'User API بدون middleware',
+            'user_found' => $user ? true : false,
+            'user_name' => $user ? $user->name : null,
+            'user_id' => $userId,
+            'profile_exists' => $user && $user->profile ? true : false,
+            'auth_check' => auth()->check(),
+            'current_user' => auth()->user() ? auth()->user()->name : 'غير مسجل'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'line' => $e->getLine()
+        ]);
+         }
+ });
+
+// 🚑 Route بديل للـ user-details خارج admin middleware (للتشخيص)
+Route::get('/admin/api/user-details-alt/{userId}', [\App\Http\Controllers\Admin\AdminController::class, 'getUserDetails'])
+    ->middleware(['auth'])
+    ->name('admin.api.user-details-alt');
+
+// 🔍 Route لعرض جميع الـ routes (للتشخيص فقط)
+Route::get('/debug-routes', function() {
+    $routes = [];
+    foreach (\Illuminate\Support\Facades\Route::getRoutes() as $route) {
+        if (str_contains($route->uri(), 'admin') || str_contains($route->uri(), 'user-details')) {
+            $routes[] = [
+                'method' => implode('|', $route->methods()),
+                'uri' => $route->uri(),
+                'name' => $route->getName(),
+                'action' => $route->getActionName(),
+                'middleware' => $route->gatherMiddleware()
+            ];
+        }
+    }
+    return response()->json(['routes' => $routes]);
+});
+
 // مسارات محمية
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
@@ -170,6 +226,19 @@ Route::middleware(['auth'])->group(function () {
             })->name('admin.api.debug');
         });
         Route::get('/applications/export', [AdminController::class, 'exportApplications'])->name('applications.export');
+        
+        // 🔧 Route إضافي للاختبار داخل admin middleware
+        Route::get('/debug-user/{userId}', function($userId) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Admin middleware route يعمل',
+                'userId' => $userId,
+                'middleware' => 'role:admin',
+                'auth' => auth()->check(),
+                'user' => auth()->user() ? auth()->user()->name : null,
+                'roles' => auth()->user() ? auth()->user()->getRoleNames()->toArray() : []
+            ]);
+        })->name('admin.debug.user');
     });
     
     // مسارات القسم
