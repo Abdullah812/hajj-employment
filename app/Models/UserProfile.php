@@ -42,15 +42,11 @@ class UserProfile extends Model
             return null;
         }
 
-        // تجربة private disk أولاً (Laravel Cloud default)
+        // تجربة public disk أولاً (Laravel Cloud يعمل معه بشكل أفضل)
         try {
-            if (Storage::disk('private')->exists($filePath)) {
-                // إنشاء signed URL للملفات في private disk
-                return URL::temporarySignedRoute(
-                    'files.download',
-                    now()->addHours(2),
-                    ['file' => base64_encode($filePath)]
-                );
+            if (Storage::disk('public')->exists($filePath)) {
+                // استخدام direct URL للـ public disk (بدون signed)
+                return Storage::disk('public')->url($filePath);
             }
         } catch (\Exception $e) {
             // تجاهل الخطأ والمتابعة للـ disk التالي
@@ -64,11 +60,16 @@ class UserProfile extends Model
         } catch (\Exception $e) {
             // تجاهل الخطأ والمتابعة للـ disk التالي
         }
-        
-        // تجربة public disk كبديل
+
+        // تجربة private disk مع signed URLs
         try {
-            if (Storage::disk('public')->exists($filePath)) {
-                return Storage::disk('public')->url($filePath);
+            if (Storage::disk('private')->exists($filePath)) {
+                // إنشاء signed URL للملفات في private disk
+                return URL::temporarySignedRoute(
+                    'files.download',
+                    now()->addHours(2),
+                    ['file' => base64_encode($filePath)]
+                );
             }
         } catch (\Exception $e) {
             // تجاهل الخطأ والمتابعة للـ disk التالي
