@@ -55,9 +55,10 @@ class UserProfile extends Model
         }
 
         try {
-            // ثانياً: تجربة public disk (للملفات المحلية)
+            // ثانياً: تجربة public disk مع رابط مباشر (تجاوز مشكلة route)
             if (Storage::disk('public')->exists($filePath)) {
-                return Storage::disk('public')->url($filePath);
+                // استخدام رابط مباشر للملفات في public storage
+                return asset('storage/' . $filePath);
             }
         } catch (\Exception $e) {
             \Log::warning('خطأ في الوصول للـ public disk', [
