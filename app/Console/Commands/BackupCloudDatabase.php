@@ -55,7 +55,8 @@ class BackupCloudDatabase extends Command
             // Get all tables
             $this->info('📋 Getting list of tables...');
             $tables = $this->getAllTables();
-            $this->info("📊 Found {count($tables)} tables to backup");
+            $tableCount = count($tables);
+            $this->info("📊 Found {$tableCount} tables to backup");
             
             // Start backup process
             $sqlContent = $this->generateSQLBackup($tables, $backupName);
@@ -91,11 +92,26 @@ class BackupCloudDatabase extends Command
     private function getAllTables(): array
     {
         $tables = [];
-        $results = DB::select('SHOW TABLES');
+        $databaseName = config('database.connections.' . config('database.default'))['database'];
         
-        foreach ($results as $result) {
-            $tableName = array_values((array) $result)[0];
-            $tables[] = $tableName;
+        try {
+            $results = DB::select('SHOW TABLES');
+            
+            foreach ($results as $result) {
+                // Get table name from result object
+                $resultArray = (array) $result;
+                $tableName = reset($resultArray); // Get first value
+                
+                if (!empty($tableName)) {
+                    $tables[] = $tableName;
+                }
+            }
+            
+            $this->info("🔍 Found tables: " . implode(', ', array_slice($tables, 0, 5)) . (count($tables) > 5 ? '...' : ''));
+            
+        } catch (\Exception $e) {
+            $this->error("Failed to get tables: " . $e->getMessage());
+            throw $e;
         }
         
         return $tables;
