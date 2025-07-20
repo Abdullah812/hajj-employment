@@ -336,7 +336,7 @@ class EmployeeController extends Controller
     {
         $user = Auth::user();
         
-        // التحقق من الصلاحية - المستخدم يمكنه عرض ملفاته فقط
+        // التحقق من الصلاحية - المستخدم يمكنه عرض ملفاته + المديرين والأقسام يمكنهم عرض جميع الملفات
         if ($user->id != $id && !$user->hasRole(['admin', 'department'])) {
             abort(403, 'غير مسموح بالوصول لهذا الملف');
         }
@@ -364,18 +364,30 @@ class EmployeeController extends Controller
         }
         
         // فك تشفير base64
-        $decodedData = base64_decode($fileData);
-        
-        if (!$decodedData) {
-            abort(500, 'خطأ في قراءة الملف');
+        try {
+            $decodedData = base64_decode($fileData);
+            
+            if (!$decodedData) {
+                abort(500, 'خطأ في قراءة الملف');
+            }
+            
+            // إرجاع الملف مع headers صحيحة
+            return response($decodedData, 200, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                'Content-Length' => strlen($decodedData),
+                'Cache-Control' => 'public, max-age=3600',
+                'X-Content-Type-Options' => 'nosniff',
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error decoding file', [
+                'file_type' => $type,
+                'user_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            abort(500, 'خطأ في معالجة الملف');
         }
-        
-        // إرجاع الملف مع headers صحيحة
-        return response($decodedData, 200, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-            'Content-Length' => strlen($decodedData),
-            'Cache-Control' => 'public, max-age=3600',
-        ]);
     }
 }
