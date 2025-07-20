@@ -605,6 +605,11 @@ Route::get('/files/download/{file}', [App\Http\Controllers\FileController::class
     ->name('files.download')
     ->middleware(['auth']); // إزالة middleware 'signed' لتجنب مشاكل انتهاء الصلاحية
 
+// Route جديد لعرض الملفات من قاعدة البيانات
+Route::get('/profile/file/{type}/{id}', [App\Http\Controllers\Employee\EmployeeController::class, 'viewFile'])
+    ->name('profile.file.view')
+    ->middleware(['auth']);
+
 // Analytics Routes - لوحة الإحصائيات المتقدمة
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');

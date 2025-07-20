@@ -118,8 +118,8 @@ class UserProfile extends Model
             return null;
         }
 
-        // إنشاء data URL للعرض المباشر
-        return "data:{$mimeType};base64,{$fileData}";
+        // استخدام route بدلاً من data URL لتجنب مشكلة المتصفح
+        return route('profile.file.view', ['type' => $fileType, 'id' => $this->user_id]);
     }
 
     /**

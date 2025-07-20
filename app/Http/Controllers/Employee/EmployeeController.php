@@ -328,4 +328,54 @@ class EmployeeController extends Controller
         
         return view('employee.applications.show', compact('application'));
     }
+
+    /**
+     * عرض ملف من قاعدة البيانات
+     */
+    public function viewFile($type, $id)
+    {
+        $user = Auth::user();
+        
+        // التحقق من الصلاحية - المستخدم يمكنه عرض ملفاته فقط
+        if ($user->id != $id && !$user->hasRole(['admin', 'department'])) {
+            abort(403, 'غير مسموح بالوصول لهذا الملف');
+        }
+        
+        // الحصول على الملف الشخصي
+        $profile = \App\Models\UserProfile::where('user_id', $id)->first();
+        
+        if (!$profile) {
+            abort(404, 'الملف الشخصي غير موجود');
+        }
+        
+        // التحقق من صحة نوع الملف
+        $allowedTypes = ['cv', 'national_id', 'iban', 'national_address', 'experience'];
+        if (!in_array($type, $allowedTypes)) {
+            abort(400, 'نوع ملف غير صحيح');
+        }
+        
+        // الحصول على بيانات الملف
+        $fileData = $profile->{"{$type}_file_data"};
+        $fileName = $profile->{"{$type}_file_name"} ?: "file.pdf";
+        $mimeType = $profile->{"{$type}_file_type"} ?: 'application/octet-stream';
+        
+        if (!$fileData) {
+            abort(404, 'الملف غير موجود');
+        }
+        
+        // فك تشفير base64
+        $decodedData = base64_decode($fileData);
+        
+        if (!$decodedData) {
+            abort(500, 'خطأ في قراءة الملف');
+        }
+        
+        // إرجاع الملف مع headers صحيحة
+        return response($decodedData, 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Content-Length' => strlen($decodedData),
+            'Cache-Control' => 'public, max-age=3600',
+        ]);
+    }
 }
