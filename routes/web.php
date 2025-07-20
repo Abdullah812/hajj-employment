@@ -600,14 +600,13 @@ Route::get('/contracts/{contract}/download-word', [App\Http\Controllers\Contract
     ->name('contracts.download.word')
     ->middleware('auth');
 
-// File download route for private/local disk files - محسن لـ Laravel Cloud
-Route::get('/files/download/{file}', [App\Http\Controllers\FileController::class, 'download'])
-    ->name('files.download')
-    ->middleware(['auth']); // إزالة middleware 'signed' لتجنب مشاكل انتهاء الصلاحية
-
-// Route جديد لعرض الملفات من قاعدة البيانات
-Route::get('/profile/file/{type}/{id}', [App\Http\Controllers\Employee\EmployeeController::class, 'viewFile'])
+// Routes للملفات من قاعدة البيانات فقط - لا file storage
+Route::get('/profile/file/{type}/{userId}', [App\Http\Controllers\FileController::class, 'viewFile'])
     ->name('profile.file.view')
+    ->middleware(['auth']);
+
+Route::get('/profile/file/{type}/{userId}/download', [App\Http\Controllers\FileController::class, 'downloadFile'])
+    ->name('profile.file.download')
     ->middleware(['auth']);
 
 // Analytics Routes - لوحة الإحصائيات المتقدمة

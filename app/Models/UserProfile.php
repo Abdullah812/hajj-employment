@@ -3,9 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\DB;
 
 class UserProfile extends Model
 {
@@ -18,12 +16,7 @@ class UserProfile extends Model
         'qualification',
         'academic_experience',
         'iban_number',
-        'cv_path',
-        'iban_attachment',
-        'national_id_attachment',
-        'national_address_attachment',
-        'experience_certificate',
-        // إضافة الحقول الجديدة للملفات في قاعدة البيانات
+        // ملفات قاعدة البيانات فقط - لا مسارات ملفات
         'cv_file_data',
         'cv_file_name',
         'cv_file_type',
@@ -118,10 +111,8 @@ class UserProfile extends Model
                 "{$fileType}_file_type" => $mimeType,
             ];
 
-            // استخدام transaction للأمان
-            \DB::transaction(function() use ($updateData) {
-                $this->update($updateData);
-            });
+            // تحديث قاعدة البيانات
+            $this->update($updateData);
 
             \Log::info('File successfully saved to database', [
                 'fileType' => $fileType,
@@ -164,85 +155,45 @@ class UserProfile extends Model
     }
 
     /**
-     * Helper method to get file URL from multiple sources (database first, then filesystem)
-     */
-    private function getFileUrlFallback($filePath, $fileType = null)
-    {
-        // أولاً: تحقق من وجود الملف في قاعدة البيانات
-        if ($fileType && $this->getFileUrl($fileType)) {
-            return $this->getFileUrl($fileType);
-        }
-
-        // ثانياً: إذا لم يوجد في قاعدة البيانات، جرب filesystem
-        if (!$filePath) {
-            return null;
-        }
-
-        try {
-            // تجربة S3 disk (Laravel Cloud يستخدمه كتخزين أساسي)
-            if (Storage::disk('s3')->exists($filePath)) {
-                return Storage::disk('s3')->url($filePath);
-            }
-        } catch (\Exception $e) {
-            \Log::warning('خطأ في الوصول للـ S3 disk', [
-                'file' => $filePath, 
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        try {
-            // تجربة public disk مع رابط مباشر
-            if (Storage::disk('public')->exists($filePath)) {
-                return asset('storage/' . $filePath);
-            }
-        } catch (\Exception $e) {
-            \Log::warning('خطأ في الوصول للـ public disk', [
-                'file' => $filePath, 
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        return null;
-    }
-
-    /**
-     * إنشاء URL للسيرة الذاتية
+     * إنشاء URL للسيرة الذاتية - قاعدة البيانات فقط
      */
     public function getCvUrlAttribute()
     {
-        return $this->getFileUrlFallback($this->cv_path, 'cv');
+        return $this->getFileUrl('cv');
     }
 
     /**
-     * إنشاء URL لمرفق الهوية الوطنية
+     * إنشاء URL لمرفق الهوية الوطنية - قاعدة البيانات فقط
      */
     public function getNationalIdAttachmentUrlAttribute()
     {
-        return $this->getFileUrlFallback($this->national_id_attachment, 'national_id');
+        return $this->getFileUrl('national_id');
     }
 
     /**
-     * إنشاء URL لمرفق الآيبان
+     * إنشاء URL لمرفق الآيبان - قاعدة البيانات فقط
      */
     public function getIbanAttachmentUrlAttribute()
     {
-        return $this->getFileUrlFallback($this->iban_attachment, 'iban');
+        return $this->getFileUrl('iban');
     }
 
     /**
-     * إنشاء URL لمرفق العنوان الوطني
+     * إنشاء URL لمرفق العنوان الوطني - قاعدة البيانات فقط
      */
     public function getNationalAddressAttachmentUrlAttribute()
     {
-        return $this->getFileUrlFallback($this->national_address_attachment, 'national_address');
+        return $this->getFileUrl('national_address');
     }
 
+
+
     /**
-     * إنشاء URL لشهادة الخبرة
+     * إنشاء URL لشهادة الخبرة - قاعدة البيانات فقط
      */
     public function getExperienceCertificateUrlAttribute()
     {
-        return $this->getFileUrlFallback($this->experience_certificate, 'experience');
+        return $this->getFileUrl('experience');
     }
 
     /**

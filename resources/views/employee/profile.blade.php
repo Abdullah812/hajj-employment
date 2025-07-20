@@ -161,15 +161,11 @@
                                 <label for="iban_attachment" class="form-label">ارفاق صورة الايبان <span class="text-danger">*</span></label>
                                 <input type="file" class="form-control" id="iban_attachment" name="iban_attachment" 
                                        accept=".pdf,.jpg,.jpeg,.png">
-                                @if($profile && $profile->iban_attachment)
+                                @if($profile && $profile->iban_file_data)
                                     <div class="mt-2">
-                                        @if($profile->iban_attachment_url)
-                                            <a href="{{ $profile->iban_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        <a href="{{ $profile->iban_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي ({{ $profile->iban_file_name }})
                                         </a>
-                                        @else
-                                            <small class="text-muted">الملف غير متاح للعرض</small>
-                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -179,15 +175,11 @@
                                 <label for="national_address_attachment" class="form-label">ارفاق صورة العنوان الوطني <span class="text-danger">*</span></label>
                                 <input type="file" class="form-control" id="national_address_attachment" name="national_address_attachment" 
                                        accept=".pdf,.jpg,.jpeg,.png">
-                                @if($profile && $profile->national_address_attachment)
+                                @if($profile && $profile->national_address_file_data)
                                     <div class="mt-2">
-                                        @if($profile->national_address_attachment_url)
-                                            <a href="{{ $profile->national_address_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        <a href="{{ $profile->national_address_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي ({{ $profile->national_address_file_name }})
                                         </a>
-                                        @else
-                                            <small class="text-muted">الملف غير متاح للعرض</small>
-                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -197,15 +189,11 @@
                                 <label for="national_id_attachment" class="form-label">ارفاق صورة الهوية <span class="text-danger">*</span></label>
                                 <input type="file" class="form-control" id="national_id_attachment" name="national_id_attachment" 
                                        accept=".pdf,.jpg,.jpeg,.png">
-                                @if($profile && $profile->national_id_attachment)
+                                @if($profile && $profile->national_id_file_data)
                                     <div class="mt-2">
-                                        @if($profile->national_id_attachment_url)
-                                            <a href="{{ $profile->national_id_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        <a href="{{ $profile->national_id_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي ({{ $profile->national_id_file_name }})
                                         </a>
-                                        @else
-                                            <small class="text-muted">الملف غير متاح للعرض</small>
-                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -215,15 +203,11 @@
                                 <label for="experience_certificate" class="form-label">شهادة الخبرة</label>
                                 <input type="file" class="form-control" id="experience_certificate" name="experience_certificate" 
                                        accept=".pdf,.jpg,.jpeg,.png">
-                                @if($profile && $profile->experience_certificate)
+                                @if($profile && $profile->experience_file_data)
                                     <div class="mt-2">
-                                        @if($profile->experience_certificate_url)
-                                            <a href="{{ $profile->experience_certificate_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        <a href="{{ $profile->experience_certificate_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي ({{ $profile->experience_file_name }})
                                         </a>
-                                        @else
-                                            <small class="text-muted">الملف غير متاح للعرض</small>
-                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -275,7 +259,7 @@
                         
                         <div class="mb-3">
                             <label for="cv" class="form-label">
-                                {{ $profile && $profile->cv_path ? 'تحديث السيرة الذاتية' : 'رفع السيرة الذاتية' }}
+                                {{ $profile && $profile->cv_file_data ? 'تحديث السيرة الذاتية' : 'رفع السيرة الذاتية' }}
                                 <span class="text-muted">(PDF فقط - الحد الأقصى 5 ميجا)</span>
                             </label>
                             <input type="file" class="form-control" id="cv" name="cv" accept=".pdf">
@@ -327,10 +311,10 @@
                         $completionPercentage += ($profile && $profile->academic_experience) ? 10 : 0;
                         
                         // المرفقات والوثائق (20%)
-                        $completionPercentage += ($profile && $profile->cv_path) ? 5 : 0;
-                        $completionPercentage += ($profile && $profile->iban_attachment) ? 5 : 0;
-                        $completionPercentage += ($profile && $profile->national_id_attachment) ? 5 : 0;
-                        $completionPercentage += ($profile && $profile->national_address_attachment) ? 5 : 0;
+                                $completionPercentage += ($profile && $profile->cv_file_data) ? 5 : 0;
+        $completionPercentage += ($profile && $profile->iban_file_data) ? 5 : 0;
+        $completionPercentage += ($profile && $profile->national_id_file_data) ? 5 : 0;
+        $completionPercentage += ($profile && $profile->national_address_file_data) ? 5 : 0;
                     @endphp
                     
                     <div class="mb-3">

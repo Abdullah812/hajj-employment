@@ -193,7 +193,7 @@
                             <span>الملف الشخصي مكتمل</span>
                         </div>
                         
-                        @if(auth()->user()->profile->cv_path)
+                                                        @if(auth()->user()->profile->cv_file_data)
                             <div class="d-flex align-items-center mb-3">
                                 <i class="fas fa-file-pdf text-danger me-2"></i>
                                 <span>السيرة الذاتية مرفوعة</span>
