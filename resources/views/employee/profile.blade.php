@@ -163,9 +163,13 @@
                                        accept=".pdf,.jpg,.jpeg,.png">
                                 @if($profile && $profile->iban_attachment)
                                     <div class="mt-2">
-                                        <a href="{{ Storage::url($profile->iban_attachment) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> عرض الملف الحالي
-                                        </a>
+                                        @if($profile->iban_attachment_url)
+                                            <a href="{{ $profile->iban_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> عرض الملف الحالي
+                                            </a>
+                                        @else
+                                            <small class="text-muted">الملف غير متاح للعرض</small>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -177,9 +181,13 @@
                                        accept=".pdf,.jpg,.jpeg,.png">
                                 @if($profile && $profile->national_address_attachment)
                                     <div class="mt-2">
-                                        <a href="{{ Storage::url($profile->national_address_attachment) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> عرض الملف الحالي
-                                        </a>
+                                        @if($profile->national_address_attachment_url)
+                                            <a href="{{ $profile->national_address_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> عرض الملف الحالي
+                                            </a>
+                                        @else
+                                            <small class="text-muted">الملف غير متاح للعرض</small>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -191,9 +199,13 @@
                                        accept=".pdf,.jpg,.jpeg,.png">
                                 @if($profile && $profile->national_id_attachment)
                                     <div class="mt-2">
-                                        <a href="{{ Storage::url($profile->national_id_attachment) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> عرض الملف الحالي
-                                        </a>
+                                        @if($profile->national_id_attachment_url)
+                                            <a href="{{ $profile->national_id_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> عرض الملف الحالي
+                                            </a>
+                                        @else
+                                            <small class="text-muted">الملف غير متاح للعرض</small>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -205,9 +217,13 @@
                                        accept=".pdf,.jpg,.jpeg,.png">
                                 @if($profile && $profile->experience_certificate)
                                     <div class="mt-2">
-                                        <a href="{{ Storage::url($profile->experience_certificate) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> عرض الملف الحالي
-                                        </a>
+                                        @if($profile->experience_certificate_url)
+                                            <a href="{{ $profile->experience_certificate_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> عرض الملف الحالي
+                                            </a>
+                                        @else
+                                            <small class="text-muted">الملف غير متاح للعرض</small>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -242,12 +258,16 @@
                                         <p class="mb-0 mt-1">{{ basename($profile->cv_path) }}</p>
                                     </div>
                                     <div>
-                                        <a href="{{ Storage::url($profile->cv_path) }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">
-                                            <i class="fas fa-eye"></i> عرض
-                                        </a>
-                                        <a href="{{ Storage::url($profile->cv_path) }}" download class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-download"></i> تحميل
-                                        </a>
+                                        @if($profile->cv_url)
+                                            <a href="{{ $profile->cv_url }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">
+                                                <i class="fas fa-eye"></i> عرض
+                                            </a>
+                                            <a href="{{ $profile->cv_url }}" download class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-download"></i> تحميل
+                                            </a>
+                                        @else
+                                            <small class="text-muted">الملف غير متاح للعرض</small>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

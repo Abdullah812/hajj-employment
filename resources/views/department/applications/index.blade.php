@@ -221,10 +221,16 @@
                             <div class="d-flex justify-content-end gap-1 flex-wrap">
                                 <!-- عرض السيرة الذاتية -->
                                 @if($application->user->profile && $application->user->profile->cv_path)
-                                    <a href="{{ Storage::url($application->user->profile->cv_path) }}" 
-                                       target="_blank" class="btn btn-outline-info btn-sm">
-                                        <i class="fas fa-file-pdf"></i> CV
-                                    </a>
+                                    @if($application->user->profile->cv_url)
+                                        <a href="{{ $application->user->profile->cv_url }}" 
+                                           target="_blank" class="btn btn-outline-info btn-sm">
+                                            <i class="fas fa-file-pdf"></i> CV
+                                        </a>
+                                    @else
+                                        <span class="btn btn-outline-secondary btn-sm disabled">
+                                            <i class="fas fa-file-pdf"></i> CV غير متاح
+                                        </span>
+                                    @endif
                                 @endif
                                 
                                 <!-- عرض تفاصيل المتقدم -->
@@ -353,10 +359,16 @@
                             </div>
                             <div class="modal-footer">
                                 @if($application->user->profile && $application->user->profile->cv_path)
-                                    <a href="{{ Storage::url($application->user->profile->cv_path) }}" 
-                                       target="_blank" class="btn btn-info">
-                                        <i class="fas fa-file-pdf me-1"></i>عرض السيرة الذاتية
-                                    </a>
+                                    @if($application->user->profile->cv_url)
+                                        <a href="{{ $application->user->profile->cv_url }}" 
+                                           target="_blank" class="btn btn-info">
+                                            <i class="fas fa-file-pdf me-1"></i>عرض السيرة الذاتية
+                                        </a>
+                                    @else
+                                        <span class="btn btn-secondary disabled">
+                                            <i class="fas fa-file-pdf me-1"></i>السيرة الذاتية غير متاحة
+                                        </span>
+                                    @endif
                                 @endif
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
                             </div>

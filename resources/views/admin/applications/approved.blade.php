@@ -359,28 +359,56 @@
                                 <div class="info-content">
                                     <div class="attachments-grid">
                                         @if($user->profile->cv_path)
-                                        <a href="{{ Storage::url($user->profile->cv_path) }}" target="_blank" class="attachment-item">
-                                            <i class="fas fa-file-pdf"></i>
-                                            <span>السيرة الذاتية</span>
-                                        </a>
+                                            @if($user->profile->cv_url)
+                                                <a href="{{ $user->profile->cv_url }}" target="_blank" class="attachment-item">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                    <span>السيرة الذاتية</span>
+                                                </a>
+                                            @else
+                                                <span class="attachment-item disabled">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                    <span>السيرة الذاتية (غير متاح)</span>
+                                                </span>
+                                            @endif
                                         @endif
                                         @if($user->profile->national_id_attachment)
-                                        <a href="{{ Storage::url($user->profile->national_id_attachment) }}" target="_blank" class="attachment-item">
-                                            <i class="fas fa-id-card"></i>
-                                            <span>صورة الهوية</span>
-                                        </a>
+                                            @if($user->profile->national_id_attachment_url)
+                                                <a href="{{ $user->profile->national_id_attachment_url }}" target="_blank" class="attachment-item">
+                                                    <i class="fas fa-id-card"></i>
+                                                    <span>صورة الهوية</span>
+                                                </a>
+                                            @else
+                                                <span class="attachment-item disabled">
+                                                    <i class="fas fa-id-card"></i>
+                                                    <span>صورة الهوية (غير متاح)</span>
+                                                </span>
+                                            @endif
                                         @endif
                                         @if($user->profile->iban_attachment)
-                                        <a href="{{ Storage::url($user->profile->iban_attachment) }}" target="_blank" class="attachment-item">
-                                            <i class="fas fa-university"></i>
-                                            <span>صورة الآيبان</span>
-                                        </a>
+                                            @if($user->profile->iban_attachment_url)
+                                                <a href="{{ $user->profile->iban_attachment_url }}" target="_blank" class="attachment-item">
+                                                    <i class="fas fa-university"></i>
+                                                    <span>صورة الآيبان</span>
+                                                </a>
+                                            @else
+                                                <span class="attachment-item disabled">
+                                                    <i class="fas fa-university"></i>
+                                                    <span>صورة الآيبان (غير متاح)</span>
+                                                </span>
+                                            @endif
                                         @endif
                                         @if($user->profile->experience_certificate)
-                                        <a href="{{ Storage::url($user->profile->experience_certificate) }}" target="_blank" class="attachment-item">
-                                            <i class="fas fa-certificate"></i>
-                                            <span>شهادة الخبرة</span>
-                                        </a>
+                                            @if($user->profile->experience_certificate_url)
+                                                <a href="{{ $user->profile->experience_certificate_url }}" target="_blank" class="attachment-item">
+                                                    <i class="fas fa-certificate"></i>
+                                                    <span>شهادة الخبرة</span>
+                                                </a>
+                                            @else
+                                                <span class="attachment-item disabled">
+                                                    <i class="fas fa-certificate"></i>
+                                                    <span>شهادة الخبرة (غير متاح)</span>
+                                                </span>
+                                            @endif
                                         @endif
                                     </div>
                                 </div>
