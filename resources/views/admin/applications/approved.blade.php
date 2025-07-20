@@ -361,9 +361,9 @@
                                         @if($user->profile->cv_path)
                                             @if($user->profile->cv_url)
                                                 <a href="{{ $user->profile->cv_url }}" target="_blank" class="attachment-item">
-                                                    <i class="fas fa-file-pdf"></i>
-                                                    <span>السيرة الذاتية</span>
-                                                </a>
+                                            <i class="fas fa-file-pdf"></i>
+                                            <span>السيرة الذاتية</span>
+                                        </a>
                                             @else
                                                 <span class="attachment-item disabled">
                                                     <i class="fas fa-file-pdf"></i>
@@ -374,9 +374,9 @@
                                         @if($user->profile->national_id_attachment)
                                             @if($user->profile->national_id_attachment_url)
                                                 <a href="{{ $user->profile->national_id_attachment_url }}" target="_blank" class="attachment-item">
-                                                    <i class="fas fa-id-card"></i>
-                                                    <span>صورة الهوية</span>
-                                                </a>
+                                            <i class="fas fa-id-card"></i>
+                                            <span>صورة الهوية</span>
+                                        </a>
                                             @else
                                                 <span class="attachment-item disabled">
                                                     <i class="fas fa-id-card"></i>
@@ -387,9 +387,9 @@
                                         @if($user->profile->iban_attachment)
                                             @if($user->profile->iban_attachment_url)
                                                 <a href="{{ $user->profile->iban_attachment_url }}" target="_blank" class="attachment-item">
-                                                    <i class="fas fa-university"></i>
-                                                    <span>صورة الآيبان</span>
-                                                </a>
+                                            <i class="fas fa-university"></i>
+                                            <span>صورة الآيبان</span>
+                                        </a>
                                             @else
                                                 <span class="attachment-item disabled">
                                                     <i class="fas fa-university"></i>
@@ -400,9 +400,9 @@
                                         @if($user->profile->experience_certificate)
                                             @if($user->profile->experience_certificate_url)
                                                 <a href="{{ $user->profile->experience_certificate_url }}" target="_blank" class="attachment-item">
-                                                    <i class="fas fa-certificate"></i>
-                                                    <span>شهادة الخبرة</span>
-                                                </a>
+                                            <i class="fas fa-certificate"></i>
+                                            <span>شهادة الخبرة</span>
+                                        </a>
                                             @else
                                                 <span class="attachment-item disabled">
                                                     <i class="fas fa-certificate"></i>

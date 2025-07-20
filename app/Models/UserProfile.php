@@ -42,51 +42,59 @@ class UserProfile extends Model
             return null;
         }
 
-        // تجربة public disk أولاً (Laravel Cloud يعمل معه بشكل أفضل)
         try {
+            // أولاً: تجربة S3 disk (Laravel Cloud يستخدمه كتخزين أساسي)
+            if (Storage::disk('s3')->exists($filePath)) {
+                return Storage::disk('s3')->url($filePath); // استخدام direct URL بدلاً من temporary
+            }
+        } catch (\Exception $e) {
+            \Log::warning('خطأ في الوصول للـ S3 disk', [
+                'file' => $filePath, 
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        try {
+            // ثانياً: تجربة public disk (للملفات المحلية)
             if (Storage::disk('public')->exists($filePath)) {
-                // استخدام direct URL للـ public disk (بدون signed)
                 return Storage::disk('public')->url($filePath);
             }
         } catch (\Exception $e) {
-            // تجاهل الخطأ والمتابعة للـ disk التالي
+            \Log::warning('خطأ في الوصول للـ public disk', [
+                'file' => $filePath, 
+                'error' => $e->getMessage()
+            ]);
         }
 
-        // تجربة S3 disk
         try {
-            if (Storage::disk('s3')->exists($filePath)) {
-                return Storage::disk('s3')->temporaryUrl($filePath, now()->addHours(1));
-            }
-        } catch (\Exception $e) {
-            // تجاهل الخطأ والمتابعة للـ disk التالي
-        }
-
-        // تجربة private disk مع signed URLs
-        try {
+            // ثالثاً: تجربة private disk مع روابط عادية (بدون signed)
             if (Storage::disk('private')->exists($filePath)) {
-                // إنشاء signed URL للملفات في private disk
-                return URL::temporarySignedRoute(
-                    'files.download',
-                    now()->addHours(2),
-                    ['file' => base64_encode($filePath)]
-                );
+                return route('files.download', ['file' => base64_encode($filePath)]);
             }
         } catch (\Exception $e) {
-            // تجاهل الخطأ والمتابعة للـ disk التالي
+            \Log::warning('خطأ في الوصول للـ private disk', [
+                'file' => $filePath, 
+                'error' => $e->getMessage()
+            ]);
         }
 
-        // تجربة local disk كآخر بديل
         try {
+            // رابعاً: تجربة local disk كآخر بديل
             if (Storage::disk('local')->exists($filePath)) {
-                return URL::temporarySignedRoute(
-                    'files.download',
-                    now()->addHours(2),
-                    ['file' => base64_encode($filePath)]
-                );
+                return route('files.download', ['file' => base64_encode($filePath)]);
             }
         } catch (\Exception $e) {
-            // تجاهل الخطأ
+            \Log::warning('خطأ في الوصول للـ local disk', [
+                'file' => $filePath, 
+                'error' => $e->getMessage()
+            ]);
         }
+        
+        // إذا لم نجد الملف في أي مكان، سجل الخطأ
+        \Log::error('الملف غير موجود في أي disk', [
+            'file' => $filePath,
+            'user_id' => $this->user_id
+        ]);
         
         return null;
     }

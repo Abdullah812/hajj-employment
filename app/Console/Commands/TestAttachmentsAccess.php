@@ -19,6 +19,7 @@ class TestAttachmentsAccess extends Command
     public function handle()
     {
         $this->info('🔍 اختبار الوصول لمرفقات المستخدمين...');
+        $this->info('ℹ️ النظام محسن لـ Laravel Cloud - يفضل استخدام S3');
         $this->newLine();
 
         $fix = $this->option('fix');

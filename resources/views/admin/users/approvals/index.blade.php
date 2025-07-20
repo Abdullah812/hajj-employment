@@ -70,7 +70,7 @@
                                                     <i class="fas fa-paperclip me-1"></i>المرفقات:
                                                 </h6>
                                                 <div class="d-flex flex-wrap gap-1">
-                                                    @if($user->profile && $user->profile->cv_path)
+                                                @if($user->profile && $user->profile->cv_path)
                                                         <span class="badge bg-info">
                                                             <i class="fas fa-file-pdf me-1"></i>السيرة الذاتية
                                                         </span>
@@ -79,17 +79,17 @@
                                                         <span class="badge bg-success">
                                                             <i class="fas fa-id-card me-1"></i>الهوية
                                                         </span>
-                                                    @endif
-                                                    @if($user->profile && $user->profile->iban_attachment)
+                                                @endif
+                                                @if($user->profile && $user->profile->iban_attachment)
                                                         <span class="badge bg-primary">
                                                             <i class="fas fa-university me-1"></i>الآيبان
                                                         </span>
-                                                    @endif
-                                                    @if($user->profile && $user->profile->experience_certificate)
+                                                @endif
+                                                @if($user->profile && $user->profile->experience_certificate)
                                                         <span class="badge bg-warning">
                                                             <i class="fas fa-certificate me-1"></i>الخبرة
                                                         </span>
-                                                    @endif
+                                                @endif
                                                 </div>
                                             </div>
                                             
@@ -120,11 +120,11 @@
                                     </div>
                                 </div>
                             @endforeach
-                        </div>
-                        
+                    </div>
+
                         <!-- Pagination -->
                         <div class="d-flex justify-content-center mt-4">
-                            {{ $pendingUsers->links() }}
+                    {{ $pendingUsers->links() }}
                         </div>
                     @else
                         <div class="text-center py-5">

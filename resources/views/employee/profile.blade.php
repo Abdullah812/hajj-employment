@@ -165,8 +165,8 @@
                                     <div class="mt-2">
                                         @if($profile->iban_attachment_url)
                                             <a href="{{ $profile->iban_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i> عرض الملف الحالي
-                                            </a>
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        </a>
                                         @else
                                             <small class="text-muted">الملف غير متاح للعرض</small>
                                         @endif
@@ -183,8 +183,8 @@
                                     <div class="mt-2">
                                         @if($profile->national_address_attachment_url)
                                             <a href="{{ $profile->national_address_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i> عرض الملف الحالي
-                                            </a>
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        </a>
                                         @else
                                             <small class="text-muted">الملف غير متاح للعرض</small>
                                         @endif
@@ -201,8 +201,8 @@
                                     <div class="mt-2">
                                         @if($profile->national_id_attachment_url)
                                             <a href="{{ $profile->national_id_attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i> عرض الملف الحالي
-                                            </a>
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        </a>
                                         @else
                                             <small class="text-muted">الملف غير متاح للعرض</small>
                                         @endif
@@ -219,8 +219,8 @@
                                     <div class="mt-2">
                                         @if($profile->experience_certificate_url)
                                             <a href="{{ $profile->experience_certificate_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i> عرض الملف الحالي
-                                            </a>
+                                            <i class="fas fa-eye"></i> عرض الملف الحالي
+                                        </a>
                                         @else
                                             <small class="text-muted">الملف غير متاح للعرض</small>
                                         @endif
@@ -260,11 +260,11 @@
                                     <div>
                                         @if($profile->cv_url)
                                             <a href="{{ $profile->cv_url }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">
-                                                <i class="fas fa-eye"></i> عرض
-                                            </a>
+                                            <i class="fas fa-eye"></i> عرض
+                                        </a>
                                             <a href="{{ $profile->cv_url }}" download class="btn btn-sm btn-outline-success">
-                                                <i class="fas fa-download"></i> تحميل
-                                            </a>
+                                            <i class="fas fa-download"></i> تحميل
+                                        </a>
                                         @else
                                             <small class="text-muted">الملف غير متاح للعرض</small>
                                         @endif

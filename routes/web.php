@@ -600,10 +600,10 @@ Route::get('/contracts/{contract}/download-word', [App\Http\Controllers\Contract
     ->name('contracts.download.word')
     ->middleware('auth');
 
-// File download route for private/local disk files (signed URLs)
+// File download route for private/local disk files - محسن لـ Laravel Cloud
 Route::get('/files/download/{file}', [App\Http\Controllers\FileController::class, 'download'])
     ->name('files.download')
-    ->middleware(['auth', 'signed']);
+    ->middleware(['auth']); // إزالة middleware 'signed' لتجنب مشاكل انتهاء الصلاحية
 
 // Analytics Routes - لوحة الإحصائيات المتقدمة
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
