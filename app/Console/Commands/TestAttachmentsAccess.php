@@ -11,7 +11,8 @@ class TestAttachmentsAccess extends Command
 {
     protected $signature = 'attachments:test-access 
                             {--fix : أصلح المشاكل تلقائياً}
-                            {--migrate-to-s3 : انقل المرفقات لـ S3}';
+                            {--migrate-to-s3 : انقل المرفقات لـ S3}
+                            {--deep-clean : تنظيف عميق لكل المراجع المفقودة}';
 
     protected $description = 'اختبار الوصول لمرفقات المستخدمين وإصلاح المشاكل';
 
@@ -22,6 +23,7 @@ class TestAttachmentsAccess extends Command
 
         $fix = $this->option('fix');
         $migrateToS3 = $this->option('migrate-to-s3');
+        $deepClean = $this->option('deep-clean');
 
         // جلب المستخدمين الذين لديهم مرفقات
         $profiles = UserProfile::whereNotNull('cv_path')
@@ -94,9 +96,14 @@ class TestAttachmentsAccess extends Command
         // عرض الملخص
         $this->displaySummary($publicCount, $s3Count, $missingCount, $fixedCount);
 
-        if ($missingCount > 0 && $fix) {
+        if ($missingCount > 0 && ($fix || $deepClean)) {
             $this->warn('💡 تشغيل وضع الإصلاح...');
             $this->cleanupMissingReferences();
+        }
+
+        if ($deepClean && !$fix) {
+            $this->warn('💡 تشغيل التنظيف العميق...');
+            $this->deepCleanupReferences();
         }
 
         return Command::SUCCESS;
@@ -144,7 +151,8 @@ class TestAttachmentsAccess extends Command
     private function cleanupMissingReferences(): void
     {
         $profiles = UserProfile::all();
-        $cleanedCount = 0;
+        $cleanedProfiles = 0;
+        $cleanedFiles = 0;
 
         foreach ($profiles as $profile) {
             $updated = false;
@@ -152,18 +160,95 @@ class TestAttachmentsAccess extends Command
 
             foreach ($attachmentFields as $field) {
                 if ($profile->$field && $this->checkFileLocation($profile->$field) === 'missing') {
+                    $this->line("    🗑️ إزالة مرجع: {$field} للمستخدم {$profile->user->name}");
                     $profile->$field = null;
                     $updated = true;
+                    $cleanedFiles++;
                 }
             }
 
             if ($updated) {
                 $profile->save();
-                $cleanedCount++;
+                $cleanedProfiles++;
             }
         }
 
-        $this->info("🧹 تم تنظيف {$cleanedCount} مرجع لملف مفقود");
+        $this->newLine();
+        $this->info("🧹 تم تنظيف {$cleanedFiles} مرجع ملف مفقود من {$cleanedProfiles} ملف شخصي");
+        
+        // تشغيل فحص مرة أخرى للتأكد
+        $this->newLine();
+        $this->info("🔍 فحص سريع للتأكد من التنظيف...");
+        
+        $remainingFiles = 0;
+        foreach (UserProfile::all() as $profile) {
+            $attachmentFields = ['cv_path', 'national_id_attachment', 'iban_attachment', 'national_address_attachment', 'experience_certificate'];
+            foreach ($attachmentFields as $field) {
+                if ($profile->$field && $this->checkFileLocation($profile->$field) === 'missing') {
+                    $remainingFiles++;
+                }
+            }
+        }
+        
+        if ($remainingFiles == 0) {
+            $this->info("✅ تم التنظيف بنجاح - لا توجد مراجع مفقودة متبقية");
+        } else {
+            $this->warn("⚠️ لا يزال هناك {$remainingFiles} مرجع مفقود - قد تحتاج لتشغيل الأمر مرة أخرى");
+        }
+    }
+
+    private function deepCleanupReferences(): void
+    {
+        $this->info('🧹 تنظيف عميق - إزالة جميع المراجع الفارغة والمفقودة...');
+        
+        $profiles = UserProfile::all();
+        $cleanedProfiles = 0;
+        $cleanedFields = 0;
+        
+        foreach ($profiles as $profile) {
+            $updated = false;
+            $attachmentFields = ['cv_path', 'national_id_attachment', 'iban_attachment', 'national_address_attachment', 'experience_certificate'];
+            
+            foreach ($attachmentFields as $field) {
+                $value = $profile->$field;
+                
+                // إزالة المراجع الفارغة أو المفقودة
+                if ($value && (trim($value) === '' || $this->checkFileLocation($value) === 'missing')) {
+                    $this->line("    🗑️ تنظيف {$field} للمستخدم {$profile->user->name}: '{$value}'");
+                    $profile->$field = null;
+                    $updated = true;
+                    $cleanedFields++;
+                }
+            }
+            
+            if ($updated) {
+                $profile->save();
+                $cleanedProfiles++;
+            }
+        }
+        
+        $this->newLine();
+        $this->info("✨ تم التنظيف العميق: {$cleanedFields} حقل من {$cleanedProfiles} ملف شخصي");
+        
+        // فحص نهائي سريع
+        $this->newLine();
+        $this->info("🔍 فحص نهائي للتأكد...");
+        
+        $remainingFiles = 0;
+        foreach (UserProfile::all() as $profile) {
+            $attachmentFields = ['cv_path', 'national_id_attachment', 'iban_attachment', 'national_address_attachment', 'experience_certificate'];
+            foreach ($attachmentFields as $field) {
+                if ($profile->$field && $this->checkFileLocation($profile->$field) === 'missing') {
+                    $remainingFiles++;
+                }
+            }
+        }
+        
+        if ($remainingFiles == 0) {
+            $this->info("✅ التنظيف العميق مكتمل - لا توجد مراجع مفقودة");
+        } else {
+            $this->warn("⚠️ لا يزال هناك {$remainingFiles} مرجع مفقود");
+        }
     }
 
     private function displaySummary(int $publicCount, int $s3Count, int $missingCount, int $fixedCount): void
