@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -137,7 +137,7 @@ class AuthController extends Controller
                 // المعلومات البنكية
                 'iban_number' => ['required', 'string', 'size:24', 'regex:/^SA[0-9]{22}$/'],
                 
-                // المرفقات
+                // المرفقات - قاعدة البيانات فقط
                 'cv_path' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
                 'iban_attachment' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
                 'national_id_attachment' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
@@ -240,14 +240,8 @@ class AuthController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            // حذف الملفات المرفوعة في حالة الفشل
-            if (!empty($paths)) {
-                foreach ($paths as $path) {
-                    if ($path) {
-                        Storage::disk('public')->delete($path);
-                    }
-                }
-            }
+            // لا حاجة لحذف ملفات - النظام يعتمد على قاعدة البيانات فقط
+            // إذا فشل التسجيل، سيتم حذف المستخدم والملف الشخصي تلقائياً بـ rollback
 
             return redirect()->back()
                 ->withInput()

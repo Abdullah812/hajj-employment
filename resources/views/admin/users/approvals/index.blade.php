@@ -70,27 +70,27 @@
                                                     <i class="fas fa-paperclip me-1"></i>المرفقات:
                                                 </h6>
                                                 <div class="d-flex flex-wrap gap-1">
-                                                @if($user->profile && ($user->profile->cv_path || $user->profile->cv_file_data))
+                                                @if($user->profile && $user->profile->cv_file_data)
                                                         <span class="badge bg-info">
                                                             <i class="fas fa-file-pdf me-1"></i>السيرة الذاتية
                                                         </span>
                                                     @endif
-                                                    @if($user->profile && ($user->profile->national_id_attachment || $user->profile->national_id_file_data))
+                                                    @if($user->profile && $user->profile->national_id_file_data)
                                                         <span class="badge bg-success">
                                                             <i class="fas fa-id-card me-1"></i>الهوية
                                                         </span>
                                                 @endif
-                                                @if($user->profile && ($user->profile->iban_attachment || $user->profile->iban_file_data))
+                                                @if($user->profile && $user->profile->iban_file_data)
                                                         <span class="badge bg-primary">
                                                             <i class="fas fa-university me-1"></i>الآيبان
                                                         </span>
                                                 @endif
-                                                @if($user->profile && ($user->profile->experience_certificate || $user->profile->experience_file_data))
+                                                @if($user->profile && $user->profile->experience_file_data)
                                                         <span class="badge bg-warning">
                                                             <i class="fas fa-certificate me-1"></i>الخبرة
                                                         </span>
                                                 @endif
-                                                @if($user->profile && ($user->profile->national_address_attachment || $user->profile->national_address_file_data))
+                                                @if($user->profile && $user->profile->national_address_file_data)
                                                         <span class="badge bg-secondary">
                                                             <i class="fas fa-home me-1"></i>العنوان الوطني
                                                         </span>
@@ -380,13 +380,13 @@ function buildUserDetailsHTML(user) {
         <div class="user-details-section">
             <h6><i class="fas fa-paperclip me-2"></i>المرفقات والمستندات</h6>
             <div class="attachment-links">
-                ${(profile.cv_path || profile.cv_file_data) ? `<a href="${profile.cv_url}" class="btn btn-info btn-sm" target="_blank"><i class="fas fa-file-pdf me-1"></i>السيرة الذاتية</a>` : ''}
-                ${(profile.national_id_attachment || profile.national_id_file_data) ? `<a href="${profile.national_id_attachment_url}" class="btn btn-success btn-sm" target="_blank"><i class="fas fa-id-card me-1"></i>الهوية الوطنية</a>` : ''}
-                ${(profile.iban_attachment || profile.iban_file_data) ? `<a href="${profile.iban_attachment_url}" class="btn btn-primary btn-sm" target="_blank"><i class="fas fa-university me-1"></i>مرفق الآيبان</a>` : ''}
-                ${(profile.national_address_attachment || profile.national_address_file_data) ? `<a href="${profile.national_address_attachment_url}" class="btn btn-warning btn-sm" target="_blank"><i class="fas fa-home me-1"></i>العنوان الوطني</a>` : ''}
-                ${(profile.experience_certificate || profile.experience_file_data) ? `<a href="${profile.experience_certificate_url}" class="btn btn-secondary btn-sm" target="_blank"><i class="fas fa-certificate me-1"></i>شهادة الخبرة</a>` : ''}
+                                    ${profile.cv_file_data ? `<a href="${profile.cv_url}" class="btn btn-info btn-sm" target="_blank"><i class="fas fa-file-pdf me-1"></i>السيرة الذاتية</a>` : ''}
+                    ${profile.national_id_file_data ? `<a href="${profile.national_id_attachment_url}" class="btn btn-success btn-sm" target="_blank"><i class="fas fa-id-card me-1"></i>الهوية الوطنية</a>` : ''}
+                    ${profile.iban_file_data ? `<a href="${profile.iban_attachment_url}" class="btn btn-primary btn-sm" target="_blank"><i class="fas fa-university me-1"></i>مرفق الآيبان</a>` : ''}
+                    ${profile.national_address_file_data ? `<a href="${profile.national_address_attachment_url}" class="btn btn-warning btn-sm" target="_blank"><i class="fas fa-home me-1"></i>العنوان الوطني</a>` : ''}
+                    ${profile.experience_file_data ? `<a href="${profile.experience_certificate_url}" class="btn btn-secondary btn-sm" target="_blank"><i class="fas fa-certificate me-1"></i>شهادة الخبرة</a>` : ''}
             </div>
-            ${!profile.cv_path && !profile.national_id_attachment && !profile.iban_attachment && !profile.national_address_attachment && !profile.experience_certificate && !profile.cv_file_data && !profile.national_id_file_data && !profile.iban_file_data && !profile.national_address_file_data && !profile.experience_file_data ? 
+                            ${!profile.cv_file_data && !profile.national_id_file_data && !profile.iban_file_data && !profile.national_address_file_data && !profile.experience_file_data ? 
                 '<p class="text-muted"><i class="fas fa-info-circle me-2"></i>لا توجد مرفقات مرفوعة</p>' : ''}
         </div>
         
