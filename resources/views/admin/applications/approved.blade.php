@@ -358,7 +358,7 @@
                                 </div>
                                 <div class="info-content">
                                     <div class="attachments-grid">
-                                        @if($user->profile->cv_path)
+                                        @if($user->profile->cv_path || $user->profile->cv_file_data)
                                             @if($user->profile->cv_url)
                                                 <a href="{{ $user->profile->cv_url }}" target="_blank" class="attachment-item">
                                             <i class="fas fa-file-pdf"></i>
@@ -371,7 +371,7 @@
                                                 </span>
                                             @endif
                                         @endif
-                                        @if($user->profile->national_id_attachment)
+                                        @if($user->profile->national_id_attachment || $user->profile->national_id_file_data)
                                             @if($user->profile->national_id_attachment_url)
                                                 <a href="{{ $user->profile->national_id_attachment_url }}" target="_blank" class="attachment-item">
                                             <i class="fas fa-id-card"></i>
@@ -384,7 +384,7 @@
                                                 </span>
                                             @endif
                                         @endif
-                                        @if($user->profile->iban_attachment)
+                                        @if($user->profile->iban_attachment || $user->profile->iban_file_data)
                                             @if($user->profile->iban_attachment_url)
                                                 <a href="{{ $user->profile->iban_attachment_url }}" target="_blank" class="attachment-item">
                                             <i class="fas fa-university"></i>
@@ -397,7 +397,7 @@
                                                 </span>
                                             @endif
                                         @endif
-                                        @if($user->profile->experience_certificate)
+                                        @if($user->profile->experience_certificate || $user->profile->experience_file_data)
                                             @if($user->profile->experience_certificate_url)
                                                 <a href="{{ $user->profile->experience_certificate_url }}" target="_blank" class="attachment-item">
                                             <i class="fas fa-certificate"></i>
@@ -407,6 +407,19 @@
                                                 <span class="attachment-item disabled">
                                                     <i class="fas fa-certificate"></i>
                                                     <span>شهادة الخبرة (غير متاح)</span>
+                                                </span>
+                                            @endif
+                                        @endif
+                                        @if($user->profile->national_address_attachment || $user->profile->national_address_file_data)
+                                            @if($user->profile->national_address_attachment_url)
+                                                <a href="{{ $user->profile->national_address_attachment_url }}" target="_blank" class="attachment-item">
+                                            <i class="fas fa-home"></i>
+                                            <span>العنوان الوطني</span>
+                                        </a>
+                                            @else
+                                                <span class="attachment-item disabled">
+                                                    <i class="fas fa-home"></i>
+                                                    <span>العنوان الوطني (غير متاح)</span>
                                                 </span>
                                             @endif
                                         @endif

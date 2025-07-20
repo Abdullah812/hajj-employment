@@ -113,7 +113,14 @@ class EmployeeController extends Controller
                 $profileData
             );
             
-            return redirect()->back()->with('success', 'تم تحديث المعلومات الأساسية بنجاح');
+            // إعادة تعيين حالة الموافقة لمراجعة المعلومات المحدثة
+            $user->update([
+                'approval_status' => 'pending',
+                'approved_at' => null,
+                'approved_by' => null
+            ]);
+            
+            return redirect()->back()->with('success', 'تم تحديث المعلومات الأساسية بنجاح. سيتم مراجعة حسابك من قبل الإدارة.');
             
         } elseif ($formType === 'additional') {
             // validation للمعلومات الإضافية
@@ -173,7 +180,16 @@ class EmployeeController extends Controller
                 
                 \Log::info('Profile updated successfully', ['profile' => $profile]);
                 
-                return redirect()->back()->with('success', 'تم تحديث المعلومات الإضافية بنجاح');
+                // إعادة تعيين حالة الموافقة لمراجعة المعلومات المحدثة
+                $user->update([
+                    'approval_status' => 'pending',
+                    'approved_at' => null,
+                    'approved_by' => null
+                ]);
+                
+                \Log::info('User approval status reset to pending', ['user_id' => $user->id]);
+                
+                return redirect()->back()->with('success', 'تم تحديث المعلومات الإضافية بنجاح. سيتم مراجعة حسابك من قبل الإدارة.');
                 
             } catch (\Exception $e) {
                 \Log::error('Error updating profile', [
@@ -212,7 +228,14 @@ class EmployeeController extends Controller
                         'file_name' => $file->getClientOriginalName()
                     ]);
                     
-                    return redirect()->route('employee.profile')->with('success', 'تم رفع السيرة الذاتية بنجاح');
+                    // إعادة تعيين حالة الموافقة لمراجعة المعلومات المحدثة
+                    $user->update([
+                        'approval_status' => 'pending',
+                        'approved_at' => null,
+                        'approved_by' => null
+                    ]);
+                    
+                    return redirect()->route('employee.profile')->with('success', 'تم رفع السيرة الذاتية بنجاح. سيتم مراجعة حسابك من قبل الإدارة.');
                 } else {
                     \Log::error('Failed to save CV to database', ['user_id' => $user->id]);
                     return redirect()->route('employee.profile')->with('error', 'فشل في حفظ السيرة الذاتية');
@@ -336,7 +359,7 @@ class EmployeeController extends Controller
     {
         $user = Auth::user();
         
-        // التحقق من الصلاحية - المستخدم يمكنه عرض ملفاته + المديرين والأقسام يمكنهم عرض جميع الملفات
+        // التحقق من الصلاحية - المستخدم يمكنه عرض ملفاته فقط
         if ($user->id != $id && !$user->hasRole(['admin', 'department'])) {
             abort(403, 'غير مسموح بالوصول لهذا الملف');
         }
@@ -364,30 +387,18 @@ class EmployeeController extends Controller
         }
         
         // فك تشفير base64
-        try {
-            $decodedData = base64_decode($fileData);
-            
-            if (!$decodedData) {
-                abort(500, 'خطأ في قراءة الملف');
-            }
-            
-            // إرجاع الملف مع headers صحيحة
-            return response($decodedData, 200, [
-                'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-                'Content-Length' => strlen($decodedData),
-                'Cache-Control' => 'public, max-age=3600',
-                'X-Content-Type-Options' => 'nosniff',
-            ]);
-            
-        } catch (\Exception $e) {
-            \Log::error('Error decoding file', [
-                'file_type' => $type,
-                'user_id' => $id,
-                'error' => $e->getMessage()
-            ]);
-            
-            abort(500, 'خطأ في معالجة الملف');
+        $decodedData = base64_decode($fileData);
+        
+        if (!$decodedData) {
+            abort(500, 'خطأ في قراءة الملف');
         }
+        
+        // إرجاع الملف مع headers صحيحة
+        return response($decodedData, 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Content-Length' => strlen($decodedData),
+            'Cache-Control' => 'public, max-age=3600',
+        ]);
     }
 }

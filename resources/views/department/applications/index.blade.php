@@ -220,7 +220,7 @@
                         <div class="col-lg-3">
                             <div class="d-flex justify-content-end gap-1 flex-wrap">
                                 <!-- عرض السيرة الذاتية -->
-                                @if($application->user->profile && $application->user->profile->cv_path)
+                                @if($application->user->profile && ($application->user->profile->cv_path || $application->user->profile->cv_file_data))
                                     @if($application->user->profile->cv_url)
                                         <a href="{{ $application->user->profile->cv_url }}" 
                                        target="_blank" class="btn btn-outline-info btn-sm">
@@ -358,7 +358,7 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                @if($application->user->profile && $application->user->profile->cv_path)
+                                @if($application->user->profile && ($application->user->profile->cv_path || $application->user->profile->cv_file_data))
                                     @if($application->user->profile->cv_url)
                                         <a href="{{ $application->user->profile->cv_url }}" 
                                        target="_blank" class="btn btn-info">
