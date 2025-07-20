@@ -52,8 +52,26 @@ class ContentController extends Controller
             
             if ($request->hasFile('featured_image')) {
                 $file = $request->file('featured_image');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $data['image'] = $file->storeAs('news', $filename, 'public');
+                $news = News::create($data);
+                
+                if ($news->saveImageToDatabase($file)) {
+                    \Log::info('تم حفظ صورة الخبر في قاعدة البيانات', [
+                        'news_id' => $news->id,
+                        'file_name' => $file->getClientOriginalName()
+                    ]);
+                } else {
+                    \Log::error('فشل في حفظ صورة الخبر في قاعدة البيانات', [
+                        'news_id' => $news->id
+                    ]);
+                }
+                
+                return redirect()->route('admin.content.news.index')
+                    ->with('success', 'تم إنشاء الخبر بنجاح');
+            } else {
+                News::create($data);
+                
+                return redirect()->route('admin.content.news.index')
+                    ->with('success', 'تم إنشاء الخبر بنجاح');
             }
 
             if ($request->status === 'published' && !$request->published_at) {
@@ -95,12 +113,18 @@ class ContentController extends Controller
             $data['slug'] = Str::slug($request->title);
             
             if ($request->hasFile('featured_image')) {
-                if ($news->image) {
-                    Storage::disk('public')->delete($news->image);
-                }
                 $file = $request->file('featured_image');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $data['image'] = $file->storeAs('news', $filename, 'public');
+                
+                if ($news->saveImageToDatabase($file)) {
+                    \Log::info('تم تحديث صورة الخبر في قاعدة البيانات', [
+                        'news_id' => $news->id,
+                        'file_name' => $file->getClientOriginalName()
+                    ]);
+                } else {
+                    \Log::error('فشل في تحديث صورة الخبر في قاعدة البيانات', [
+                        'news_id' => $news->id
+                    ]);
+                }
             }
 
             if ($request->status === 'published' && !$news->published_at && !$request->published_at) {
@@ -123,10 +147,7 @@ class ContentController extends Controller
     public function newsDestroy(News $news)
     {
         try {
-            if ($news->image) {
-                Storage::disk('public')->delete($news->image);
-            }
-            
+            // لا حاجة لحذف ملفات - النظام يعتمد على قاعدة البيانات
             $news->delete();
 
             return redirect()->route('admin.content.news.index')

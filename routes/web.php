@@ -609,6 +609,10 @@ Route::get('/profile/file/{type}/{userId}/download', [App\Http\Controllers\FileC
     ->name('profile.file.download')
     ->middleware(['auth']);
 
+// Routes لعرض صور المحتوى من قاعدة البيانات
+Route::get('/content/image/{type}/{id}', [App\Http\Controllers\FileController::class, 'viewContentImage'])
+    ->name('content.image.view');
+
 // Analytics Routes - لوحة الإحصائيات المتقدمة
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
