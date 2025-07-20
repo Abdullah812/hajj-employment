@@ -137,31 +137,33 @@ class EmployeeController extends Controller
             
             \Log::info('Profile data before files', ['profile_data' => $profileData]);
             
-            // رفع الملفات الجديدة
+            // رفع الملفات الجديدة - حفظ في قاعدة البيانات بدلاً من filesystem
             $fileFields = [
-                'iban_attachment' => ['field' => 'iban_attachment', 'folder' => 'documents/iban'],
-                'national_address_attachment' => ['field' => 'national_address_attachment', 'folder' => 'documents/national_address'],
-                'national_id_attachment' => ['field' => 'national_id_attachment', 'folder' => 'documents/national_id'],
-                'experience_certificate' => ['field' => 'experience_certificate', 'folder' => 'documents/experience']
+                'iban_attachment' => 'iban',
+                'national_address_attachment' => 'national_address', 
+                'national_id_attachment' => 'national_id',
+                'experience_certificate' => 'experience'
             ];
             
-            foreach ($fileFields as $inputField => $config) {
+            // إنشاء أو الحصول على profile
+            $profile = $user->profile ?: $user->profile()->create(['user_id' => $user->id]);
+            
+            foreach ($fileFields as $inputField => $dbField) {
                 if ($request->hasFile($inputField)) {
-                    \Log::info('Processing file', ['field' => $inputField]);
-                    
-                    // حذف الملف القديم إن وجد
-                    if ($user->profile && $user->profile->{$config['field']}) {
-                        Storage::delete('public/' . $user->profile->{$config['field']});
-                    }
+                    \Log::info('Processing file for database storage', ['field' => $inputField]);
                     
                     $file = $request->file($inputField);
-                    $filePath = $file->store($config['folder'], 'public');
-                    $profileData[$config['field']] = $filePath;
                     
-                    \Log::info('File stored', [
-                        'field' => $inputField,
-                        'path' => $filePath
-                    ]);
+                    // حفظ الملف في قاعدة البيانات
+                    if ($profile->saveFileToDatabase($file, $dbField)) {
+                        \Log::info('File saved to database', [
+                            'field' => $inputField,
+                            'db_field' => $dbField,
+                            'file_name' => $file->getClientOriginalName()
+                        ]);
+                    } else {
+                        \Log::error('Failed to save file to database', ['field' => $inputField]);
+                    }
                 }
             }
             

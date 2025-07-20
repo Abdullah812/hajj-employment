@@ -21,7 +21,23 @@ class UserProfile extends Model
         'iban_attachment',
         'national_id_attachment',
         'national_address_attachment',
-        'experience_certificate'
+        'experience_certificate',
+        // إضافة الحقول الجديدة للملفات في قاعدة البيانات
+        'cv_file_data',
+        'cv_file_name',
+        'cv_file_type',
+        'national_id_file_data',
+        'national_id_file_name',
+        'national_id_file_type',
+        'iban_file_data',
+        'iban_file_name',
+        'iban_file_type',
+        'national_address_file_data',
+        'national_address_file_name',
+        'national_address_file_type',
+        'experience_file_data',
+        'experience_file_name',
+        'experience_file_type',
     ];
 
     protected $casts = [
@@ -34,18 +50,61 @@ class UserProfile extends Model
     }
 
     /**
-     * Helper method to get file URL from multiple storage disks
+     * حفظ ملف في قاعدة البيانات كـ base64
      */
-    private function getFileUrl($filePath)
+    public function saveFileToDatabase($file, $fileType)
     {
+        if (!$file) return false;
+
+        $fileData = base64_encode(file_get_contents($file->getRealPath()));
+        $fileName = $file->getClientOriginalName();
+        $mimeType = $file->getMimeType();
+
+        $this->update([
+            "{$fileType}_file_data" => $fileData,
+            "{$fileType}_file_name" => $fileName,
+            "{$fileType}_file_type" => $mimeType,
+        ]);
+
+        return true;
+    }
+
+    /**
+     * الحصول على URL لعرض الملف من قاعدة البيانات
+     */
+    public function getFileUrl($fileType)
+    {
+        $fileData = $this->{"{$fileType}_file_data"};
+        $fileName = $this->{"{$fileType}_file_name"};
+        $mimeType = $this->{"{$fileType}_file_type"};
+
+        if (!$fileData) {
+            return null;
+        }
+
+        // إنشاء data URL للعرض المباشر
+        return "data:{$mimeType};base64,{$fileData}";
+    }
+
+    /**
+     * Helper method to get file URL from multiple sources (database first, then filesystem)
+     */
+    private function getFileUrlFallback($filePath, $fileType = null)
+    {
+        // أولاً: تحقق من وجود الملف في قاعدة البيانات
+        if ($fileType && $this->getFileUrl($fileType)) {
+            return $this->getFileUrl($fileType);
+        }
+
+        // ثانياً: إذا لم يوجد في قاعدة البيانات، جرب filesystem
         if (!$filePath) {
             return null;
         }
 
         try {
-            // أولاً: تجربة S3 disk (Laravel Cloud يستخدمه كتخزين أساسي)
+            // تجربة S3 disk (Laravel Cloud يستخدمه كتخزين أساسي)
             if (Storage::disk('s3')->exists($filePath)) {
-                return Storage::disk('s3')->url($filePath); // استخدام direct URL بدلاً من temporary
+                return Storage::disk('s3')->url($filePath);
             }
         } catch (\Exception $e) {
             \Log::warning('خطأ في الوصول للـ S3 disk', [
@@ -55,9 +114,8 @@ class UserProfile extends Model
         }
 
         try {
-            // ثانياً: تجربة public disk مع رابط مباشر (تجاوز مشكلة route)
+            // تجربة public disk مع رابط مباشر
             if (Storage::disk('public')->exists($filePath)) {
-                // استخدام رابط مباشر للملفات في public storage
                 return asset('storage/' . $filePath);
             }
         } catch (\Exception $e) {
@@ -67,36 +125,6 @@ class UserProfile extends Model
             ]);
         }
 
-        try {
-            // ثالثاً: تجربة private disk مع روابط عادية (بدون signed)
-            if (Storage::disk('private')->exists($filePath)) {
-                return route('files.download', ['file' => base64_encode($filePath)]);
-            }
-        } catch (\Exception $e) {
-            \Log::warning('خطأ في الوصول للـ private disk', [
-                'file' => $filePath, 
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        try {
-            // رابعاً: تجربة local disk كآخر بديل
-            if (Storage::disk('local')->exists($filePath)) {
-                return route('files.download', ['file' => base64_encode($filePath)]);
-            }
-        } catch (\Exception $e) {
-            \Log::warning('خطأ في الوصول للـ local disk', [
-                'file' => $filePath, 
-                'error' => $e->getMessage()
-            ]);
-        }
-        
-        // إذا لم نجد الملف في أي مكان، سجل الخطأ
-        \Log::error('الملف غير موجود في أي disk', [
-            'file' => $filePath,
-            'user_id' => $this->user_id
-        ]);
-        
         return null;
     }
 
@@ -105,7 +133,7 @@ class UserProfile extends Model
      */
     public function getCvUrlAttribute()
     {
-        return $this->getFileUrl($this->cv_path);
+        return $this->getFileUrlFallback($this->cv_path, 'cv');
     }
 
     /**
@@ -113,7 +141,7 @@ class UserProfile extends Model
      */
     public function getNationalIdAttachmentUrlAttribute()
     {
-        return $this->getFileUrl($this->national_id_attachment);
+        return $this->getFileUrlFallback($this->national_id_attachment, 'national_id');
     }
 
     /**
@@ -121,7 +149,7 @@ class UserProfile extends Model
      */
     public function getIbanAttachmentUrlAttribute()
     {
-        return $this->getFileUrl($this->iban_attachment);
+        return $this->getFileUrlFallback($this->iban_attachment, 'iban');
     }
 
     /**
@@ -129,7 +157,7 @@ class UserProfile extends Model
      */
     public function getNationalAddressAttachmentUrlAttribute()
     {
-        return $this->getFileUrl($this->national_address_attachment);
+        return $this->getFileUrlFallback($this->national_address_attachment, 'national_address');
     }
 
     /**
@@ -137,6 +165,29 @@ class UserProfile extends Model
      */
     public function getExperienceCertificateUrlAttribute()
     {
-        return $this->getFileUrl($this->experience_certificate);
+        return $this->getFileUrlFallback($this->experience_certificate, 'experience');
+    }
+
+    /**
+     * التحقق من وجود ملف (في قاعدة البيانات أو filesystem)
+     */
+    public function hasFile($fileType, $filePath = null)
+    {
+        // تحقق من قاعدة البيانات أولاً
+        if ($this->{"{$fileType}_file_data"}) {
+            return true;
+        }
+
+        // تحقق من filesystem
+        if ($filePath) {
+            try {
+                return Storage::disk('public')->exists($filePath) || 
+                       Storage::disk('s3')->exists($filePath);
+            } catch (\Exception $e) {
+                return false;
+            }
+        }
+
+        return false;
     }
 }

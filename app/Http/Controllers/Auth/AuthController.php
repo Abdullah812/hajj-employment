@@ -164,52 +164,51 @@ class AuthController extends Controller
 
             Log::info('تم تعيين الدور', ['role' => $validatedData['role']]);
 
-            // معالجة المرفقات
-            $paths = [];
-            $attachmentFields = [
-                'cv_path',
-                'iban_attachment',
-                'national_id_attachment',
-                'national_address_attachment',
-                'experience_certificate'
+            // معالجة المرفقات - حفظ في قاعدة البيانات
+            $fileMapping = [
+                'cv_path' => 'cv',
+                'iban_attachment' => 'iban',
+                'national_id_attachment' => 'national_id',
+                'national_address_attachment' => 'national_address',
+                'experience_certificate' => 'experience'
             ];
 
-            foreach ($attachmentFields as $field) {
-                if ($request->hasFile($field)) {
-                    try {
-                        $file = $request->file($field);
-                        $path = $file->store("attachments/{$user->id}", 'public');
-                        $paths[$field] = $path;
-                        Log::info("تم رفع الملف بنجاح", ['field' => $field, 'path' => $path]);
-                    } catch (\Exception $e) {
-                        Log::error("خطأ في رفع الملف", [
-                            'field' => $field,
-                            'error' => $e->getMessage()
-                        ]);
-                        throw $e;
-                    }
-                }
-            }
-
-            // إنشاء الملف الشخصي
+            // إنشاء الملف الشخصي أولاً
             $profileData = [
                 'user_id' => $user->id,
                 'national_id' => $validatedData['national_id'],
                 'phone' => $validatedData['phone'],
                 'address' => $validatedData['address'],
                 'date_of_birth' => $validatedData['date_of_birth'],
-                'qualification' => $validatedData['qualification'],
-                'academic_experience' => $validatedData['academic_experience'],
-                'iban_number' => $validatedData['iban_number'],
-                'cv_path' => $paths['cv_path'] ?? null,
-                'iban_attachment' => $paths['iban_attachment'] ?? null,
-                'national_id_attachment' => $paths['national_id_attachment'] ?? null,
-                'national_address_attachment' => $paths['national_address_attachment'] ?? null,
-                'experience_certificate' => $paths['experience_certificate'] ?? null,
+                'qualification' => $validatedData['qualification'] ?? null,
+                'iban_number' => $validatedData['iban_number'] ?? null,
+                'academic_experience' => $validatedData['academic_experience'] ?? null,
             ];
 
             $profile = UserProfile::create($profileData);
             Log::info('تم إنشاء الملف الشخصي', ['profile_id' => $profile->id]);
+
+            // حفظ الملفات في قاعدة البيانات
+            foreach ($fileMapping as $inputField => $dbField) {
+                if ($request->hasFile($inputField)) {
+                    try {
+                        $file = $request->file($inputField);
+                        if ($profile->saveFileToDatabase($file, $dbField)) {
+                            Log::info("تم حفظ الملف في قاعدة البيانات", [
+                                'field' => $inputField,
+                                'db_field' => $dbField,
+                                'file_name' => $file->getClientOriginalName()
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error("خطأ في حفظ الملف", [
+                            'field' => $inputField,
+                            'error' => $e->getMessage()
+                        ]);
+                        // لا نرمي الخطأ هنا لعدم إيقاف عملية التسجيل
+                    }
+                }
+            }
 
             DB::commit();
             Log::info('تم إكمال عملية التسجيل بنجاح');
