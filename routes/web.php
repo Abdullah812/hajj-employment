@@ -147,7 +147,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/jobs', [AdminController::class, 'getJobs'])->name('admin.api.jobs');
             Route::get('/applications', [AdminController::class, 'getApplications'])->name('admin.api.applications');
             Route::get('/contracts', [AdminController::class, 'getContracts'])->name('admin.api.contracts');
-            Route::get('/user-details/{user}', [AdminController::class, 'getUserDetails'])->name('admin.api.user-details');
+            Route::get('/user-details/{userId}', [AdminController::class, 'getUserDetails'])->name('admin.api.user-details');
         });
         Route::get('/applications/export', [AdminController::class, 'exportApplications'])->name('applications.export');
     });
