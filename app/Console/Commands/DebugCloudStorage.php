@@ -38,7 +38,7 @@ class DebugCloudStorage extends Command
         $this->info('📊 1. فحص إعدادات Storage:');
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         
-        $disks = ['public', 's3', 'local'];
+        $disks = ['public', 's3', 'local', 'private'];
         
         foreach ($disks as $disk) {
             try {
@@ -105,7 +105,7 @@ class DebugCloudStorage extends Command
 
     private function checkActualFiles(): void
     {
-        $this->info('🔍 3. فحص الملفات الفعلية:');
+        $this->info('🔍 3. فحص الملفات الفعلية في جميع الـ Disks:');
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         
         $profiles = UserProfile::whereNotNull('cv_path')
@@ -130,26 +130,27 @@ class DebugCloudStorage extends Command
             foreach ($fileFields as $field => $name) {
                 if ($profile->$field) {
                     $filePath = $profile->$field;
+                    $found = false;
                     
-                    // فحص في public disk
-                    if (Storage::disk('public')->exists($filePath)) {
-                        $this->line("   ✅ {$name}: موجود في Public");
-                        $size = Storage::disk('public')->size($filePath);
-                        $this->line("      حجم: " . $this->formatFileSize($size));
-                    }
-                    // فحص في S3
-                    elseif (Storage::disk('s3')->exists($filePath)) {
-                        $this->line("   ✅ {$name}: موجود في S3");
+                    // فحص في جميع الـ disks
+                    $disks = ['public', 's3', 'private', 'local'];
+                    
+                    foreach ($disks as $disk) {
                         try {
-                            $size = Storage::disk('s3')->size($filePath);
-                            $this->line("      حجم: " . $this->formatFileSize($size));
+                            if (Storage::disk($disk)->exists($filePath)) {
+                                $this->line("   ✅ {$name}: موجود في {$disk} disk");
+                                $size = Storage::disk($disk)->size($filePath);
+                                $this->line("      حجم: " . $this->formatFileSize($size));
+                                $found = true;
+                                break;
+                            }
                         } catch (\Exception $e) {
-                            $this->line("      خطأ في قراءة الحجم: " . $e->getMessage());
+                            // تجاهل الأخطاء واستمر في البحث
                         }
                     }
-                    // غير موجود
-                    else {
-                        $this->error("   ❌ {$name}: مفقود ({$filePath})");
+                    
+                    if (!$found) {
+                        $this->error("   ❌ {$name}: مفقود من جميع الـ disks ({$filePath})");
                     }
                 }
             }
@@ -159,49 +160,46 @@ class DebugCloudStorage extends Command
 
     private function testFileUpload(): void
     {
-        $this->info('🧪 4. اختبار رفع ملف:');
+        $this->info('🧪 4. اختبار رفع ملف في جميع الـ Disks:');
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         
         $testContent = 'هذا ملف اختبار لـ Laravel Cloud - ' . now()->toDateTimeString();
         $testFileName = 'test-file-' . time() . '.txt';
         
-        // اختبار Public disk
-        try {
-            Storage::disk('public')->put("test/{$testFileName}", $testContent);
-            $this->line("✅ Public disk: تم رفع الملف بنجاح");
-            
-            if (Storage::disk('public')->exists("test/{$testFileName}")) {
-                $this->line("✅ Public disk: الملف قابل للقراءة");
-                $url = Storage::disk('public')->url("test/{$testFileName}");
-                $this->line("🔗 URL: {$url}");
-                
-                // حذف ملف الاختبار
-                Storage::disk('public')->delete("test/{$testFileName}");
-                $this->line("🗑️ تم حذف ملف الاختبار");
-            }
-        } catch (\Exception $e) {
-            $this->error("❌ Public disk: فشل - " . $e->getMessage());
-        }
+        $disks = ['public', 's3', 'private', 'local'];
         
-        // اختبار S3 disk
-        try {
-            Storage::disk('s3')->put("test/{$testFileName}", $testContent);
-            $this->line("✅ S3 disk: تم رفع الملف بنجاح");
-            
-            if (Storage::disk('s3')->exists("test/{$testFileName}")) {
-                $this->line("✅ S3 disk: الملف قابل للقراءة");
-                $url = Storage::disk('s3')->temporaryUrl("test/{$testFileName}", now()->addMinutes(5));
-                $this->line("🔗 Temporary URL: " . substr($url, 0, 100) . "...");
+        foreach ($disks as $disk) {
+            try {
+                Storage::disk($disk)->put("test/{$testFileName}", $testContent);
+                $this->line("✅ {$disk} disk: تم رفع الملف بنجاح");
                 
-                // حذف ملف الاختبار
-                Storage::disk('s3')->delete("test/{$testFileName}");
-                $this->line("🗑️ تم حذف ملف الاختبار");
+                if (Storage::disk($disk)->exists("test/{$testFileName}")) {
+                    $this->line("✅ {$disk} disk: الملف قابل للقراءة");
+                    
+                    // محاولة إنشاء URL
+                    try {
+                        if ($disk === 's3') {
+                            $url = Storage::disk($disk)->temporaryUrl("test/{$testFileName}", now()->addMinutes(5));
+                            $this->line("🔗 Temporary URL: " . substr($url, 0, 100) . "...");
+                        } elseif ($disk === 'public') {
+                            $url = Storage::disk($disk)->url("test/{$testFileName}");
+                            $this->line("🔗 URL: {$url}");
+                        } else {
+                            $this->line("🔗 URL: غير متاح للـ {$disk} disk");
+                        }
+                    } catch (\Exception $e) {
+                        $this->error("❌ خطأ في إنشاء URL: " . $e->getMessage());
+                    }
+                    
+                    // حذف ملف الاختبار
+                    Storage::disk($disk)->delete("test/{$testFileName}");
+                    $this->line("🗑️ تم حذف ملف الاختبار");
+                }
+            } catch (\Exception $e) {
+                $this->error("❌ {$disk} disk: فشل - " . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            $this->error("❌ S3 disk: فشل - " . $e->getMessage());
+            $this->newLine();
         }
-        
-        $this->newLine();
     }
 
     private function formatFileSize(int $bytes): string
