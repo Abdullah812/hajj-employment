@@ -22,7 +22,11 @@ class CompanyVideo extends Model
         'status',
         'featured',
         'views',
-        'created_by'
+        'created_by',
+        // حقول الصورة المصغرة في قاعدة البيانات
+        'thumbnail_file_data',
+        'thumbnail_file_name',
+        'thumbnail_file_type'
     ];
 
     protected $casts = [
@@ -116,6 +120,63 @@ class CompanyVideo extends Model
     public function incrementViews()
     {
         $this->increment('views');
+    }
+
+    public function getThumbnailUrlAttribute()
+    {
+        // قاعدة البيانات أولاً
+        if ($this->thumbnail_file_data) {
+            return route('content.image.view', ['type' => 'video', 'id' => $this->id]);
+        }
+        
+        // fallback للصور القديمة
+        if ($this->thumbnail) {
+            return asset('storage/' . $this->thumbnail);
+        }
+        
+        return null;
+    }
+
+    /**
+     * حفظ صورة مصغرة في قاعدة البيانات
+     */
+    public function saveThumbnailToDatabase($file)
+    {
+        try {
+            if (!$file || !$file->isValid()) {
+                return false;
+            }
+
+            $fileSize = $file->getSize();
+            if ($fileSize > 5 * 1024 * 1024) { // 5MB
+                return false;
+            }
+
+            $filePath = $file->getRealPath();
+            if (!$filePath || !file_exists($filePath)) {
+                return false;
+            }
+
+            $fileContent = file_get_contents($filePath);
+            $fileData = base64_encode($fileContent);
+            $fileName = $file->getClientOriginalName();
+            $mimeType = $file->getMimeType() ?: 'image/jpeg';
+
+            $this->update([
+                'thumbnail_file_data' => $fileData,
+                'thumbnail_file_name' => $fileName,
+                'thumbnail_file_type' => $mimeType,
+            ]);
+
+            return true;
+
+        } catch (\Exception $e) {
+            \Log::error('Error saving video thumbnail to database', [
+                'video_id' => $this->id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
     }
 
     private function extractYouTubeId($url)
