@@ -193,8 +193,8 @@ Route::middleware(['auth'])->group(function () {
         // مسارات طلبات التوظيف
         Route::get('/applications/approved', [AdminController::class, 'approvedApplications'])->name('applications.approved');
         
-        // API routes للوحة التحكم الموحدة
-        Route::prefix('api')->middleware(['web'])->group(function () {
+        // API routes للوحة التحكم الموحدة - تم إصلاح 405 Method Not Allowed
+        Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
             // إضافة headers للـ CORS
             Route::options('{any}', function() {
                 return response('', 200)
@@ -213,17 +213,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/contracts', [AdminController::class, 'getContracts'])->name('admin.api.contracts');
             Route::get('/user-details/{userId}', [AdminController::class, 'getUserDetails'])->name('admin.api.user-details');
             
-            // Route تشخيص مؤقت
-            Route::get('/test-debug/{userId}', function($userId) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Route يعمل',
-                    'userId' => $userId,
-                    'auth' => auth()->check(),
-                    'user' => auth()->user() ? auth()->user()->name : 'غير مسجل',
-                    'roles' => auth()->user() ? auth()->user()->getRoleNames() : 'لا توجد أدوار'
-                ]);
-            })->name('admin.api.debug');
+
         });
         Route::get('/applications/export', [AdminController::class, 'exportApplications'])->name('applications.export');
         
