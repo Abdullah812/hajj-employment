@@ -114,7 +114,7 @@ Route::middleware(['auth'])->group(function () {
     // مسارات المدير
     Route::middleware(['role:admin'])->prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-        Route::get('/unified-dashboard', [AdminController::class, 'unifiedDashboard'])->name('admin.unified-dashboard');
+        // Route::get('/unified-dashboard', [AdminController::class, 'unifiedDashboard'])->name('admin.unified-dashboard'); - تم حذف النظام
         
         // إدارة المستخدمين
         Route::get('/users', [AdminController::class, 'users'])->name('admin.users.index');
@@ -248,12 +248,7 @@ Route::get('/profile/file/{type}/{userId}/download', [App\Http\Controllers\FileC
 Route::get('/content/image/{type}/{id}', [App\Http\Controllers\FileController::class, 'viewContentImage'])
     ->name('content.image.view');
 
-// Analytics Routes - لوحة الإحصائيات المتقدمة
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
-    Route::get('/analytics/live-data', [App\Http\Controllers\Admin\AnalyticsController::class, 'liveData'])->name('analytics.live-data');
-    Route::get('/analytics/export', [App\Http\Controllers\Admin\AnalyticsController::class, 'export'])->name('analytics.export');
-});
+// Analytics Routes - تم حذف النظام
 
 // ================================================
 // مسارات طلبات مكة المفتوحة - تم حذفها

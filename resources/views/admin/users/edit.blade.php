@@ -94,7 +94,7 @@
                                     <option value="">اختر نوع المستخدم</option>
                                     <option value="employee" {{ old('role', $user->roles->first()->name ?? '') == 'employee' ? 'selected' : '' }}>موظف</option>
                                     <option value="admin" {{ old('role', $user->roles->first()->name ?? '') == 'admin' ? 'selected' : '' }}>مدير</option>
-                                    <option value="department" {{ old('role', $user->roles->first()->name ?? '') == 'department' ? 'selected' : '' }}>قسم</option>
+                                    <!-- <option value="department">قسم</option> - تم حذف نظام الأقسام -->
                                 </select>
                                 @error('role')
                                     <div class="invalid-feedback">{{ $message }}</div>

@@ -8,34 +8,13 @@
             </a>
         </li>
 
-        <li class="nav-item">
-            <a href="{{ route('admin.unified-dashboard') }}" class="nav-link {{ request()->routeIs('admin.unified-dashboard') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-th-large"></i>
-                <span>لوحة التحكم الموحدة</span>
-                <span class="badge bg-success ms-auto">جديد</span>
-            </a>
-        </li>
+        <!-- تم حذف لوحة التحكم الموحدة -->
 
-        <li class="nav-item">
-            <a href="{{ route('admin.departments.index') }}" class="nav-link {{ request()->routeIs('admin.departments.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-building"></i>
-                <span>الأقسام</span>
-            </a>
-        </li>
+        <!-- تم حذف قسم الأقسام من القائمة -->
 
-        <li class="nav-item">
-            <a href="{{ route('admin.jobs.index') }}" class="nav-link {{ request()->routeIs('admin.jobs.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-briefcase"></i>
-                <span>الوظائف</span>
-            </a>
-        </li>
+        <!-- تم حذف قسم الوظائف من القائمة -->
 
-        <li class="nav-item">
-            <a href="{{ route('admin.applications.index') }}" class="nav-link {{ request()->routeIs('admin.applications.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-file-alt"></i>
-                <span>الطلبات</span>
-            </a>
-        </li>
+        <!-- تم حذف قسم الطلبات من القائمة -->
 
         <li class="nav-item">
             <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
@@ -57,12 +36,7 @@
             </a>
         </li>
 
-        <li class="nav-item">
-            <a href="{{ route('admin.employees.index') }}" class="nav-link {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-user-tie"></i>
-                <span>الموظفين</span>
-            </a>
-        </li>
+        <!-- تم حذف قسم الموظفين من القائمة -->
 
         <!-- إدارة المحتوى - تم الحذف -->
 
@@ -71,20 +45,9 @@
             <i class="fas fa-chart-line me-2"></i>الإحصائيات والتحليلات
         </li>
 
-        <li class="nav-item">
-            <a href="{{ route('admin.analytics.index') }}" class="nav-link {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-chart-bar"></i>
-                <span>لوحة الإحصائيات المتقدمة</span>
-                <span class="badge bg-gradient bg-primary ms-auto">متقدم</span>
-            </a>
-        </li>
+        <!-- تم حذف قسم الإحصائيات من القائمة -->
 
-        <li class="nav-item">
-            <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-file-chart-line"></i>
-                <span>التقارير التقليدية</span>
-            </a>
-        </li>
+        <!-- تم حذف قسم التقارير من القائمة -->
     </ul>
 </div>
 

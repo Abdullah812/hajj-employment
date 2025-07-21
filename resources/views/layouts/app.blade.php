@@ -572,7 +572,7 @@
                                 @if(auth()->user()->hasRole('employee'))
                                     <li><a class="dropdown-item" href="{{ route('employee.profile') }}">الملف الشخصي</a></li>
                                     <!-- <li>عقودي - تم حذف نظام العقود</li> -->
-                                @elseif(auth()->user()->hasRole('department'))
+                                {{-- @elseif(auth()->user()->hasRole('department')) - تم حذف نظام الأقسام --}}
                                     <!-- <li>العقود - تم حذف نظام العقود</li> -->
                                 @elseif(auth()->user()->hasRole('admin'))
                                     <!-- <li>إدارة العقود - تم حذف نظام العقود</li> -->

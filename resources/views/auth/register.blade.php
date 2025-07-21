@@ -76,7 +76,7 @@
                                     <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
                                         <option value="">اختر نوع الحساب</option>
                                         <option value="employee" {{ old('role') == 'employee' ? 'selected' : '' }}>موظف</option>
-                                        <option value="department" {{ old('role') == 'department' ? 'selected' : '' }}>قسم</option>
+                                        <!-- <option value="department">قسم</option> - تم حذف نظام الأقسام -->
                                     </select>
                                     @error('role')
                                         <div class="invalid-feedback">{{ $message }}</div>
