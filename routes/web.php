@@ -17,7 +17,7 @@ Route::get('/', function () {
         $user = Auth::user();
         if ($user->hasRole('admin')) {
             return redirect('/admin/dashboard');
-        // } elseif ($user->hasRole('department')) {
+        // } elseif ($user->hasRole('department')) { - تم حذف نظام الأقسام
             // return redirect('/department/dashboard'); - تم حذف نظام الأقسام
         } elseif ($user->hasRole('employee')) {
             return redirect('/employee/dashboard');

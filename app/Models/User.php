@@ -97,10 +97,10 @@ class User extends Authenticatable
         return $this->hasRole('admin');
     }
 
-    public function isDepartment()
-    {
-        return $this->hasRole('department');
-    }
+    // public function isDepartment() - تم حذف نظام الأقسام
+    // {
+    //     return $this->hasRole('department');
+    // }
 
     public function isEmployee()
     {
@@ -137,14 +137,11 @@ class User extends Authenticatable
     }
     
     /**
-     * الحصول على اسم القسم أو اسم المستخدم
+     * الحصول على اسم المستخدم - تم إزالة منطق الأقسام
      */
     public function getDepartmentNameAttribute()
     {
-        if ($this->isDepartment() && $this->department && $this->department->name) {
-            return $this->department->name;
-        }
-        
+        // تم حذف نظام الأقسام - إرجاع اسم المستخدم فقط
         return $this->name;
     }
 }
