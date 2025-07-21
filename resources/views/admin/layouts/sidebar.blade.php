@@ -64,42 +64,7 @@
             </a>
         </li>
 
-        <!-- إدارة المحتوى -->
-        <li class="nav-header">
-            <i class="fas fa-edit me-2"></i>إدارة المحتوى
-        </li>
-
-        <li class="nav-item">
-            <a href="{{ route('admin.content.news.index') }}" class="nav-link {{ request()->routeIs('admin.content.news.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-newspaper"></i>
-                <span>الأخبار والمقالات</span>
-                <span class="badge bg-primary ms-auto">جديد</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="{{ route('admin.content.gallery.index') }}" class="nav-link {{ request()->routeIs('admin.content.gallery.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-images"></i>
-                <span>معرض الصور</span>
-                <span class="badge bg-success ms-auto">جديد</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="{{ route('admin.content.testimonials.index') }}" class="nav-link {{ request()->routeIs('admin.content.testimonials.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-quote-left"></i>
-                <span>شهادات العملاء</span>
-                <span class="badge bg-warning ms-auto">جديد</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="{{ route('admin.content.videos.index') }}" class="nav-link {{ request()->routeIs('admin.content.videos.*') ? 'active' : '' }}">
-                <i class="nav-icon fas fa-video"></i>
-                <span>الفيديوهات التعريفية</span>
-                <span class="badge bg-info ms-auto">جديد</span>
-            </a>
-        </li>
+        <!-- إدارة المحتوى - تم الحذف -->
 
         <!-- إدارة الإحصائيات والتقارير -->
         <li class="nav-header">

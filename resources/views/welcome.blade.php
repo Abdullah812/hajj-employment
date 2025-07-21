@@ -677,91 +677,7 @@
     </div>
 </div>
 
-<!-- News and Blog Section -->
-<div class="bg-light py-5">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="h1 text-primary">الأخبار والمقالات</h2>
-            <p class="lead text-muted">آخر الأخبار والمقالات المفيدة للحجاج والموظفين</p>
-        </div>
-        
-        <div class="row g-4">
-            @if($news && count($news) > 0)
-                @foreach($news->take(6) as $article)
-                    <div class="col-lg-4 col-md-6">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="position-relative overflow-hidden" style="height: 200px;">
-                                @if($article->image)
-                                    <img src="{{ asset('storage/' . $article->image) }}" 
-                                         alt="{{ $article->title }}" 
-                                         class="w-100 h-100" 
-                                         style="object-fit: cover;">
-                                @else
-                                    <div class="bg-primary bg-opacity-10 d-flex align-items-center justify-content-center h-100">
-                                        <i class="fas fa-newspaper fa-4x text-primary"></i>
-                                    </div>
-                                @endif
-                                <div class="position-absolute top-0 start-0 m-3">
-                                    <span class="badge bg-primary">{{ $article->category ?? 'أخبار' }}</span>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <small class="text-muted">
-                                        <i class="fas fa-calendar me-1"></i>
-                                        {{ $article->published_at ? $article->published_at->format('d F Y') : $article->created_at->format('d F Y') }}
-                                    </small>
-                                    <small class="text-muted">
-                                        <i class="fas fa-eye me-1"></i>
-                                        {{ number_format($article->views ?? 0) }} مشاهدة
-                                    </small>
-                                </div>
-                                <h5 class="card-title">{{ Str::limit($article->title, 60) }}</h5>
-                                <p class="card-text">{{ Str::limit($article->excerpt ?: strip_tags($article->content), 120) }}</p>
-                                <a href="{{ route('news.show', $article->id) }}" class="btn btn-outline-primary btn-sm">قراءة المزيد</a>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            @else
-                <div class="col-lg-4 col-md-6">
-                    <div class="card h-100 shadow-sm border-0">
-                        <div class="position-relative overflow-hidden" style="height: 200px;">
-                            <div class="bg-primary bg-opacity-10 d-flex align-items-center justify-content-center h-100">
-                                <i class="fas fa-newspaper fa-4x text-primary"></i>
-                            </div>
-                            <div class="position-absolute top-0 start-0 m-3">
-                                <span class="badge bg-primary">أخبار</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <small class="text-muted">
-                                    <i class="fas fa-calendar me-1"></i>
-                                    15 يناير 2025
-                                </small>
-                                <small class="text-muted">
-                                    <i class="fas fa-eye me-1"></i>
-                                    250 مشاهدة
-                                </small>
-                            </div>
-                            <h5 class="card-title">إطلاق برنامج التوظيف الموسمي لحج 2025</h5>
-                            <p class="card-text">نعلن عن بدء استقبال طلبات التوظيف الموسمي لموسم حج 2025 في جميع الأقسام مع رواتب تنافسية وبرامج تدريبية متطورة.</p>
-                            <a href="#" class="btn btn-outline-primary btn-sm">قراءة المزيد</a>
-                        </div>
-                    </div>
-                </div>
-            @endif
-        </div>
-        
-        <!-- View All News Button -->
-        <div class="text-center mt-5">
-            <a href="{{ route('news.index') }}" class="btn btn-primary btn-lg">
-                <i class="fas fa-newspaper me-2"></i>عرض جميع الأخبار
-            </a>
-        </div>
-    </div>
-</div>
+<!-- News and Blog Section - تم الحذف -->
 
 <!-- Twitter Feed Section -->
 <div class="py-5">
@@ -994,9 +910,7 @@
                                     <a href="{{ route('jobs.index') }}" class="btn btn-outline-success">
                                         <i class="fas fa-briefcase me-2"></i>الوظائف المتاحة
                                     </a>
-                                    <a href="{{ route('news.index') }}" class="btn btn-outline-info">
-                                        <i class="fas fa-newspaper me-2"></i>جميع الأخبار
-                                    </a>
+                                    <!-- رابط الأخبار تم حذفه -->
                                     <a href="#contact" class="btn btn-outline-warning">
                                         <i class="fas fa-phone me-2"></i>تواصل معنا
                                     </a>

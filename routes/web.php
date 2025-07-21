@@ -3,13 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Department\DepartmentController;
+// use App\Http\Controllers\Department\DepartmentController; - تم حذف نظام الأقسام
 use App\Http\Controllers\Employee\EmployeeController;
 use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\JobController;
-use App\Http\Controllers\ContractController;
+// use App\Http\Controllers\JobController; - تم حذف نظام الوظائف
+// use App\Http\Controllers\ContractController; - تم حذف نظام العقود
 // PDF import removed - using Word documents only
-use App\Http\Controllers\Admin\ReportsController;
+// use App\Http\Controllers\Admin\ReportsController; - تم حذف نظام التقارير
 
 Route::get('/', function () {
     // إذا كان المستخدم مسجل دخول، وجهه إلى لوحة التحكم المناسبة
@@ -17,64 +17,22 @@ Route::get('/', function () {
         $user = Auth::user();
         if ($user->hasRole('admin')) {
             return redirect('/admin/dashboard');
-        } elseif ($user->hasRole('department')) {
-            return redirect('/department/dashboard');
+        // } elseif ($user->hasRole('department')) {
+            // return redirect('/department/dashboard'); - تم حذف نظام الأقسام
         } elseif ($user->hasRole('employee')) {
             return redirect('/employee/dashboard');
         }
         return redirect('/dashboard');
     }
     
-    // جلب البيانات للصفحة الرئيسية
-    $news = [];
-    $testimonials = [];
-    $galleries = [];
-    $videos = [];
-    
-    try {
-        if (Schema::hasTable('news')) {
-            $news = App\Models\News::where('status', 'published')
-                ->latest('published_at')
-                ->take(6)
-                ->get();
-        }
-        
-        if (Schema::hasTable('testimonials')) {
-            $testimonials = App\Models\Testimonial::where('is_active', true)
-                ->latest()
-                ->take(6)
-                ->get();
-        }
-        
-        if (Schema::hasTable('galleries')) {
-            $galleries = App\Models\Gallery::where('is_active', true)
-                ->orderBy('order_sort', 'asc')
-                ->take(6)
-                ->get();
-        }
-        
-        if (Schema::hasTable('company_videos')) {
-            $videos = App\Models\CompanyVideo::where('is_active', true)
-                ->where('is_featured', true)
-                ->latest()
-                ->take(1)
-                ->get();
-        }
-    } catch (Exception $e) {
-        // إذا حدث خطأ في قاعدة البيانات، استخدم arrays فارغة
-    }
-    
-    return view('welcome', compact('news', 'testimonials', 'galleries', 'videos'));
+    // عرض الصفحة الرئيسية الأساسية
+    return view('welcome');
 })->name('home');
 
 // مسارات الوظائف العامة
-Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
-Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
-Route::post('/jobs/{job}/apply', [JobController::class, 'apply'])->name('jobs.apply');
+// جميع routes الوظائف العامة - تم حذف النظام
 
-// مسارات الأخبار العامة
-Route::get('/news', [\App\Http\Controllers\NewsController::class, 'index'])->name('news.index');
-Route::get('/news/{news}', [\App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
+// مسارات الأخبار العامة - تم حذفها
 
 // مسارات المصادقة
 Route::middleware(['guest'])->group(function () {
@@ -169,29 +127,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/users/{user}/approve', [AdminController::class, 'approveUser'])->name('admin.users.approve');
         Route::post('/users/{user}/reject', [AdminController::class, 'rejectUser'])->name('admin.users.reject');
         
-        // إدارة الأقسام
-        Route::get('/departments', [AdminController::class, 'departments'])->name('admin.departments.index');
-        Route::get('/departments/{department}/edit', [AdminController::class, 'editDepartment'])->name('admin.departments.edit');
-        Route::put('/departments/{department}', [AdminController::class, 'updateDepartment'])->name('admin.departments.update');
+        // إدارة الأقسام - تم حذف النظام
         
-        // إدارة الموظفين
-        Route::get('/employees', [AdminController::class, 'employees'])->name('admin.employees.index');
+        // إدارة الموظفين - تم حذف النظام
         
-        // إدارة الوظائف
-        Route::get('/jobs', [AdminController::class, 'jobs'])->name('admin.jobs.index');
-        Route::get('/jobs/create', [AdminController::class, 'createJob'])->name('admin.jobs.create');
-        Route::post('/jobs', [AdminController::class, 'storeJob'])->name('admin.jobs.store');
-        Route::get('/jobs/{job}/edit', [AdminController::class, 'editJob'])->name('admin.jobs.edit');
-        Route::put('/jobs/{job}', [AdminController::class, 'updateJob'])->name('admin.jobs.update');
-        Route::post('/jobs/{job}/toggle-status', [AdminController::class, 'toggleJobStatus'])->name('admin.jobs.toggle-status');
-        Route::delete('/jobs/{job}', [AdminController::class, 'deleteJob'])->name('admin.jobs.destroy');
+        // إدارة الوظائف - تم حذف النظام
         
-        // إدارة طلبات التوظيف
-        Route::get('/applications', [AdminController::class, 'applications'])->name('admin.applications.index');
-        Route::put('/applications/{application}', [AdminController::class, 'updateApplicationStatus'])->name('admin.applications.update');
-        
-        // مسارات طلبات التوظيف
-        Route::get('/applications/approved', [AdminController::class, 'approvedApplications'])->name('applications.approved');
+        // إدارة طلبات التوظيف - تم حذف النظام
         
         // API routes للوحة التحكم الموحدة - تم إصلاح 405 Method Not Allowed
         Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
@@ -207,15 +149,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/users', [AdminController::class, 'getUsers'])->name('admin.api.users');
             Route::get('/approvals', [AdminController::class, 'getPendingApprovals'])->name('admin.api.approvals');
             Route::get('/approved-users', [AdminController::class, 'getApprovedUsers'])->name('admin.api.approved');
-            Route::get('/departments', [AdminController::class, 'getDepartments'])->name('admin.api.departments');
-            Route::get('/jobs', [AdminController::class, 'getJobs'])->name('admin.api.jobs');
-            Route::get('/applications', [AdminController::class, 'getApplications'])->name('admin.api.applications');
-            Route::get('/contracts', [AdminController::class, 'getContracts'])->name('admin.api.contracts');
+            // Route::get('/departments', [AdminController::class, 'getDepartments'])->name('admin.api.departments'); - تم حذف النظام
+            // Route::get('/jobs', [AdminController::class, 'getJobs'])->name('admin.api.jobs'); - تم حذف النظام
+            // Route::get('/applications', [AdminController::class, 'getApplications'])->name('admin.api.applications'); - تم حذف النظام
+            // Route::get('/contracts', [AdminController::class, 'getContracts'])->name('admin.api.contracts'); - تم حذف نظام العقود
             Route::get('/user-details/{userId}', [AdminController::class, 'getUserDetails'])->name('admin.api.user-details');
             
 
         });
-        Route::get('/applications/export', [AdminController::class, 'exportApplications'])->name('applications.export');
+        // Route::get('/applications/export', [AdminController::class, 'exportApplications'])->name('applications.export'); - تم حذف النظام
         
         // 🔧 Route إضافي للاختبار داخل admin middleware
         Route::get('/debug-user/{userId}', function($userId) {
@@ -232,25 +174,7 @@ Route::middleware(['auth'])->group(function () {
     });
     
     // مسارات القسم
-    Route::middleware(['auth'])->prefix('department')->name('department.')->group(function () {
-        Route::get('/dashboard', [DepartmentController::class, 'dashboard'])->name('dashboard')->middleware('role:department|admin');
-        
-        // إدارة الوظائف
-        Route::get('/jobs', [DepartmentController::class, 'jobs'])->name('jobs.index')->middleware('role:department|admin');
-        Route::get('/jobs/create', [DepartmentController::class, 'createJob'])->name('jobs.create')->middleware('role:department|admin');
-        Route::post('/jobs', [DepartmentController::class, 'storeJob'])->name('jobs.store')->middleware('role:department|admin');
-        Route::get('/jobs/{job}', [DepartmentController::class, 'showJob'])->name('jobs.show')->middleware('role:department|admin');
-        Route::get('/jobs/{job}/edit', [DepartmentController::class, 'editJob'])->name('jobs.edit')->middleware('role:department|admin');
-        Route::put('/jobs/{job}', [DepartmentController::class, 'updateJob'])->name('jobs.update')->middleware('role:department|admin');
-        Route::delete('/jobs/{job}', [DepartmentController::class, 'deleteJob'])->name('jobs.destroy')->middleware('role:department|admin');
-        Route::post('/jobs/{job}/status', [DepartmentController::class, 'updateJobStatus'])->name('jobs.status')->middleware('role:department|admin');
-        
-        // إدارة طلبات التوظيف
-        Route::get('/applications', [DepartmentController::class, 'applications'])->name('applications.index')->middleware('role:department|admin');
-        Route::get('/applications/job/{job}', [DepartmentController::class, 'jobApplications'])->name('applications.job')->middleware('role:department|admin');
-        Route::put('/applications/{application}', [DepartmentController::class, 'updateApplication'])->name('applications.update')->middleware('role:department|admin');
-        Route::post('/applications/bulk', [DepartmentController::class, 'bulkUpdateApplications'])->name('applications.bulk')->middleware('role:department|admin');
-    });
+    // مسارات الأقسام - تم حذف النظام بالكامل
     
     // مسارات الموظف
     Route::middleware(['role:employee'])->prefix('employee')->group(function () {
@@ -259,25 +183,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/profile', [EmployeeController::class, 'updateProfile'])->name('employee.profile.update');
         Route::post('/profile/upload-cv', [EmployeeController::class, 'uploadCV'])->name('employee.profile.upload-cv');
         
-        // إدارة طلبات التوظيف
-        Route::get('/applications', [EmployeeController::class, 'applications'])->name('employee.applications');
-        Route::get('/applications/{application}', [EmployeeController::class, 'showApplication'])->name('employee.applications.show');
-        Route::delete('/applications/{application}', [EmployeeController::class, 'cancelApplication'])->name('employee.applications.cancel');
-        Route::post('/jobs/{job}/apply', [EmployeeController::class, 'applyForJob'])->name('employee.jobs.apply');
+        // إدارة طلبات التوظيف - تم حذف النظام
     });
     
-    // مسارات العقود
-    Route::prefix('contracts')->group(function () {
-        Route::get('/', [ContractController::class, 'index'])->name('contracts.index');
-        Route::get('/{contract}', [ContractController::class, 'show'])->name('contracts.show');
-        Route::post('/create/{application}', [ContractController::class, 'createFromApplication'])->name('contracts.create');
-        Route::put('/{contract}/status', [ContractController::class, 'updateStatus'])->name('contracts.status');
-        Route::get('/{contract}/sign', [ContractController::class, 'signaturePage'])->name('contracts.sign-page');
-        Route::post('/{contract}/sign', [ContractController::class, 'sign'])->name('contracts.sign');
-        // PDF route removed - using Word documents only
-        Route::post('/{contract}/send', [ContractController::class, 'sendToEmployee'])->name('contracts.send');
-        Route::post('/{contract}/cancel', [ContractController::class, 'cancel'])->name('contracts.cancel');
-    });
+    // مسارات العقود - تم حذفها
     
     // مسارات الإشعارات
     Route::prefix('notifications')->name('notifications.')->group(function () {
@@ -299,28 +208,14 @@ Route::middleware(['auth'])->group(function () {
 
     // مسارات تصدير التقارير
     Route::middleware(['auth', 'role:admin'])->group(function () {
-        Route::get('/admin/export/jobs/excel', [AdminController::class, 'exportJobs'])->name('admin.export.jobs.excel');
-        // PDF export routes removed - using Word documents only
-        Route::get('/admin/export/applications/excel', [AdminController::class, 'exportApplications'])->name('admin.export.applications.excel');
+        // تم حذف جميع export routes للوظائف والطلبات
     });
 
-    // مسارات التقارير
-    Route::middleware(['auth', 'role:admin'])->prefix('admin/reports')->name('admin.reports.')->group(function () {
-        Route::get('/', [ReportsController::class, 'index'])->name('index');
-        Route::get('/jobs', [ReportsController::class, 'jobs'])->name('jobs');
-        Route::get('/applications', [ReportsController::class, 'applications'])->name('applications');
-        Route::get('/jobs/export', [ReportsController::class, 'exportJobs'])->name('jobs.export');
-        Route::get('/applications/export', [ReportsController::class, 'exportApplications'])->name('applications.export');
-        
-        // API endpoints للتقارير المتقدمة
-        Route::get('/api/filtered-data', [ReportsController::class, 'getFilteredData'])->name('api.filtered-data');
-        Route::get('/api/additional-stats', [ReportsController::class, 'getAdditionalStats'])->name('api.additional-stats');
-        Route::get('/api/analysis/{type}', [ReportsController::class, 'getAdvancedAnalysis'])->name('api.analysis');
-    });
+    // مسارات التقارير - تم حذف النظام بالكامل
     
     // API endpoints عامة للإدارة
     Route::middleware(['auth', 'role:admin'])->prefix('admin/api')->name('admin.api.')->group(function () {
-        Route::get('/departments', [AdminController::class, 'getDepartments'])->name('departments');
+        // Route::get('/departments', [AdminController::class, 'getDepartments'])->name('departments'); - تم حذف النظام
     });
 });
 
@@ -334,271 +229,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.users.approvals.reject');
 });
 
-// Content Management Routes (Admin Only)
-Route::middleware(['auth', 'role:admin'])->prefix('admin/content')->name('admin.content.')->group(function () {
-    // News Management
-    Route::get('/news', [App\Http\Controllers\Admin\ContentController::class, 'newsIndex'])->name('news.index');
-    Route::get('/news/create', [App\Http\Controllers\Admin\ContentController::class, 'newsCreate'])->name('news.create');
-    Route::post('/news', [App\Http\Controllers\Admin\ContentController::class, 'newsStore'])->name('news.store');
-    Route::get('/news/{news}/edit', [App\Http\Controllers\Admin\ContentController::class, 'newsEdit'])->name('news.edit');
-    Route::put('/news/{news}', [App\Http\Controllers\Admin\ContentController::class, 'newsUpdate'])->name('news.update');
-    Route::delete('/news/{news}', [App\Http\Controllers\Admin\ContentController::class, 'newsDestroy'])->name('news.destroy');
-    
-    // Gallery Management
-    Route::get('/gallery', [App\Http\Controllers\Admin\ContentController::class, 'galleryIndex'])->name('gallery.index');
-    Route::get('/gallery/create', [App\Http\Controllers\Admin\ContentController::class, 'galleryCreate'])->name('gallery.create');
-    Route::post('/gallery', [App\Http\Controllers\Admin\ContentController::class, 'galleryStore'])->name('gallery.store');
-    Route::get('/gallery/{gallery}/edit', [App\Http\Controllers\Admin\ContentController::class, 'galleryEdit'])->name('gallery.edit');
-    Route::put('/gallery/{gallery}', [App\Http\Controllers\Admin\ContentController::class, 'galleryUpdate'])->name('gallery.update');
-    Route::delete('/gallery/{gallery}', [App\Http\Controllers\Admin\ContentController::class, 'galleryDestroy'])->name('gallery.destroy');
-    
-    // Testimonials Management
-    Route::get('/testimonials', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsIndex'])->name('testimonials.index');
-    Route::get('/testimonials/create', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsCreate'])->name('testimonials.create');
-    Route::post('/testimonials', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsStore'])->name('testimonials.store');
-    Route::get('/testimonials/{testimonial}/edit', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsEdit'])->name('testimonials.edit');
-    Route::put('/testimonials/{testimonial}', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsUpdate'])->name('testimonials.update');
-    Route::delete('/testimonials/{testimonial}', [App\Http\Controllers\Admin\ContentController::class, 'testimonialsDestroy'])->name('testimonials.destroy');
-    
-    // Videos Management
-    Route::get('/videos', [App\Http\Controllers\Admin\ContentController::class, 'videosIndex'])->name('videos.index');
-    Route::get('/videos/create', [App\Http\Controllers\Admin\ContentController::class, 'videosCreate'])->name('videos.create');
-    Route::post('/videos', [App\Http\Controllers\Admin\ContentController::class, 'videosStore'])->name('videos.store');
-    Route::get('/videos/{video}/edit', [App\Http\Controllers\Admin\ContentController::class, 'videosEdit'])->name('videos.edit');
-    Route::put('/videos/{video}', [App\Http\Controllers\Admin\ContentController::class, 'videosUpdate'])->name('videos.update');
-    Route::delete('/videos/{video}', [App\Http\Controllers\Admin\ContentController::class, 'videosDestroy'])->name('videos.destroy');
-});
+// Content Management Routes - تم حذف إدارة المحتوى بالكامل
 
-// Test PDF route removed - using Word documents only
+// جميع routes العقود التجريبية - تم حذفها
 
-// Test HTML route
-Route::get('/test-html', function () {
-    $contract = (object) [
-        'contract_number' => 'MMS-2025-0001',
-        'department_name' => 'شركة مناسك المشاعر',
-        'department_commercial_register' => '4031275261',
-        'department_address' => 'الرياض - المملكة العربية السعودية',
-        'department_phone' => '+966112345678',
-        'department_email' => 'info@manasik.com',
-        'employee_name' => 'أحمد محمد الأحمد',
-        'employee_national_id' => '1059605210',
-        'employee_nationality' => 'سعودي',
-        'employee_phone' => '0598100274',
-        'employee_address' => 'الرياض - المملكة العربية السعودية',
-        'job_description' => 'موظف خدمات الحج والعمرة',
-        'salary' => 4500,
-        'start_date' => now(),
-        'end_date' => now()->addMonths(3),
-        'working_hours_per_day' => 8,
-        'status' => 'active',
-        'status_text' => 'نشط',
-        'department_signature' => false,
-        'employee_signature' => false,
-        'department_signed_at' => null,
-        'employee_signed_at' => null,
-        'special_terms' => 'يلتزم الموظف بارتداء الزي الموحد أثناء العمل وتطبيق بروتوكولات السلامة.',
-        'department_representative_name' => 'محمد بن سعد المطيري',
-        'department_representative_title' => 'مدير الموارد البشرية',
-    ];
-    
-    return view('contracts.word_template', compact('contract'));
-})->name('test.html');
-
-// Preview Word template in browser
-Route::get('/preview-word', function () {
-    $contract = (object) [
-        'contract_number' => 'MMS-2025-0001',
-        'department_name' => 'شركة مناسك المشاعر',
-        'department_commercial_register' => '4031275261',
-        'department_address' => 'الرياض - المملكة العربية السعودية',
-        'department_phone' => '+966112345678',
-        'department_email' => 'info@manasik.com',
-        'employee_name' => 'أحمد محمد الأحمد',
-        'employee_national_id' => '1059605210',
-        'employee_nationality' => 'سعودي',
-        'employee_phone' => '0598100274',
-        'employee_address' => 'الرياض - المملكة العربية السعودية',
-        'job_description' => 'موظف خدمات الحج والعمرة',
-        'salary' => 4500,
-        'start_date' => now(),
-        'end_date' => now()->addMonths(3),
-        'working_hours_per_day' => 8,
-        'status' => 'active',
-        'status_text' => 'نشط',
-        'department_signature' => true,
-        'employee_signature' => false,
-        'department_signed_at' => now(),
-        'employee_signed_at' => null,
-        'special_terms' => 'يلتزم الموظف بارتداء الزي الموحد أثناء العمل وتطبيق بروتوكولات السلامة.',
-        'department_representative_name' => 'محمد بن سعد المطيري',
-        'department_representative_title' => 'مدير الموارد البشرية',
-    ];
-    
-    return view('contracts.word_template', compact('contract'));
-})->name('preview.word');
-
-// Test GPDF route removed - using Word documents only
-
-// Test Word Document Generation
-Route::get('/test-word', function () {
-    $contract = (object) [
-        'contract_number' => 'MMS-2025-0001',
-        'department' => (object) [
-            'name' => 'شركة مناسك المشاعر',
-            'commercial_register' => '4031275261',
-            'phone' => '+966112345678'
-        ],
-        'employee' => (object) [
-            'name' => 'أحمد محمد السعيد',
-            'profile' => (object) [
-                'national_id' => '1059605210',
-                'nationality' => 'سعودي',
-                'phone' => '0598100274',
-                'address' => 'مكة المكرمة - المملكة العربية السعودية'
-            ]
-        ],
-        'job' => (object) [
-            'title' => 'موظف خدمات الحج والعمرة'
-        ],
-        'salary' => 4500,
-        'start_date' => now(),
-        'end_date' => now()->addMonths(3),
-        'working_hours_per_day' => 8,
-        'working_days_per_week' => 6,
-        'status' => 'نشط',
-        'special_terms' => null,
-        'created_at' => now()
-    ];
-    
-    // إنشاء HTML متوافق مع Word
-    $html = view('contracts.word_template', compact('contract'))->render();
-    
-    // إرجاع الملف كـ Word document
-    $filename = 'contract-' . ($contract->contract_number ?? 'MMS-2025-001') . '.doc';
-    
-    return response($html, 200, [
-        'Content-Type' => 'application/msword',
-        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        'Content-Transfer-Encoding' => 'binary',
-        'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-        'Expires' => '0'
-    ]);
-})->name('test.word');
-
-// Test Word HTML Preview
-Route::get('/test-word-html', function () {
-    $contract = (object) [
-        'contract_number' => 'MMS-2025-0001',
-        'department' => (object) [
-            'name' => 'شركة مناسك المشاعر',
-            'commercial_register' => '4031275261',
-            'phone' => '+966112345678'
-        ],
-        'employee' => (object) [
-            'name' => 'أحمد محمد السعيد',
-            'profile' => (object) [
-                'national_id' => '1059605210',
-                'nationality' => 'سعودي',
-                'phone' => '0598100274',
-                'address' => 'مكة المكرمة - المملكة العربية السعودية'
-            ]
-        ],
-        'job' => (object) [
-            'title' => 'موظف خدمات الحج والعمرة'
-        ],
-        'salary' => 4500,
-        'start_date' => now(),
-        'end_date' => now()->addMonths(3),
-        'working_hours_per_day' => 8,
-        'working_days_per_week' => 6,
-        'status' => 'نشط',
-        'special_terms' => null,
-        'created_at' => now()
-    ];
-    
-    return view('contracts.word_template', compact('contract'));
-})->name('test.word.html');
-
-// Quick test link
-Route::get('/contract-ready', function () {
-    return '<div style="font-family: Arial; padding: 40px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh;">
-        <h1 style="font-size: 3em; margin-bottom: 20px;">🎉 نظام العقود الجديد جاهز!</h1>
-        <h2 style="font-size: 1.5em; margin-bottom: 30px;">تصميم احترافي بألوان متدرجة</h2>
-        
-        <div style="max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px);">
-            <h3 style="margin-bottom: 20px;">روابط التجربة:</h3>
-            <p><a href="/test-html" style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">🔍 معاينة التصميم</a></p>
-            <p><a href="/preview-word" style="background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">📄 معاينة مع توقيع</a></p>
-            <p><a href="/test-word" style="background: linear-gradient(135deg, #00b894 0%, #00a085 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">📥 تحميل Word</a></p>
-            
-            <hr style="margin: 40px 0; border: none; height: 2px; background: rgba(255,255,255,0.3);">
-            
-            <h3 style="margin-bottom: 20px;">المميزات الجديدة:</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
-                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px;">
-                    <h4 style="color: #74b9ff;">🎨 تصميم احترافي</h4>
-                    <p>ألوان متدرجة وتخطيط عصري</p>
-                </div>
-                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px;">
-                    <h4 style="color: #fd79a8;">📄 قالب Word مطور</h4>
-                    <p>قابل للتعديل ومتوافق مع Word</p>
-                </div>
-                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px;">
-                    <h4 style="color: #00b894;">✅ نصوص عربية مثالية</h4>
-                    <p>لا توجد مشاكل في عرض النصوص</p>
-                </div>
-                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px;">
-                    <h4 style="color: #fdcb6e;">🔧 سهولة الاستخدام</h4>
-                    <p>واجهة بسيطة وسهلة التنقل</p>
-                </div>
-            </div>
-        </div>
-    </div>';
-});
-
-// Contract Status and Test Links
-Route::get('/contract-status', function () {
-    return '<div style="font-family: Arial; padding: 40px; text-align: center; background: #f8f9fa;">
-        <h1 style="color: #28a745;">✅ Contract System Status</h1>
-        <div style="max-width: 800px; margin: 0 auto;">
-            <h2 style="color: #007cba;">Active Solution</h2>
-            <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin: 30px 0;">
-                
-                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); min-width: 250px;">
-                    <h3 style="color: #2e86de;">📝 Word Solution</h3>
-                    <p>Perfect Arabic Word documents</p>
-                    <div style="margin: 15px 0;">
-                        <a href="/test-word-html" style="background: #007cba; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; margin: 5px; display: inline-block;">HTML Preview</a>
-                        <a href="/test-word" style="background: #2e86de; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; margin: 5px; display: inline-block;">Download Word</a>
-                    </div>
-                </div>
-            </div>
-            
-            <h2 style="color: #007cba;">Word Solution Features (Recommended)</h2>
-            <ul style="text-align: left; max-width: 600px; margin: 20px auto; font-size: 14px;">
-                <li>✅ Perfect Arabic text rendering</li>
-                <li>✅ Editable by users in Microsoft Word</li>
-                <li>✅ Professional Arabic RTL layout</li>
-                <li>✅ No font or encoding issues</li>
-                <li>✅ Easy signature and printing</li>
-                <li>✅ Word-compatible HTML format</li>
-                <li>✅ Ready for production use</li>
-            </ul>
-            
-            <div style="margin-top: 40px; padding: 20px; background: #e8f5e8; border-radius: 10px; border-left: 5px solid #28a745;">
-                <h3 style="color: #155724;">🎉 Problem Completely Solved!</h3>
-                <p><strong>Word Solution:</strong> Perfect Arabic rendering, fully editable, professional layout</p>
-                <p><strong>PDF Solution:</strong> Mixed template with proper Arabic support</p>
-                <p><strong>Result:</strong> No more reversed text, perfect formatting, ready for production!</p>
-            </div>
-        </div>
-    </div>';
-})->name('contract.status');
-
-// Word contract download for actual contracts
-Route::get('/contracts/{contract}/download-word', [App\Http\Controllers\ContractController::class, 'downloadWordContract'])
-    ->name('contracts.download.word')
-    ->middleware('auth');
+// Word contract download for actual contracts - تم حذف نظام العقود
 
 // Routes للملفات من قاعدة البيانات فقط - لا file storage
 Route::get('/profile/file/{type}/{userId}', [App\Http\Controllers\FileController::class, 'viewFile'])
@@ -621,27 +256,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 });
 
 // ================================================
-// مسارات طلبات مكة المفتوحة (بدون تسجيل دخول)
+// مسارات طلبات مكة المفتوحة - تم حذفها
 // ================================================
-
-Route::prefix('mecca')->name('mecca.')->group(function () {
-    // عرض نموذج التقديم لوظيفة معينة
-    Route::get('/jobs/{job}/apply', [App\Http\Controllers\MeccaApplicationController::class, 'showApplicationForm'])
-        ->name('apply');
-    
-    // تقديم الطلب
-    Route::post('/jobs/{job}/submit', [App\Http\Controllers\MeccaApplicationController::class, 'submitApplication'])
-        ->name('submit');
-    
-    // صفحة تتبع الطلبات
-    Route::get('/track', [App\Http\Controllers\MeccaApplicationController::class, 'trackApplication'])
-        ->name('track');
-    
-    // تتبع طلب معين
-    Route::get('/track/{referenceNumber}', [App\Http\Controllers\MeccaApplicationController::class, 'trackApplication'])
-        ->name('track.show');
-    
-    // البحث في الطلبات (POST)
-    Route::post('/track', [App\Http\Controllers\MeccaApplicationController::class, 'trackApplication'])
-        ->name('track.search');
-});

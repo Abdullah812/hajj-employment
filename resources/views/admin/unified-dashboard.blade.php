@@ -64,12 +64,7 @@
                 <span class="badge bg-warning ms-auto">{{ $stats['total_applications'] ?? 0 }}</span>
             </button>
             
-            <!-- العقود -->
-            <button class="sidebar-item" data-section="contracts" type="button">
-                <i class="fas fa-file-contract me-2"></i>
-                <span>العقود</span>
-                <span class="badge bg-info ms-auto">{{ $stats['total_contracts'] ?? 0 }}</span>
-            </button>
+            <!-- العقود - تم حذف النظام -->
             
             <!-- التقارير -->
             <button class="sidebar-item" data-section="reports" type="button">
@@ -221,29 +216,7 @@
             </div>
         </div>
         
-        <!-- قسم العقود -->
-        <div class="content-section" id="contracts-section">
-            <div class="section-header">
-                <h3>
-                    <i class="fas fa-file-contract me-2 text-info"></i>
-                    إدارة العقود
-                </h3>
-                <div class="filter-buttons">
-                    <button class="btn btn-outline-info btn-sm" data-filter="all">جميع العقود</button>
-                    <button class="btn btn-outline-secondary btn-sm" data-filter="draft">مسودة</button>
-                    <button class="btn btn-outline-warning btn-sm" data-filter="sent">مرسلة</button>
-                    <button class="btn btn-outline-success btn-sm" data-filter="signed">موقعة</button>
-                    <button class="btn btn-outline-primary btn-sm" data-filter="active">نشطة</button>
-                </div>
-            </div>
-            
-            <div class="contracts-content">
-                <div class="loading-placeholder">
-                    <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
-                    <p class="mt-2">جاري تحميل العقود...</p>
-                </div>
-            </div>
-        </div>
+        <!-- قسم العقود - تم حذف النظام -->
         
         <!-- قسم التقارير -->
         <div class="content-section" id="reports-section">
@@ -663,22 +636,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
-    window.loadContractsContent = function() {
-        const container = document.querySelector('#contracts-section .contracts-content');
-        fetch('/admin/api/contracts')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    container.innerHTML = buildContractsTable(data.data);
-                } else {
-                    container.innerHTML = '<div class="alert alert-warning">لا توجد عقود</div>';
-                }
-            })
-            .catch(error => {
-                console.error('خطأ في تحميل العقود:', error);
-                container.innerHTML = '<div class="alert alert-danger">حدث خطأ في تحميل البيانات</div>';
-            });
-    }
+    // window.loadContractsContent - تم حذف نظام العقود
     
     window.loadReportsContent = function() {
         const container = document.querySelector('#reports-section .reports-content');
@@ -749,9 +707,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     case 'applications':
                         loadApplicationsContent();
                         break;
-                    case 'contracts':
-                        loadContractsContent();
-                        break;
+                    // case 'contracts' - تم حذف نظام العقود
                     case 'reports':
                         loadReportsContent();
                         break;
@@ -917,75 +873,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return html;
     }
     
-    function buildContractsTable(data) {
-        if (!data || data.length === 0) {
-            return '<div class="alert alert-info">لا توجد عقود</div>';
-        }
-        
-        let html = '<div class="table-responsive"><table class="table table-hover"><thead class="table-light"><tr><th>رقم العقد</th><th>اسم الموظف</th><th>القسم</th><th>الراتب</th><th>تاريخ البداية</th><th>تاريخ النهاية</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>';
-        
-        data.forEach(contract => {
-            const statusBadge = getContractStatusBadge(contract.status);
-            html += `
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-file-contract me-2 text-info"></i>
-                            <strong>${contract.contract_number}</strong>
-                        </div>
-                    </td>
-                    <td>
-                        <div>
-                            <strong>${contract.employee_name}</strong>
-                            <br><small class="text-muted">${contract.employee?.email || 'غير محدد'}</small>
-                        </div>
-                    </td>
-                    <td>
-                        <div>
-                            <strong>${contract.department_name}</strong>
-                            <br><small class="text-muted">${contract.department?.email || 'غير محدد'}</small>
-                        </div>
-                    </td>
-                    <td>
-                        <strong class="text-success">${formatSalary(contract.salary)}</strong>
-                    </td>
-                    <td>
-                        <span class="text-muted">${formatDate(contract.start_date)}</span>
-                    </td>
-                    <td>
-                        <span class="text-muted">${formatDate(contract.end_date)}</span>
-                    </td>
-                    <td>
-                        ${statusBadge}
-                    </td>
-                    <td>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary" onclick="viewContract(${contract.id})" title="عرض التفاصيل">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                                                            <!-- PDF button removed - using Word only -->
-                            <button class="btn btn-outline-primary" onclick="downloadWordContract(${contract.id})" title="تحميل Word">
-                                <i class="fas fa-file-word"></i>
-                            </button>
-                            ${contract.status === 'draft' ? `
-                                <button class="btn btn-outline-info" onclick="sendContractToEmployee(${contract.id})" title="إرسال للموظف">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                            ` : ''}
-                            ${contract.status === 'signed' ? `
-                                <button class="btn btn-outline-warning" onclick="activateContract(${contract.id})" title="تفعيل العقد">
-                                    <i class="fas fa-play"></i>
-                                </button>
-                            ` : ''}
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
-        
-        html += '</tbody></table></div>';
-        return html;
-    }
+    // function buildContractsTable - تم حذف نظام العقود
 
     function buildDashboardContent(data) {
         const stats = data.stats;
@@ -1456,21 +1344,7 @@ window.deleteUser = function(userId) {
     }
 };
 
-// دوال مساعدة للعقود
-function getContractStatusBadge(status) {
-    const statuses = {
-        'draft': { text: 'مسودة', class: 'bg-secondary' },
-        'sent': { text: 'مرسلة', class: 'bg-info' },
-        'reviewed': { text: 'تم الاطلاع', class: 'bg-warning' },
-        'signed': { text: 'موقعة', class: 'bg-success' },
-        'active': { text: 'نشطة', class: 'bg-primary' },
-        'completed': { text: 'مكتملة', class: 'bg-success' },
-        'cancelled': { text: 'ملغاة', class: 'bg-danger' }
-    };
-    
-    const statusInfo = statuses[status] || { text: status, class: 'bg-secondary' };
-    return `<span class="badge ${statusInfo.class}">${statusInfo.text}</span>`;
-}
+// دوال مساعدة للعقود - تم حذف النظام
 
 function formatSalary(salary) {
     return new Intl.NumberFormat('ar-SA', { 
@@ -1485,82 +1359,9 @@ function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString('ar-SA');
 }
 
-// دوال إجراءات العقود
-function viewContract(contractId) {
-    window.open(`/contracts/${contractId}`, '_blank');
-}
+// دوال إجراءات العقود - تم حذف النظام
 
-// PDF download function removed - using Word only
-
-function downloadWordContract(contractId) {
-    window.open(`/contracts/${contractId}/download-word`, '_blank');
-}
-
-function sendContractToEmployee(contractId) {
-    if (confirm('هل أنت متأكد من إرسال العقد للموظف؟')) {
-        fetch(`/contracts/${contractId}/send`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('تم إرسال العقد للموظف بنجاح');
-                loadContractsContent();
-            } else {
-                alert('حدث خطأ: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('خطأ:', error);
-            alert('حدث خطأ في العملية');
-        });
-    }
-}
-
-function activateContract(contractId) {
-    if (confirm('هل أنت متأكد من تفعيل هذا العقد؟')) {
-        fetch(`/contracts/${contractId}/status`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({ status: 'active' })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('تم تفعيل العقد بنجاح');
-                loadContractsContent();
-            } else {
-                alert('حدث خطأ: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('خطأ:', error);
-            alert('حدث خطأ في العملية');
-        });
-    }
-}
-
-function getContractStatusBadge(status) {
-    const statuses = {
-        'draft': { text: 'مسودة', class: 'bg-secondary' },
-        'sent': { text: 'مرسلة', class: 'bg-info' },
-        'reviewed': { text: 'تم الاطلاع', class: 'bg-warning' },
-        'signed': { text: 'موقعة', class: 'bg-success' },
-        'active': { text: 'نشطة', class: 'bg-primary' },
-        'completed': { text: 'مكتملة', class: 'bg-success' },
-        'cancelled': { text: 'ملغاة', class: 'bg-danger' }
-    };
-    
-    const statusInfo = statuses[status] || { text: status, class: 'bg-secondary' };
-    return `<span class="badge ${statusInfo.class}">${statusInfo.text}</span>`;
-}
+// function getContractStatusBadge - تم حذف النظام
 
 function formatSalary(salary) {
     return new Intl.NumberFormat('ar-SA', { 

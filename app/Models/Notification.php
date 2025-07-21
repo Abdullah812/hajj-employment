@@ -46,7 +46,7 @@ class Notification extends Model
         $icons = [
             'application_status' => 'fa-paper-plane',
             'new_job' => 'fa-briefcase',
-            'contract_signed' => 'fa-file-signature',
+            // 'contract_signed' => 'fa-file-signature', - تم حذف نظام العقود
             'message' => 'fa-comment',
             'system' => 'fa-cog',
             'warning' => 'fa-exclamation-triangle',

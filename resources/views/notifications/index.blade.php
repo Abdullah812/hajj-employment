@@ -35,10 +35,10 @@
                                 <option value="">جميع الأنواع</option>
                                 <option value="application_status">حالة الطلبات</option>
                                 <option value="new_job">وظائف جديدة</option>
-                                <option value="contract_signed">توقيع العقود</option>
+                                <!-- <option value="contract_signed">توقيع العقود</option> - تم حذف نظام العقود -->
                                 <option value="message">رسائل</option>
                                 <option value="system">النظام</option>
-                                <option value="department">الأقسام فقط</option>
+                                <!-- <option value="department">الأقسام فقط</option> - تم حذف نظام الأقسام -->
                             </select>
                         </div>
                         <div class="col-md-4">

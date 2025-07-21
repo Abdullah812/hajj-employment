@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('type'); // application_status, new_job, contract_signed, etc.
+            $table->string('type'); // application_status, new_job, message, system, etc.
             $table->string('title');
             $table->text('message');
             $table->json('data')->nullable(); // بيانات إضافية مثل ID الطلب أو الوظيفة

@@ -19,8 +19,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolesAndPermissionsSeeder::class,
             AdminUserSeeder::class,
-            HajjJobsSeeder::class,
-            MeccaJobsSeeder::class,
+            // HajjJobsSeeder::class, - تم حذف نظام الوظائف
+            // MeccaJobsSeeder::class, - تم حذف نظام طلبات مكة
         ]);
     }
 }

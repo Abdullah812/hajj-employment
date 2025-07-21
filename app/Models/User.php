@@ -57,41 +57,13 @@ class User extends Authenticatable
         return $this->hasOne(UserProfile::class);
     }
     
-    public function jobs()
-    {
-        return $this->hasMany(HajjJob::class, 'department_id');
-    }
-    
-    public function applications()
-    {
-        return $this->hasMany(JobApplication::class);
-    }
+    // public function jobs() - تم حذف نظام الوظائف
+    // public function applications() - تم حذف نظام الطلبات
 
-    public function employeeContracts()
-    {
-        return $this->hasMany(Contract::class, 'employee_id');
-    }
+    // public function employeeContracts() - تم حذف نظام العقود
+    // public function departmentContracts() - تم حذف نظام العقود
 
-    public function departmentContracts()
-    {
-        return $this->hasMany(Contract::class, 'department_id');
-    }
-
-    /**
-     * علاقة مع القسم (إذا كان المستخدم قسم)
-     */
-    public function department()
-    {
-        return $this->belongsTo(Department::class);
-    }
-
-    /**
-     * علاقة مع القسم الذي يديره المستخدم
-     */
-    public function managedDepartment()
-    {
-        return $this->hasOne(Department::class, 'manager_id');
-    }
+    // علاقات الأقسام - تم حذف النظام
 
     /**
      * علاقة الإشعارات

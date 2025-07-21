@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\HajjJob;
-use App\Models\JobApplication;
+// use App\Models\HajjJob; - تم حذف نظام الوظائف
+// use App\Models\JobApplication; - تم حذف نظام الطلبات
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,45 +23,16 @@ class EmployeeController extends Controller
     {
         $user = Auth::user();
         
-        // إحصائيات الموظف
-        $totalJobs = HajjJob::where('status', 'active')->count();
-        $myApplications = JobApplication::where('user_id', $user->id)->count();
-        $pendingApplications = JobApplication::where('user_id', $user->id)->where('status', 'pending')->count();
-        $approvedApplications = JobApplication::where('user_id', $user->id)->where('status', 'approved')->count();
-        
+        // إحصائيات بسيطة للموظف
         $stats = [
-            'total_jobs' => $totalJobs,
-            'my_applications' => $myApplications,
-            'pending_applications' => $pendingApplications,
-            'approved_applications' => $approvedApplications,
-            // المفاتيح الإضافية للاستخدام في views أخرى
-            'total' => $myApplications,
-            'pending' => $pendingApplications,
-            'approved' => $approvedApplications,
-            'rejected' => JobApplication::where('user_id', $user->id)->where('status', 'rejected')->count(),
+            'total_users' => \App\Models\User::count(),
+            'user_profile_complete' => $user->profile ? 1 : 0,
         ];
         
-        // الطلبات الحديثة
-        $recentApplications = JobApplication::where('user_id', $user->id)
-            ->with(['job', 'job.department'])
-            ->latest()
-            ->take(5)
-            ->get();
-            
-        // طلباتي (نفس المحتوى مع اسم مختلف للview)
-        $my_applications = $recentApplications;
-            
-        // الوظائف المقترحة (حسب المهارات - سنضيف هذا لاحقاً)
-        $suggestedJobs = HajjJob::where('status', 'active')
-            ->where('application_deadline', '>', now())
-            ->whereDoesntHave('applications', function($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })
-            ->with('department')
-            ->withCount('applications')
-            ->latest()
-            ->take(6)
-            ->get();
+                // لا توجد طلبات أو وظائف - تم حذف الأنظمة
+        $recentApplications = collect();
+        $my_applications = collect();
+                $suggestedJobs = collect();
             
         // الوظائف الحديثة (نفس المحتوى مع اسم مختلف للview)
         $recent_jobs = $suggestedJobs;
@@ -279,103 +250,13 @@ class EmployeeController extends Controller
         return redirect()->route('employee.profile')->with('error', 'لم يتم اختيار ملف');
     }
     
-    // إدارة طلبات التوظيف
-    public function applications()
-    {
-        $user = Auth::user();
-        
-        // إحصائيات الطلبات
-        $stats = [
-            'total' => JobApplication::where('user_id', $user->id)->count(),
-            'pending' => JobApplication::where('user_id', $user->id)->where('status', 'pending')->count(),
-            'approved' => JobApplication::where('user_id', $user->id)->where('status', 'approved')->count(),
-            'rejected' => JobApplication::where('user_id', $user->id)->where('status', 'rejected')->count(),
-        ];
-        
-        // قائمة الطلبات
-        $applications = JobApplication::where('user_id', $user->id)
-            ->with(['job', 'job.department'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-            
-        return view('employee.applications', compact('stats', 'applications'));
-    }
+    // إدارة طلبات التوظيف - تم حذف النظام
     
-    public function applyForJob(Request $request, HajjJob $job)
-    {
-        $user = Auth::user();
-
-        // التحقق من حالة الموافقة على الحساب
-        if (!$user->isApproved()) {
-            return redirect()->back()->with('error', 'عذراً، يجب أن يتم اعتماد حسابك من قبل المدير قبل التقديم على الوظائف');
-        }
-        
-        // التحقق من أن الوظيفة متاحة
-        if ($job->status !== 'active') {
-            return redirect()->back()->with('error', 'هذه الوظيفة غير متاحة حالياً');
-        }
-        
-        // التحقق من انتهاء موعد التقديم
-        if ($job->application_deadline < now()) {
-            return redirect()->back()->with('error', 'انتهى موعد التقديم لهذه الوظيفة');
-        }
-        
-        // التحقق من عدم التقديم المسبق
-        $existingApplication = JobApplication::where('user_id', $user->id)
-            ->where('job_id', $job->id)
-            ->first();
-            
-        if ($existingApplication) {
-            return redirect()->back()->with('error', 'لقد قمت بالتقديم على هذه الوظيفة من قبل');
-        }
-        
-        // التحقق من الحد الأقصى للمتقدمين
-        if ($job->max_applicants && $job->applications()->count() >= $job->max_applicants) {
-            return redirect()->back()->with('error', 'تم الوصول للحد الأقصى من المتقدمين لهذه الوظيفة');
-        }
-        
-        $request->validate([
-            'cover_letter' => 'nullable|string|max:1000',
-        ]);
-        
-        $application = JobApplication::create([
-            'user_id' => $user->id,
-            'job_id' => $job->id,
-            'cover_letter' => $request->cover_letter,
-            'status' => 'pending'
-        ]);
-        
-        // إرسال إشعار للقسم
-        $this->notificationService->notifyDepartmentAboutNewApplication($application);
-        
-        return redirect()->route('employee.applications')->with('success', 'تم تقديم طلبك بنجاح');
-    }
+    // تم حذف نظام طلبات التوظيف بالكامل
     
-    public function cancelApplication(JobApplication $application)
-    {
-        // التأكد من أن الطلب يخص المستخدم المسجل
-        if ($application->user_id !== Auth::id()) {
-            abort(403);
-        }
-        
-        // التأكد من أن الطلب لا يزال معلقاً
-        if ($application->status !== 'pending') {
-            return redirect()->back()->with('error', 'لا يمكن إلغاء هذا الطلب');
-        }
-        
-        $application->delete();
-        
-        return redirect()->back()->with('success', 'تم إلغاء الطلب بنجاح');
-    }
+    // تم حذف methods إلغاء الطلبات
     
-    public function showApplication(JobApplication $application)
-    {
-        if ($application->user_id !== Auth::id()) {
-            abort(403);
-        }
-        
-        return view('employee.applications.show', compact('application'));
-    }
+    // تم حذف methods عرض الطلبات
 
     /**
      * عرض ملف من قاعدة البيانات

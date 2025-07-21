@@ -4,9 +4,9 @@ namespace App\Services;
 
 use App\Models\Notification;
 use App\Models\User;
-use App\Models\JobApplication;
-use App\Models\HajjJob;
-use App\Models\Contract;
+// use App\Models\JobApplication; - تم حذف نظام الطلبات
+// use App\Models\HajjJob; - تم حذف نظام الوظائف
+// use App\Models\Contract; - تم حذف نظام العقود
 use Illuminate\Support\Facades\Mail;
 
 class NotificationService
@@ -38,101 +38,12 @@ class NotificationService
     /**
      * إشعار تغيير حالة الطلب
      */
-    public function notifyApplicationStatusChange(JobApplication $application)
-    {
-        $status = $application->status;
-        $user = $application->user;
-        $job = $application->job;
-
-        $statusMessages = [
-            'pending' => 'تم استلام طلبك وهو قيد المراجعة',
-            'approved' => 'تهانينا! تم قبول طلبك للوظيفة',
-            'rejected' => 'نأسف، لم يتم قبول طلبك في هذه المرة',
-        ];
-
-        $colors = [
-            'pending' => 'warning',
-            'approved' => 'success',
-            'rejected' => 'danger',
-        ];
-
-        $title = "تحديث حالة طلبك";
-        $message = $statusMessages[$status] . " - " . $job->title;
-        $actionUrl = route('employee.applications');
-
-        $this->createNotification(
-            $user->id,
-            'application_status',
-            $title,
-            $message,
-            [
-                'application_id' => $application->id,
-                'job_id' => $job->id,
-                'status' => $status
-            ],
-            $actionUrl
-        );
-
-        // إشعار القسم أيضاً
-        if ($status === 'pending') {
-            $this->notifyDepartmentNewApplication($application);
-        }
-    }
-
-    /**
-     * إشعار القسم بطلب جديد
-     */
-    public function notifyDepartmentNewApplication(JobApplication $application)
-    {
-        $department = $application->job->department;
-        if (!$department) return;
-
-        $title = "طلب توظيف جديد";
-        $message = "تقدم " . $application->user->name . " لوظيفة " . $application->job->title;
-        $actionUrl = route('department.applications.index');
-
-        // التحقق من وجود مدير للقسم
-        if ($department->manager_id) {
-            $this->createNotification(
-                $department->manager_id,
-                'new_application',
-                $title,
-                $message,
-                [
-                    'application_id' => $application->id,
-                    'job_id' => $application->job->id,
-                    'employee_name' => $application->user->name
-                ],
-                $actionUrl
-            );
-        } else {
-            // إذا لم يكن هناك مدير محدد، إرسال إشعار لجميع المدراء
-            $admins = User::role('admin')->get();
-            foreach ($admins as $admin) {
-                $this->createNotification(
-                    $admin->id,
-                    'new_application',
-                    $title,
-                    $message . " (قسم: " . $department->name . ")",
-                    [
-                        'application_id' => $application->id,
-                        'job_id' => $application->job->id,
-                        'employee_name' => $application->user->name,
-                        'department_name' => $department->name
-                    ],
-                    $actionUrl
-                );
-            }
-        }
-    }
+    // تم حذف methods إشعارات الطلبات والأقسام
 
     /**
      * إشعار القسم بطلب توظيف جديد (Alias method)
      */
-    public function notifyDepartmentAboutNewApplication(JobApplication $application)
-    {
-        return $this->notifyDepartmentNewApplication($application);
-    }
+    // تم حذف methods إشعار الأقسام عن الطلبات
 
     /**
      * إشعار الإدارة بنشاط جديد
@@ -154,32 +65,7 @@ class NotificationService
         }
     }
 
-    /**
-     * إشعار بوظيفة جديدة
-     */
-    public function notifyNewJob(HajjJob $job)
-    {
-        $employees = User::role('employee')->get();
-        
-        foreach ($employees as $employee) {
-            $title = "وظيفة جديدة متاحة";
-            $message = "تم نشر وظيفة جديدة: " . $job->title . " من قسم " . $job->department->name;
-            $actionUrl = route('jobs.show', $job->id);
-
-            $this->createNotification(
-                $employee->id,
-                'new_job',
-                $title,
-                $message,
-                [
-                    'job_id' => $job->id,
-                    'department_name' => $job->department->name
-                ],
-                $actionUrl,
-                false // عدم إرسال إيميل لجميع الموظفين
-            );
-        }
-    }
+    // تم حذف methods إشعار الوظائف الجديدة
 
     /**
      * إشعار توقيع العقد
@@ -201,7 +87,7 @@ class NotificationService
         if ($recipient) {
             $this->createNotification(
                 $recipient->id,
-                'contract_signed',
+                // 'contract_signed', - تم حذف نظام العقود
                 $title,
                 $message,
                 [
@@ -276,7 +162,7 @@ class NotificationService
         $icons = [
             'application_status' => 'paper-plane',
             'new_job' => 'briefcase',
-            'contract_signed' => 'file-signature',
+            // 'contract_signed' => 'file-signature', - تم حذف نظام العقود
             'message' => 'comment',
             'system' => 'cog',
             'warning' => 'exclamation-triangle',
@@ -293,7 +179,7 @@ class NotificationService
         $colors = [
             'application_status' => 'primary',
             'new_job' => 'success',
-            'contract_signed' => 'info',
+            // 'contract_signed' => 'info', - تم حذف نظام العقود
             'message' => 'primary',
             'system' => 'secondary',
             'warning' => 'warning',

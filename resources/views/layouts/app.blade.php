@@ -529,10 +529,7 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('employee.dashboard') }}">لوحة التحكم</a>
                             </li>
-                        @elseif(auth()->user()->hasRole('department'))
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('department.dashboard') }}">لوحة التحكم</a>
-                            </li>
+                                            {{-- تم حذف navigation للأقسام --}}
                         @elseif(auth()->user()->hasRole('admin'))
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('admin.dashboard') }}">لوحة الإدارة</a>
@@ -574,17 +571,11 @@
                             <ul class="dropdown-menu">
                                 @if(auth()->user()->hasRole('employee'))
                                     <li><a class="dropdown-item" href="{{ route('employee.profile') }}">الملف الشخصي</a></li>
-                                    <li><a class="dropdown-item" href="{{ route('contracts.index') }}">
-                                        <i class="fas fa-file-contract me-2"></i>عقودي
-                                    </a></li>
+                                    <!-- <li>عقودي - تم حذف نظام العقود</li> -->
                                 @elseif(auth()->user()->hasRole('department'))
-                                    <li><a class="dropdown-item" href="{{ route('contracts.index') }}">
-                                        <i class="fas fa-file-contract me-2"></i>العقود
-                                    </a></li>
+                                    <!-- <li>العقود - تم حذف نظام العقود</li> -->
                                 @elseif(auth()->user()->hasRole('admin'))
-                                    <li><a class="dropdown-item" href="{{ route('contracts.index') }}">
-                                        <i class="fas fa-file-contract me-2"></i>إدارة العقود
-                                    </a></li>
+                                    <!-- <li>إدارة العقود - تم حذف نظام العقود</li> -->
                                 @endif
                                 <li><hr class="dropdown-divider"></li>
                                 <li>

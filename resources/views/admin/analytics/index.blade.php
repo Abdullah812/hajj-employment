@@ -125,24 +125,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm bg-gradient bg-info text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-handshake fa-2x opacity-75"></i>
-                        </div>
-                        <div class="flex-grow-1 ms-3 text-end">
-                            <h6 class="mb-0 opacity-75">العقود الموقعة</h6>
-                            <h2 class="mb-0 fw-bold">{{ number_format($stats['signed_contracts']) }}</h2>
-                            <small class="opacity-75">
-                                من أصل {{ $stats['total_contracts'] }} عقد
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- العقود الموقعة - تم حذف النظام -->
     </div>
 
     <!-- Charts Row -->
