@@ -220,7 +220,7 @@ class AuthController extends Controller
             if ($user->hasRole('employee')) {
                 return redirect('/employee/dashboard')->with('success', 'تم التسجيل بنجاح! سيتم مراجعة حسابك من قبل الإدارة قبل أن تتمكن من التقديم على الوظائف.');
             // } elseif ($user->hasRole('department')) { - تم حذف نظام الأقسام
-                return redirect('/department/dashboard')->with('success', 'تم التسجيل بنجاح! سيتم مراجعة حسابك من قبل الإدارة قبل أن تتمكن من إضافة الوظائف.');
+                // return redirect('/department/dashboard')->with('success', 'تم التسجيل بنجاح! سيتم مراجعة حسابك من قبل الإدارة قبل أن تتمكن من إضافة الوظائف.'); - تم حذف النظام
             }
 
             return redirect('/dashboard')->with('success', 'تم التسجيل بنجاح! سيتم مراجعة حسابك من قبل الإدارة.');
